@@ -1,25 +1,15 @@
 package com.jorgemonteiro.homeapp
 
+import com.jorgemonteiro.home_app.HomeApplication
+import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import org.springframework.boot.test.context.SpringBootTest
-import spock.lang.Specification
 
-@SpringBootTest
-class HomeAppApplicationSpec extends Specification {
+@SpringBootTest(classes = HomeApplication.class)
+class HomeAppApplicationSpec extends BaseIntegrationTest {
 
     def "application context loads"() {
         expect: "the application context loads successfully"
             true
     }
 
-    def "basic arithmetic works"() {
-        given: "two numbers"
-            def a = 2
-            def b = 3
-
-        when: "we add them"
-            def result = a + b
-
-        then: "the result is correct"
-            result == 5
-    }
 }

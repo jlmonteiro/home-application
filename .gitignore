@@ -71,7 +71,6 @@ temp/
 *.temp
 *.swp
 *.swo
-*~
 
 # Coverage reports
 coverage/

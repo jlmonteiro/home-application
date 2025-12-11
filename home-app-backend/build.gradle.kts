@@ -3,6 +3,7 @@ plugins {
 	groovy
 	alias(libs.plugins.spring.boot)
 	alias(libs.plugins.spring.dependency.management)
+	jacoco
 }
 
 group = "com.jorgemonteiro"
@@ -40,4 +41,21 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+	finalizedBy(tasks.jacocoTestReport)
+}
+
+tasks.jacocoTestReport {
+	dependsOn(tasks.test)
+	reports {
+		xml.required = true
+		html.required = true
+	}
+	classDirectories.setFrom(
+		files(classDirectories.files.map {
+			fileTree(it) {
+				exclude("**/exception/**")
+				exclude("**/HomeApplication.class")
+			}
+		})
+	)
 }
