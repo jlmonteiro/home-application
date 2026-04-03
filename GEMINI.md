@@ -1,10 +1,10 @@
-# Claude Code Mandates
+# Gemini CLI Mandates
 
-This file provides guidance to Claude Code (claude.ai/code) for this repository. 
+This project uses `DEVELOPMENT.md` as the primary source of truth for architectural guidelines, coding standards, and operational commands.
 
 **Mandate:** Always adhere to the core practices defined in [DEVELOPMENT.md](DEVELOPMENT.md) and the project's modular rules in [.kiro/rules/](.kiro/rules/).
 
-## Essential Commands
+## Key Commands
 
 - **Build:** `./gradlew build`
 - **Run:** `./gradlew :home-app-backend:bootRun`
