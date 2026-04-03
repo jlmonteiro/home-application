@@ -21,6 +21,7 @@ public class UserProfileAdapter {
         if (user == null) return null;
 
         UserProfileDTO dto = new UserProfileDTO();
+        dto.setId(user.getId());
         dto.setEmail(user.getEmail());
         dto.setFirstName(user.getFirstName());
         dto.setLastName(user.getLastName());
@@ -47,6 +48,7 @@ public class UserProfileAdapter {
         if (dto == null) return null;
 
         User user = new User();
+        user.setId(dto.getId());
         user.setEmail(dto.getEmail());
         user.setFirstName(dto.getFirstName());
         user.setLastName(dto.getLastName());

@@ -11,6 +11,9 @@ import lombok.Data;
 @Data
 public class UserProfileDTO {
 
+    /** The database-generated surrogate primary key. */
+    private Long id;
+
     /** The user's unique email address. Required and must be a valid email format. */
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")

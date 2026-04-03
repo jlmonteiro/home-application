@@ -20,31 +20,31 @@ public class UserProfileController {
     private final UserProfileService userProfileService;
 
     /**
-     * Returns the profile for the user identified by the given email address.
+     * Returns the profile for the user identified by the given database ID.
      *
-     * @param email the user's email address
+     * @param id the user's surrogate ID
      * @return 200 with the profile DTO, or 404 if no user is found
      */
-    @GetMapping("/{email}")
-    public ResponseEntity<UserProfileDTO> getUserProfile(@PathVariable String email) {
-        return userProfileService.getUserProfile(email)
+    @GetMapping("/{id}")
+    public ResponseEntity<UserProfileDTO> getUserProfile(@PathVariable Long id) {
+        return userProfileService.getUserProfile(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     /**
-     * Updates the profile for the user identified by the given email address.
+     * Updates the profile for the user identified by the given database ID.
      *
-     * @param email          the user's email address (path variable, applied to the DTO)
+     * @param id             the user's surrogate ID (path variable, applied to the DTO)
      * @param userProfileDTO the updated profile data; must pass validation constraints
      * @return 200 with the updated profile DTO
      */
-    @PutMapping("/{email}")
+    @PutMapping("/{id}")
     public ResponseEntity<UserProfileDTO> updateUserProfile(
-            @PathVariable String email,
+            @PathVariable Long id,
             @RequestBody @Valid UserProfileDTO userProfileDTO) {
 
-        userProfileDTO.setEmail(email);
+        userProfileDTO.setId(id);
         UserProfileDTO updated = userProfileService.updateUserProfile(userProfileDTO);
 
         return ResponseEntity.ok(updated);

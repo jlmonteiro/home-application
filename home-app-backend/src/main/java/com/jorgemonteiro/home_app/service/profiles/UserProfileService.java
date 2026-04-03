@@ -28,6 +28,17 @@ public class UserProfileService {
     private final UserRepository userRepository;
 
     /**
+     * Returns the profile DTO for the user with the given database ID.
+     *
+     * @param id the user's surrogate ID
+     * @return an {@link Optional} containing the profile DTO, or empty if no user is found
+     */
+    @Transactional(readOnly = true)
+    public Optional<UserProfileDTO> getUserProfile(Long id) {
+        return userRepository.findById(id).map(UserProfileAdapter::toDTO);
+    }
+
+    /**
      * Returns the profile DTO for the user with the given email address.
      *
      * @param email the user's email address
@@ -41,14 +52,22 @@ public class UserProfileService {
     /**
      * Updates the user and profile fields from the given DTO.
      * If the user does not yet have an associated profile, a new one is created.
+     * The user is identified by the {@code id} field in the DTO if present,
+     * otherwise the {@code email} field is used.
      *
      * @param dto the validated DTO containing the fields to update
      * @return the updated profile as a DTO
-     * @throws ObjectNotFoundException if no user exists with the email in the DTO
+     * @throws ObjectNotFoundException if no user exists with the identifier in the DTO
      */
     public UserProfileDTO updateUserProfile(@Valid UserProfileDTO dto) {
-        User existingUser = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new ObjectNotFoundException("User not found"));
+        User existingUser;
+        if (dto.getId() != null) {
+            existingUser = userRepository.findById(dto.getId())
+                    .orElseThrow(() -> new ObjectNotFoundException("User not found with ID: " + dto.getId()));
+        } else {
+            existingUser = userRepository.findByEmail(dto.getEmail())
+                    .orElseThrow(() -> new ObjectNotFoundException("User not found with email: " + dto.getEmail()));
+        }
 
         existingUser.setFirstName(dto.getFirstName());
         existingUser.setLastName(dto.getLastName());
