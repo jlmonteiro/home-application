@@ -4,8 +4,19 @@ import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile;
 
+/**
+ * Static adapter class that converts between {@link User}/{@link UserProfile} entities
+ * and {@link UserProfileDTO}.
+ * Entities must never be exposed directly in API responses — always convert via this adapter.
+ */
 public class UserProfileAdapter {
 
+    /**
+     * Converts a {@link User} entity (and its associated profile if present) into a {@link UserProfileDTO}.
+     *
+     * @param user the user entity to convert; returns {@code null} if {@code user} is {@code null}
+     * @return a populated DTO, with profile fields left {@code null} if no profile is attached
+     */
     public static UserProfileDTO toDTO(User user) {
         if (user == null) return null;
 
@@ -26,6 +37,12 @@ public class UserProfileAdapter {
         return dto;
     }
 
+    /**
+     * Converts a {@link UserProfileDTO} into a new {@link User} entity with an attached {@link UserProfile}.
+     *
+     * @param dto the DTO to convert; returns {@code null} if {@code dto} is {@code null}
+     * @return a new, unpersisted {@link User} entity
+     */
     public static User toEntity(UserProfileDTO dto) {
         if (dto == null) return null;
 
@@ -39,6 +56,13 @@ public class UserProfileAdapter {
         return user;
     }
 
+    /**
+     * Creates a new {@link UserProfile} entity from a {@link UserProfileDTO} and its owning {@link User}.
+     *
+     * @param dto  the DTO containing profile data; returns {@code null} if {@code dto} or {@code user} is {@code null}
+     * @param user the owning user entity
+     * @return a new, unpersisted {@link UserProfile} entity
+     */
     public static UserProfile toUserProfileEntity(UserProfileDTO dto, User user) {
         if (dto == null || user == null) return null;
 

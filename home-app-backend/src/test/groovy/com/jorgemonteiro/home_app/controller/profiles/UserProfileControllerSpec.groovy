@@ -10,11 +10,19 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.transaction.annotation.Transactional
+import spock.lang.Narrative
+import spock.lang.Title
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
+@Title("UserProfileController")
+@Narrative("""
+As a client of the API
+I want to retrieve and update user profiles via REST endpoints
+So that profile data can be read and modified over HTTP
+""")
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional

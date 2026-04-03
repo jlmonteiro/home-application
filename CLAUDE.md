@@ -44,6 +44,15 @@ Entities must never be exposed in API responses — always convert via an adapte
 - `ObjectNotFoundException` extends `HomeAppException` (→ HTTP 404)
 - `GlobalExceptionHandler` (`@RestControllerAdvice`) centralizes all HTTP error mapping
 - Never throw raw `RuntimeException`
+- Never catch generic `Exception` — always catch the most specific exception type available
+- Always wrap third-party or checked exceptions in a custom `HomeAppException` subclass before propagating
+
+### Javadoc
+
+- Every public class and every public method must have a Javadoc comment
+- Class-level Javadoc: describe the responsibility of the class and any important design decisions
+- Method-level Javadoc: describe what the method does, document every `@param`, `@return`, and `@throws`
+- Field-level Javadoc: use single-line `/** ... */` comments for non-obvious fields in entities and DTOs
 
 ### Database
 
@@ -61,6 +70,7 @@ Entities must never be exposed in API responses — always convert via an adapte
 - Test data loaded via `@Sql("/scripts/sql/<file>.sql")` — tests are `@Transactional` (auto-rollback)
 - Use Mockito for mocks (not Spock built-ins); prefer injected real dependencies over mocks when possible
 - Controller tests use MockMvc; service tests call the service directly
+- Every Spock spec must have a `@Title` (the component under test) and a `@Narrative` (user-story format: As/I want/So that)
 
 ### Dependencies
 

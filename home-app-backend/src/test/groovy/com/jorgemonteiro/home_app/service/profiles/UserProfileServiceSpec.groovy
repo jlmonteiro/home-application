@@ -8,7 +8,15 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.transaction.annotation.Transactional
+import spock.lang.Narrative
+import spock.lang.Title
 
+@Title("UserProfileService")
+@Narrative("""
+As a user
+I want to retrieve and update my profile information
+So that my account details are always accurate and up to date
+""")
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional

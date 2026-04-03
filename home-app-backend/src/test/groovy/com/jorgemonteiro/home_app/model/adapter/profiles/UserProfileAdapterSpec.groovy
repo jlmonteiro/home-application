@@ -3,8 +3,16 @@ package com.jorgemonteiro.home_app.model.adapter.profiles
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO
 import com.jorgemonteiro.home_app.model.entities.profiles.User
 import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile
+import spock.lang.Narrative
 import spock.lang.Specification
+import spock.lang.Title
 
+@Title("UserProfileAdapter")
+@Narrative("""
+As a developer
+I want the UserProfileAdapter to correctly convert between User/UserProfile entities and UserProfileDTO
+So that entities are never exposed directly in API responses
+""")
 class UserProfileAdapterSpec extends Specification {
 
     def "toDTO should convert user with profile correctly"() {
