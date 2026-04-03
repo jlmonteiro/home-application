@@ -24,11 +24,11 @@ public class UserProfileService {
 
     @Transactional(readOnly = true)
     public Optional<UserProfileDTO> getUserProfile(String email) {
-        return userRepository.findById(email).map(UserProfileAdapter::toDTO);
+        return userRepository.findByEmail(email).map(UserProfileAdapter::toDTO);
     }
 
     public UserProfileDTO updateUserProfile(@Valid UserProfileDTO dto) {
-        User existingUser = userRepository.findById(dto.getEmail())
+        User existingUser = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new ObjectNotFoundException("User not found"));
 
         // Update user fields

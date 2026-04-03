@@ -13,7 +13,7 @@ abstract class BaseIntegrationTest extends Specification {
     @Container
     @ServiceConnection
     @Shared
-    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:15")
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:17")
             .withDatabaseName("mydatabase")
             .withUsername("myuser")
             .withPassword("secret")

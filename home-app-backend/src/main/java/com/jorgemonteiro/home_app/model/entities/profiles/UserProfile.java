@@ -3,6 +3,10 @@ package com.jorgemonteiro.home_app.model.entities.profiles;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "user_profile", schema = "profiles")
@@ -11,12 +15,12 @@ import lombok.EqualsAndHashCode;
 public class UserProfile {
 
     @Id
-    @Column(name = "user_email", length = 100)
-    private String email;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
+    private Long id;
 
-    @OneToOne
-    @JoinColumn(name = "user_email")
-    @MapsId
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 
     @Column(columnDefinition = "TEXT")
@@ -33,5 +37,13 @@ public class UserProfile {
 
     @Column(name = "linkedin")
     private String linkedin;
+
+    @CreationTimestamp
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
 }
