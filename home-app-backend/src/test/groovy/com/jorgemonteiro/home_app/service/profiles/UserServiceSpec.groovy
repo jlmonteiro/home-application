@@ -35,42 +35,46 @@ class UserServiceSpec extends BaseIntegrationTest {
     @Sql("/scripts/sql/user-profile-test-data.sql")
     def "findOrCreateUser should return existing user when user already exists"() {
         given: "an existing user in the database"
-            def email = "existing@example.com"
+            def targetEmail = "existing@example.com"
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(email, "Updated", "Name", null)
+            def result = userService.findOrCreateUser(targetEmail, "Updated", "Name", null)
 
         then: "existing user is returned without creating a new one"
             result != null
-            result.email == email
-            result.firstName == "John"
-            result.lastName == "Doe"
+            with(result) {
+                email == targetEmail
+                firstName == "John"
+                lastName == "Doe"
+            }
     }
 
     def "findOrCreateUser should create a new user when user does not exist"() {
         given: "a user that does not exist in the database"
-            def email = "newuser@example.com"
-            def firstName = "New"
-            def lastName = "User"
+            def targetEmail = "newuser@example.com"
+            def targetFirstName = "New"
+            def targetLastName = "User"
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(email, firstName, lastName, null)
+            def result = userService.findOrCreateUser(targetEmail, targetFirstName, targetLastName, null)
 
         then: "a new user is created and returned"
             result != null
-            result.id != null
-            result.email == email
-            result.firstName == firstName
-            result.lastName == lastName
-            result.enabled == true
+            with(result) {
+                id != null
+                email == targetEmail
+                firstName == targetFirstName
+                lastName == targetLastName
+                enabled == true
+            }
     }
 
     def "findOrCreateUser should create user profile on first login"() {
         given: "a new user that does not exist"
-            def email = "profiletest@example.com"
+            def targetEmail = "profiletest@example.com"
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(email, "Profile", "Test", null)
+            def result = userService.findOrCreateUser(targetEmail, "Profile", "Test", null)
 
         then: "a user profile is created for the new user"
             result.userProfile != null
@@ -79,42 +83,49 @@ class UserServiceSpec extends BaseIntegrationTest {
 
     def "findOrCreateUser should download and set profile photo for new user when picture URL is provided"() {
         given: "a new user with a profile picture URL"
-            def email = "photouser@example.com"
-            def pictureUrl = "https://example.com/photo.jpg"
-            Mockito.when(photoService.downloadAndConvertToBase64(pictureUrl)).thenReturn("base64encodedphoto")
+            def targetEmail = "photouser@example.com"
+            def targetPictureUrl = "https://example.com/photo.jpg"
+            def targetPhotoData = "base64encodedphoto"
+            Mockito.when(photoService.downloadAndConvertToBase64(targetPictureUrl)).thenReturn(targetPhotoData)
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(email, "Photo", "User", pictureUrl)
+            def result = userService.findOrCreateUser(targetEmail, "Photo", "User", targetPictureUrl)
 
         then: "the profile photo is set from the downloaded image"
             result.userProfile != null
-            result.userProfile.photo == "base64encodedphoto"
-            Mockito.verify(photoService).downloadAndConvertToBase64(pictureUrl) || true
+            result.userProfile.photo == targetPhotoData
+            
+        and: "the photo service was called"
+            Mockito.verify(photoService).downloadAndConvertToBase64(targetPictureUrl) || true
     }
 
     def "findOrCreateUser should create user with null photo when picture URL is null"() {
         given: "a new user without a profile picture"
-            def email = "nophoto@example.com"
+            def targetEmail = "nophoto@example.com"
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(email, "No", "Photo", null)
+            def result = userService.findOrCreateUser(targetEmail, "No", "Photo", null)
 
         then: "user is created with no profile photo"
             result.userProfile != null
             result.userProfile.photo == null
+            
+        and: "the photo service was never called"
             Mockito.verify(photoService, Mockito.never()).downloadAndConvertToBase64(Mockito.any()) || true
     }
 
     def "findOrCreateUser should not download photo when picture URL is empty"() {
         given: "a new user with an empty picture URL"
-            def email = "emptyphoto@example.com"
+            def targetEmail = "emptyphoto@example.com"
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(email, "Empty", "Photo", "")
+            def result = userService.findOrCreateUser(targetEmail, "Empty", "Photo", "")
 
         then: "user is created with no profile photo"
             result.userProfile != null
             result.userProfile.photo == null
+            
+        and: "the photo service was never called"
             Mockito.verify(photoService, Mockito.never()).downloadAndConvertToBase64(Mockito.any()) || true
     }
 }

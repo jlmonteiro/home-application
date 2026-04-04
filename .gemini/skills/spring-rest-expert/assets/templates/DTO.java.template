@@ -1,0 +1,17 @@
+package {{package}}.model.dtos;
+
+import jakarta.validation.constraints.*;
+import lombok.Data;
+import org.springframework.hateoas.server.core.Relation;
+
+/**
+ * Data transfer object for {@link {{resource}}}.
+ */
+@Data
+@Relation(collectionRelation = "{{resource-plural-lower}}", itemRelation = "{{resource-lower}}")
+public class {{resource}}DTO {
+
+    private Long id;
+
+    // Add fields here
+}

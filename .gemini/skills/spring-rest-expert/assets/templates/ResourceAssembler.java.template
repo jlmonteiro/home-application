@@ -1,0 +1,29 @@
+package {{package}}.controller.resource;
+
+import {{package}}.controller.{{resource}}Controller;
+import {{package}}.model.dtos.{{resource}}DTO;
+import org.springframework.data.domain.Pageable;
+import org.springframework.hateoas.server.mvc.RepresentationModelAssemblerSupport;
+import org.springframework.stereotype.Component;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+/**
+ * Assembler to convert {@link {{resource}}DTO}s into hypermedia-enabled {@link {{resource}}Resource}s.
+ * Centralizes the logic for adding standard links (self, collection).
+ */
+@Component
+public class {{resource}}ResourceAssembler extends RepresentationModelAssemblerSupport<{{resource}}DTO, {{resource}}Resource> {
+
+    public {{resource}}ResourceAssembler() {
+        super({{resource}}Controller.class, {{resource}}Resource.class);
+    }
+
+    @Override
+    public {{resource}}Resource toModel({{resource}}DTO entity) {
+        return new {{resource}}Resource(entity,
+                linkTo(methodOn({{resource}}Controller.class).get(entity.getId())).withSelfRel(),
+                linkTo(methodOn({{resource}}Controller.class).list(Pageable.unpaged())).withRel("collection"));
+    }
+}

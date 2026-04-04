@@ -1,0 +1,77 @@
+package {{package}}.controller;
+
+import {{package}}.controller.resource.Paged{{resource}}Resource;
+import {{package}}.controller.resource.{{resource}}Resource;
+import {{package}}.controller.resource.{{resource}}ResourceAssembler;
+import {{package}}.model.dtos.{{resource}}DTO;
+import {{package}}.service.{{resource}}Service;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
+
+/**
+ * REST controller for managing {@link {{resource}}}.
+ * Adheres to HATEOAS using concrete resource wrappers to hide generic verbosity.
+ */
+@RestController
+@RequestMapping("/api/{{resource-path}}")
+@RequiredArgsConstructor
+public class {{resource}}Controller {
+
+    private final {{resource}}Service {{resource-var}}Service;
+    private final {{resource}}ResourceAssembler resourceAssembler;
+    private final PagedResourcesAssembler<{{resource}}DTO> pagedResourcesAssembler;
+
+    @GetMapping
+    public ResponseEntity<Paged{{resource}}Resource> list(
+            @PageableDefault(page = 0, size = 10, sort = "createdAt", direction = Sort.Direction.DESC) 
+            Pageable pageable) {
+        
+        Page<{{resource}}DTO> page = {{resource-var}}Service.findAll(pageable);
+        
+        PagedModel<{{resource}}Resource> pagedModel = pagedResourcesAssembler.toModel(page, resourceAssembler);
+        Paged{{resource}}Resource resource = new Paged{{resource}}Resource(pagedModel.getContent(), pagedModel.getMetadata(), pagedModel.getLinks());
+        
+        return ResponseEntity.ok(resource);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<{{resource}}Resource> get(@PathVariable Long id) {
+        return {{resource-var}}Service.findById(id)
+                .map(resourceAssembler::toModel)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ResponseEntity<{{resource}}Resource> create(@RequestBody @Valid {{resource}}DTO dto) {
+        {{resource}}DTO created = {{resource-var}}Service.create(dto);
+        {{resource}}Resource resource = resourceAssembler.toModel(created);
+        
+        return ResponseEntity.created(URI.create("/api/{{resource-path}}/" + created.getId()))
+                .body(resource);
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<{{resource}}Resource> update(@PathVariable Long id, @RequestBody @Valid {{resource}}DTO dto) {
+        {{resource}}DTO updated = {{resource-var}}Service.update(id, dto);
+        return ResponseEntity.ok(resourceAssembler.toModel(updated));
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        {{resource-var}}Service.delete(id);
+    }
+}

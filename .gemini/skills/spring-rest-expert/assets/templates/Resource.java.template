@@ -1,0 +1,22 @@
+package {{package}}.controller.resource;
+
+import {{package}}.model.dtos.{{resource}}DTO;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+
+import java.util.List;
+
+/**
+ * A hypermedia-enabled resource representing a {@link {{resource}}}.
+ * Extends EntityModel to hide generic verbosity in controllers.
+ */
+public class {{resource}}Resource extends EntityModel<{{resource}}DTO> {
+
+    public {{resource}}Resource({{resource}}DTO content, Iterable<Link> links) {
+        super(content, links);
+    }
+
+    public {{resource}}Resource({{resource}}DTO content, Link... links) {
+        super(content, List.of(links));
+    }
+}

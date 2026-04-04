@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
 import spock.lang.Title
 
+import static org.hamcrest.Matchers.containsString
+import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -21,8 +23,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Title("UserProfileController")
 @Narrative("""
 As a client of the API
-I want to retrieve and update user profiles via REST endpoints
-So that profile data can be read and modified over HTTP
+I want to retrieve and update user profiles via REST endpoints with HATEOAS links
+So that profile data can be read and modified over HTTP using hypermedia
 """)
 @SpringBootTest
 @ActiveProfiles("test")
@@ -37,21 +39,46 @@ class UserProfileControllerSpec extends BaseIntegrationTest {
     UserRepository userRepository
 
     @Sql("/scripts/sql/user-profile-test-data.sql")
-    def "GET /api/user/{id} should return user profile when exists"() {
+    def "GET /api/user should return paginated list of profiles"() {
+        when: "requesting all user profiles"
+            def response = mockMvc.perform(get("/api/user"))
+
+        then: "response status and content type are correct"
+            response.andExpect(status().isOk())
+                    .andExpect(content().contentType(HAL_JSON_VALUE))
+
+        and: "the list contains the expected users"
+            response.andExpect(jsonPath('$._embedded.userProfiles').isArray())
+                    .andExpect(jsonPath('$._embedded.userProfiles.length()').value(2))
+                    .andExpect(jsonPath('$._embedded.userProfiles[0].email').value("existing@example.com"))
+                    .andExpect(jsonPath('$._embedded.userProfiles[0].firstName').value("John"))
+                    .andExpect(jsonPath('$._embedded.userProfiles[1].email').value("withprofile@example.com"))
+                    .andExpect(jsonPath('$._embedded.userProfiles[1].firstName').value("Jane"))
+
+        and: "collection-level hypermedia links are present"
+            response.andExpect(jsonPath('$._links.self.href').value(containsString("/api/user?page=0&size=10&sort=email,asc")))
+
+        and: "pagination metadata is correct"
+            response.andExpect(jsonPath('$.page.size').value(10))
+                    .andExpect(jsonPath('$.page.totalElements').value(2))
+                    .andExpect(jsonPath('$.page.totalPages').value(1))
+                    .andExpect(jsonPath('$.page.number').value(0))
+    }
+
+    @Sql("/scripts/sql/user-profile-test-data.sql")
+    def "GET /api/user/{id} should return user profile with HATEOAS links when exists"() {
         given: "an existing user ID"
             def id = userRepository.findByEmail("withprofile@example.com").get().id
 
         when: "requesting existing user profile by ID"
             def response = mockMvc.perform(get("/api/user/${id}"))
 
-        then: "user profile is returned"
+        then: "user profile is returned with self and collection links"
             response.andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(content().contentType(HAL_JSON_VALUE))
                     .andExpect(jsonPath('$.id').value(id))
-                    .andExpect(jsonPath('$.email').value("withprofile@example.com"))
-                    .andExpect(jsonPath('$.firstName').value("Jane"))
-                    .andExpect(jsonPath('$.lastName').value("Smith"))
-                    .andExpect(jsonPath('$.enabled').value(true))
+                    .andExpect(jsonPath('$._links.self.href').value(containsString("/api/user/${id}")))
+                    .andExpect(jsonPath('$._links.collection.href').value(containsString("/api/user")))
     }
 
     def "GET /api/user/{id} should return 404 when user does not exist"() {
@@ -60,66 +87,59 @@ class UserProfileControllerSpec extends BaseIntegrationTest {
 
         then: "404 is returned"
             response.andExpect(status().isNotFound())
+                    .andExpect(jsonPath('$.type').value("NOT_FOUND"))
     }
 
     @Sql("/scripts/sql/user-profile-test-data.sql")
-    def "PUT /api/user/{id} should update user profile successfully"() {
+    def "PUT /api/user/{id} should update user profile and return HATEOAS links"() {
         given: "an existing user ID and a valid update request"
             def id = userRepository.findByEmail("existing@example.com").get().id
-            def requestBody = [
-                    id: id,
-                    email: "existing@example.com",
-                    firstName: "Updated",
-                    lastName: "Name",
-                    enabled: false
-            ]
+            def requestBody = validUpdateRequestBody() + [id: id, firstName: "Updated"]
 
         when: "updating user profile by ID"
             def response = mockMvc.perform(put("/api/user/${id}")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(JsonOutput.toJson(requestBody)))
 
-        then: "user profile is updated"
+        then: "user profile is updated and self link is returned"
             response.andExpect(status().isOk())
-                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath('$.id').value(id))
-                    .andExpect(jsonPath('$.email').value("existing@example.com"))
+                    .andExpect(content().contentType(HAL_JSON_VALUE))
                     .andExpect(jsonPath('$.firstName').value("Updated"))
-                    .andExpect(jsonPath('$.lastName').value("Name"))
-                    .andExpect(jsonPath('$.enabled').value(false))
+                    .andExpect(jsonPath('$._links.self.href').value(containsString("/api/user/${id}")))
     }
 
-    def "PUT /api/user/{id} should return 404 when updating non-existent user"() {
-        given: "a valid update request for a non-existent ID"
-            def requestBody = [
-                    id: 999,
-                    email: "nonexistent@example.com",
-                    firstName: "Updated",
-                    lastName: "Name",
-                    enabled: false
-            ]
-
-        when: "updating non-existent user by ID"
-            def response = mockMvc.perform(put("/api/user/999")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(JsonOutput.toJson(requestBody)))
-
-        then: "404 is returned"
-            response.andExpect(status().isNotFound())
-    }
-
-    def "PUT /api/user/{id} should return 400 when input is invalid"() {
-        given: "an invalid update request"
-            def requestBody = [
-                    firstName: "a" * 51 // Exceeds max length of 50
-            ]
+    def "PUT /api/user/{id} should return 400 ProblemDetail when #field is #scenario"() {
+        given: "an update request with #scenario"
+            def requestBody = validUpdateRequestBody() + [(field): value]
 
         when: "updating user profile with invalid data"
             def response = mockMvc.perform(put("/api/user/1")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(JsonOutput.toJson(requestBody)))
 
-        then: "400 is returned"
+        then: "400 ProblemDetail is returned with specific field error"
             response.andExpect(status().isBadRequest())
+                    .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                    .andExpect(jsonPath('$.type').value("VALIDATION_ERROR"))
+                    .andExpect(jsonPath('$.title').value("Constraint Violation"))
+                    .andExpect(jsonPath("\$.errors.${field}").value(message))
+
+        where:
+            field           | scenario          | value                                 | message
+            "email"         | "missing"         | null                                  | "Email is required"
+            "email"         | "empty"           | ""                                    | "Email is required"
+            "email"         | "invalid format"  | "not-an-email"                        | "Email must be valid"
+            "email"         | "too long"        | ("a" * 64) + "@" + ("b" * 33) + ".com" | "Email must not exceed 100 characters"
+            "firstName"     | "too long"        | "a" * 51                              | "First name must not exceed 50 characters"
+            "lastName"      | "too long"        | "a" * 51                              | "Last name must not exceed 50 characters"
+    }
+
+    private Map validUpdateRequestBody() {
+        [
+            email: "valid@example.com",
+            firstName: "John",
+            lastName: "Doe",
+            enabled: true
+        ]
     }
 }

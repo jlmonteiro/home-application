@@ -23,10 +23,10 @@ class PhotoServiceSpec extends BaseIntegrationTest {
 
     def "downloadAndConvertToBase64 should throw PhotoDownloadException for an unreachable URL"() {
         given: "an unreachable image URL"
-            def url = "http://invalid.local.nonexistent/image.jpg"
+            def targetUrl = "http://invalid.local.nonexistent/image.jpg"
 
         when: "downloading and converting the image"
-            photoService.downloadAndConvertToBase64(url)
+            photoService.downloadAndConvertToBase64(targetUrl)
 
         then: "PhotoDownloadException is thrown"
             thrown(PhotoDownloadException)
@@ -34,10 +34,10 @@ class PhotoServiceSpec extends BaseIntegrationTest {
 
     def "downloadAndConvertToBase64 should throw PhotoDownloadException for a malformed URL"() {
         given: "a malformed URL"
-            def url = "not-a-valid-url"
+            def targetUrl = "not-a-valid-url"
 
         when: "downloading and converting the image"
-            photoService.downloadAndConvertToBase64(url)
+            photoService.downloadAndConvertToBase64(targetUrl)
 
         then: "PhotoDownloadException is thrown"
             thrown(PhotoDownloadException)
@@ -45,10 +45,10 @@ class PhotoServiceSpec extends BaseIntegrationTest {
 
     def "downloadAndConvertToBase64 should throw PhotoDownloadException for an empty URL"() {
         given: "an empty URL string"
-            def url = ""
+            def targetUrl = ""
 
         when: "downloading and converting the image"
-            photoService.downloadAndConvertToBase64(url)
+            photoService.downloadAndConvertToBase64(targetUrl)
 
         then: "PhotoDownloadException is thrown"
             thrown(PhotoDownloadException)

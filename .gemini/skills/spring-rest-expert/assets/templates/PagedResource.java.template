@@ -1,0 +1,17 @@
+package {{package}}.controller.resource;
+
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.PagedModel;
+
+import java.util.Collection;
+
+/**
+ * A hypermedia-enabled resource representing a paginated collection of {@link {{resource}}}.
+ * Extends PagedModel to hide generic verbosity in controllers.
+ */
+public class Paged{{resource}}Resource extends PagedModel<{{resource}}Resource> {
+
+    public Paged{{resource}}Resource(Collection<{{resource}}Resource> content, PageMetadata metadata, Iterable<Link> links) {
+        super(content, metadata, links);
+    }
+}

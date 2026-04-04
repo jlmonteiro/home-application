@@ -3,8 +3,11 @@ package com.jorgemonteiro.home_app.model.adapter.profiles
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO
 import com.jorgemonteiro.home_app.model.entities.profiles.User
 import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile
+import com.jorgemonteiro.home_app.test.BaseIntegrationTest
+import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.test.context.ActiveProfiles
+import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
-import spock.lang.Specification
 import spock.lang.Title
 
 @Title("UserProfileAdapter")
@@ -13,129 +16,144 @@ As a developer
 I want the UserProfileAdapter to correctly convert between User/UserProfile entities and UserProfileDTO
 So that entities are never exposed directly in API responses
 """)
-class UserProfileAdapterSpec extends Specification {
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+class UserProfileAdapterSpec extends BaseIntegrationTest {
 
     def "toDTO should convert user with profile correctly"() {
         given: "a user with profile"
-            def userProfile = new UserProfile()
-            userProfile.photo = "photo.jpg"
-            userProfile.facebook = "https://facebook.com/user"
-            userProfile.mobilePhone = "+1234567890"
-            userProfile.instagram = "https://instagram.com/user"
-            userProfile.linkedin = "https://linkedin.com/in/user"
+            def targetEmail = "test@example.com"
+            def targetFirstName = "John"
+            def targetLastName = "Doe"
+            def targetPhoto = "photo.jpg"
 
-            def user = new User()
-            user.email = "test@example.com"
-            user.firstName = "John"
-            user.lastName = "Doe"
-            user.enabled = true
-            user.userProfile = userProfile
+            def userProfile = new UserProfile(
+                photo: targetPhoto,
+                facebook: "https://facebook.com/user",
+                mobilePhone: "+1234567890",
+                instagram: "https://instagram.com/user",
+                linkedin: "https://linkedin.com/in/user"
+            )
+
+            def user = new User(
+                email: targetEmail,
+                firstName: targetFirstName,
+                lastName: targetLastName,
+                enabled: true,
+                userProfile: userProfile
+            )
 
         when: "converting to DTO"
-            def dto = UserProfileAdapter.toDTO(user)
+            def result = UserProfileAdapter.toDTO(user)
 
         then: "DTO is correctly populated"
-            dto.email == "test@example.com"
-            dto.firstName == "John"
-            dto.lastName == "Doe"
-            dto.enabled == true
-            dto.photo == "photo.jpg"
-            dto.facebook == "https://facebook.com/user"
-            dto.mobilePhone == "+1234567890"
-            dto.instagram == "https://instagram.com/user"
-            dto.linkedin == "https://linkedin.com/in/user"
+            result != null
+            with(result) {
+                email == targetEmail
+                firstName == targetFirstName
+                lastName == targetLastName
+                enabled == true
+                photo == targetPhoto
+                facebook == "https://facebook.com/user"
+                mobilePhone == "+1234567890"
+                instagram == "https://instagram.com/user"
+                linkedin == "https://linkedin.com/in/user"
+            }
     }
 
     def "toDTO should convert user without profile correctly"() {
         given: "a user without profile"
-            def user = new User()
-            user.email = "test@example.com"
-            user.firstName = "John"
-            user.lastName = "Doe"
-            user.enabled = true
-            user.userProfile = null
+            def targetEmail = "test@example.com"
+            def user = new User(
+                email: targetEmail,
+                firstName: "John",
+                lastName: "Doe",
+                enabled: true,
+                userProfile: null
+            )
 
         when: "converting to DTO"
-            def dto = UserProfileAdapter.toDTO(user)
+            def result = UserProfileAdapter.toDTO(user)
 
         then: "DTO has user data but null profile fields"
-            dto.email == "test@example.com"
-            dto.firstName == "John"
-            dto.lastName == "Doe"
-            dto.enabled == true
-            dto.photo == null
-            dto.facebook == null
-            dto.mobilePhone == null
-            dto.instagram == null
-            dto.linkedin == null
+            result != null
+            with(result) {
+                email == targetEmail
+                photo == null
+                facebook == null
+                mobilePhone == null
+            }
     }
 
     def "toDTO should return null when user is null"() {
         when: "converting null user"
-            def dto = UserProfileAdapter.toDTO(null)
+            def result = UserProfileAdapter.toDTO(null)
 
         then: "null is returned"
-            dto == null
+            result == null
     }
 
     def "toEntity should convert DTO correctly"() {
         given: "a user profile DTO"
-            def dto = new UserProfileDTO()
-            dto.email = "test@example.com"
-            dto.firstName = "Jane"
-            dto.lastName = "Smith"
-            dto.enabled = false
-            dto.photo = "new-photo.jpg"
-            dto.facebook = "https://facebook.com/jane"
-            dto.mobilePhone = "+9876543210"
-            dto.instagram = "https://instagram.com/jane"
-            dto.linkedin = "https://linkedin.com/in/jane"
+            def targetEmail = "test@example.com"
+            def dto = new UserProfileDTO(
+                email: targetEmail,
+                firstName: "Jane",
+                lastName: "Smith",
+                enabled: false,
+                photo: "new-photo.jpg",
+                facebook: "https://facebook.com/jane",
+                mobilePhone: "+9876543210",
+                instagram: "https://instagram.com/jane",
+                linkedin: "https://linkedin.com/in/jane"
+            )
 
         when: "converting to entity"
-            def user = UserProfileAdapter.toEntity(dto)
+            def result = UserProfileAdapter.toEntity(dto)
 
         then: "user entity is correctly populated"
-            user.email == "test@example.com"
-            user.firstName == "Jane"
-            user.lastName == "Smith"
-            user.enabled == false
-            user.userProfile != null
-            user.userProfile.photo == "new-photo.jpg"
-            user.userProfile.facebook == "https://facebook.com/jane"
-            user.userProfile.mobilePhone == "+9876543210"
-            user.userProfile.instagram == "https://instagram.com/jane"
-            user.userProfile.linkedin == "https://linkedin.com/in/jane"
+            result != null
+            with(result) {
+                email == targetEmail
+                firstName == "Jane"
+                lastName == "Smith"
+                enabled == false
+                userProfile != null
+                userProfile.photo == "new-photo.jpg"
+            }
     }
 
     def "toEntity should return null when DTO is null"() {
         when: "converting null DTO"
-            def user = UserProfileAdapter.toEntity(null)
+            def result = UserProfileAdapter.toEntity(null)
 
         then: "null is returned"
-            user == null
+            result == null
     }
 
     def "toUserProfileEntity should create profile correctly"() {
         given: "a DTO and user"
-            def dto = new UserProfileDTO()
-            dto.photo = "test-photo.jpg"
-            dto.facebook = "https://facebook.com/test"
-            dto.mobilePhone = "+1111111111"
-            dto.instagram = "https://instagram.com/test"
-            dto.linkedin = "https://linkedin.com/in/test"
-
-            def user = new User()
-            user.email = "test@example.com"
+            def targetPhoto = "test-photo.jpg"
+            def dto = new UserProfileDTO(
+                photo: targetPhoto,
+                facebook: "https://facebook.com/test",
+                mobilePhone: "+1111111111",
+                instagram: "https://instagram.com/test",
+                linkedin: "https://linkedin.com/in/test"
+            )
+            def user = new User(email: "test@example.com")
 
         when: "creating user profile entity"
-            def userProfile = UserProfileAdapter.toUserProfileEntity(dto, user)
+            def result = UserProfileAdapter.toUserProfileEntity(dto, user)
 
         then: "profile is correctly created"
-            userProfile.photo == "test-photo.jpg"
-            userProfile.facebook == "https://facebook.com/test"
-            userProfile.mobilePhone == "+1111111111"
-            userProfile.instagram == "https://instagram.com/test"
-            userProfile.linkedin == "https://linkedin.com/in/test"
+            result != null
+            with(result) {
+                photo == targetPhoto
+                facebook == "https://facebook.com/test"
+                mobilePhone == "+1111111111"
+            }
     }
 
     def "toUserProfileEntity should return null when DTO is null"() {
@@ -143,10 +161,10 @@ class UserProfileAdapterSpec extends Specification {
             def user = new User()
 
         when: "creating profile with null DTO"
-            def userProfile = UserProfileAdapter.toUserProfileEntity(null, user)
+            def result = UserProfileAdapter.toUserProfileEntity(null, user)
 
         then: "null is returned"
-            userProfile == null
+            result == null
     }
 
     def "toUserProfileEntity should return null when user is null"() {
@@ -154,9 +172,9 @@ class UserProfileAdapterSpec extends Specification {
             def dto = new UserProfileDTO()
 
         when: "creating profile with null user"
-            def userProfile = UserProfileAdapter.toUserProfileEntity(dto, null)
+            def result = UserProfileAdapter.toUserProfileEntity(dto, null)
 
         then: "null is returned"
-            userProfile == null
+            result == null
     }
 }

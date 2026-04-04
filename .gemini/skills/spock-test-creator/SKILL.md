@@ -38,18 +38,24 @@ Every Spec MUST have:
 - Use idiomatic Groovy property access (no `.getXXX()`).
 - Name local variables as `expectedId`, `targetEmail` to avoid `with` closure collisions.
 
-### Controller Tests
-- Use `@AutoConfigureMockMvc`.
-- Inject `MockMvc`.
-- Use `mockMvc.perform(...)` with static imports for `get`, `put`, `post`, `status`, `jsonPath`.
-- Verify JSON structure and HTTP status codes.
+### Controller Tests (MockMvc)
+- Use `@AutoConfigureMockMvc` and inject `MockMvc`.
+- Use static imports: `get`, `put`, `post`, `status`, `content`, `jsonPath`, `containsString`, `HAL_JSON_VALUE`.
+- **Assertion Organization:** For complex REST responses (like HATEOAS or Pagination), strictly organize assertions using `and:` blocks to improve readability:
+  - `then:` for Status and Content-Type.
+  - `and:` for core Payload/Body data.
+  - `and:` for Hypermedia Links (`_links`).
+  - `and:` for Metadata (like `page` sizing).
+- **Data Validation:** Assert actual values (e.g., `.value("John")`) rather than just checking existence (`.exists()`), especially when verifying data loaded via `@Sql`.
 
 ### Data Setup
 - Store SQL scripts in `src/test/resources/scripts/sql/`.
 - Use `@Sql("/scripts/sql/your-data.sql")`.
-- When possible, query `UserRepository` or `id` from DB instead of hardcoding IDs.
+- When possible, query repositories or `id` from DB instead of hardcoding IDs.
 
-## Example Template
+## Templates
+
+### Service Example Template
 
 ```groovy
 @Title("MyService")
@@ -83,6 +89,45 @@ class MyServiceSpec extends BaseIntegrationTest {
                 id == expectedId
                 // other assertions
             }
+    }
+}
+```
+
+### Controller Example Template
+
+```groovy
+@Title("MyController")
+@Narrative("""
+As a...
+I want...
+So that...
+""")
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+@AutoConfigureMockMvc
+class MyControllerSpec extends BaseIntegrationTest {
+
+    @Autowired 
+    MockMvc mockMvc
+
+    @Sql("/scripts/sql/test-data.sql")
+    def "should return complex paginated response"() {
+        when: "requesting the resource collection"
+            def response = mockMvc.perform(get("/api/resource"))
+
+        then: "status and headers are correct"
+            response.andExpect(status().isOk())
+                    .andExpect(content().contentType(HAL_JSON_VALUE))
+
+        and: "the payload contains the correct data"
+            response.andExpect(jsonPath('$._embedded.resources[0].name').value("Expected Name"))
+
+        and: "hypermedia links are generated"
+            response.andExpect(jsonPath('$._links.self.href').value(containsString("/api/resource")))
+            
+        and: "pagination metadata is accurate"
+            response.andExpect(jsonPath('$.page.totalElements').value(1))
     }
 }
 ```

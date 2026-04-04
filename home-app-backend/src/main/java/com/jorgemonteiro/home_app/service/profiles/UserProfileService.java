@@ -12,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import java.util.Optional;
 
 /**
@@ -26,6 +28,17 @@ import java.util.Optional;
 public class UserProfileService {
 
     private final UserRepository userRepository;
+
+    /**
+     * Returns a paginated list of all user profile DTOs.
+     *
+     * @param pageable the pagination and sorting parameters
+     * @return a page of profile DTOs
+     */
+    @Transactional(readOnly = true)
+    public Page<UserProfileDTO> findAll(Pageable pageable) {
+        return userRepository.findAll(pageable).map(UserProfileAdapter::toDTO);
+    }
 
     /**
      * Returns the profile DTO for the user with the given database ID.
