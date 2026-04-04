@@ -3,6 +3,7 @@ package com.jorgemonteiro.home_app.controller.profiles;
 import com.jorgemonteiro.home_app.controller.profiles.resource.PagedUserProfileResource;
 import com.jorgemonteiro.home_app.controller.profiles.resource.UserProfileResource;
 import com.jorgemonteiro.home_app.controller.profiles.resource.UserProfileResourceAssembler;
+import com.jorgemonteiro.home_app.exception.HomeAppException;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO;
 import com.jorgemonteiro.home_app.service.profiles.UserProfileService;
@@ -15,7 +16,12 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedResourcesAssembler;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
  * REST controller for user profile operations.
@@ -29,6 +35,32 @@ public class UserProfileController {
     private final UserProfileService userProfileService;
     private final UserProfileResourceAssembler resourceAssembler;
     private final PagedResourcesAssembler<UserProfileDTO> pagedResourcesAssembler;
+
+    /**
+     * Returns the profile for the currently authenticated user.
+     *
+     * @param principal the authenticated OAuth2 user
+     * @return 200 with the UserProfileResource and canonical links
+     * @throws HomeAppException if the principal is missing the required email attribute
+     * @throws ObjectNotFoundException if the user record is missing from the database
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserProfileResource> getMyProfile(@AuthenticationPrincipal OAuth2User principal) {
+        String email = principal.getAttribute("email");
+        if (email == null || email.isBlank()) {
+            throw new HomeAppException("Authentication principal is missing email attribute");
+        }
+
+        return userProfileService.getUserProfile(email)
+                .map(resourceAssembler::toModel)
+                .map(resource -> {
+                    // Add supplementary 'me' link pointing back to this alias
+                    resource.add(linkTo(methodOn(UserProfileController.class).getMyProfile(null)).withRel("me"));
+                    return resource;
+                })
+                .map(ResponseEntity::ok)
+                .orElseThrow(() -> new ObjectNotFoundException("User record not found for authenticated email: " + email));
+    }
 
     /**
      * Returns a paginated list of all user profiles.

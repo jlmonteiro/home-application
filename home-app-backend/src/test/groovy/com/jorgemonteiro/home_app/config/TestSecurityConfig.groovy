@@ -13,8 +13,12 @@ class TestSecurityConfig {
     @Bean
     SecurityFilterChain testFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests { auth -> auth.anyRequest().permitAll() }
+            .authorizeHttpRequests { auth -> 
+                auth.requestMatchers("/api/user/me").authenticated()
+                auth.anyRequest().permitAll() 
+            }
             .csrf { csrf -> csrf.disable() }
+            .oauth2Login { oauth2 -> } // Enable oauth2Login structure for tests
         return http.build()
     }
 }

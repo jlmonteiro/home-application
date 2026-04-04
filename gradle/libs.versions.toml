@@ -29,6 +29,7 @@ spring-boot-starter-data-jpa-test = { module = "org.springframework.boot:spring-
 spring-boot-starter-liquibase-test = { module = "org.springframework.boot:spring-boot-starter-liquibase-test", version.ref = "springBoot" }
 spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test", version.ref = "springBoot" }
 spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers", version.ref = "springBoot" }
+spring-security-test = { module = "org.springframework.security:spring-security-test" }
 testcontainers-junit = { module = "org.testcontainers:junit-jupiter", version.ref = "testcontainers" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testcontainers-spock = { module = "org.testcontainers:spock", version.ref = "testcontainers" }
@@ -46,6 +47,6 @@ spring-dependency-management = { id = "io.spring.dependency-management", version
 [bundles]
 spring-boot-starters = ["spring-boot-starter-actuator", "spring-boot-starter-data-jpa", "spring-boot-starter-liquibase", "spring-boot-starter-oauth2-client", "spring-boot-starter-validation", "spring-boot-starter-web", "spring-boot-starter-hateoas"]
 spring-boot-dev = ["spring-boot-devtools", "spring-boot-docker-compose"]
-spring-boot-test = ["spring-boot-starter-actuator-test", "spring-boot-starter-data-jpa-test", "spring-boot-starter-liquibase-test", "spring-boot-starter-webmvc-test", "spring-boot-testcontainers"]
+spring-boot-test = ["spring-boot-starter-actuator-test", "spring-boot-starter-data-jpa-test", "spring-boot-starter-liquibase-test", "spring-boot-starter-webmvc-test", "spring-boot-testcontainers", "spring-security-test"]
 testcontainers = ["testcontainers-junit", "testcontainers-postgresql", "testcontainers-spock"]
 spock = ["spock-core", "spock-spring", "groovy", "groovy-json"]

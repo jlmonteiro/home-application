@@ -16,6 +16,7 @@ import spock.lang.Title
 
 import static org.hamcrest.Matchers.containsString
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -63,6 +64,90 @@ class UserProfileControllerSpec extends BaseIntegrationTest {
                     .andExpect(jsonPath('$.page.totalElements').value(2))
                     .andExpect(jsonPath('$.page.totalPages').value(1))
                     .andExpect(jsonPath('$.page.number').value(0))
+    }
+
+    def "GET /api/user/me should return 302 redirection when unauthenticated"() {
+        when: "requesting the 'me' endpoint without authentication"
+            def response = mockMvc.perform(get("/api/user/me"))
+
+        then: "302 Redirect to login is returned"
+            response.andExpect(status().is3xxRedirection())
+                    .andExpect(header().string("Location", containsString("/oauth2/authorization/google")))
+    }
+
+    @Sql("/scripts/sql/pagination-test-data.sql")
+    def "GET /api/user should return paginated navigation links when dataset exceeds one page"() {
+        when: "requesting a specific page of user profiles"
+            def response = mockMvc.perform(get("/api/user")
+                    .param("page", "1")
+                    .param("size", "5")
+                    .param("sort", "email,asc"))
+
+        then: "response status and content type are correct"
+            response.andExpect(status().isOk())
+                    .andExpect(content().contentType(HAL_JSON_VALUE))
+
+        and: "the specific page content is returned"
+            response.andExpect(jsonPath('$._embedded.userProfiles.length()').value(5))
+            response.andExpect(jsonPath('$._embedded.userProfiles[0].email').value("user06@example.com"))
+
+        and: "all pagination navigation links are present and correct"
+            response.andExpect(jsonPath('$._links.first.href').value(containsString("/api/user?page=0&size=5&sort=email,asc")))
+            response.andExpect(jsonPath('$._links.prev.href').value(containsString("/api/user?page=0&size=5&sort=email,asc")))
+            response.andExpect(jsonPath('$._links.self.href').value(containsString("/api/user?page=1&size=5&sort=email,asc")))
+            response.andExpect(jsonPath('$._links.next.href').value(containsString("/api/user?page=2&size=5&sort=email,asc")))
+            response.andExpect(jsonPath('$._links.last.href').value(containsString("/api/user?page=3&size=5&sort=email,asc")))
+
+        and: "pagination metadata is accurate"
+            response.andExpect(jsonPath('$.page.totalElements').value(20))
+            response.andExpect(jsonPath('$.page.totalPages').value(4))
+            response.andExpect(jsonPath('$.page.number').value(1))
+    }
+
+    @Sql("/scripts/sql/user-profile-test-data.sql")
+    def "GET /api/user should preserve sorting parameters in links"() {
+        when: "requesting profiles with custom sorting"
+            def response = mockMvc.perform(get("/api/user")
+                    .param("sort", "firstName,desc"))
+
+        then: "self link preserves the sorting parameter"
+            response.andExpect(jsonPath('$._links.self.href').value(containsString("sort=firstName,desc")))
+    }
+
+    @Sql("/scripts/sql/user-profile-test-data.sql")
+    def "GET /api/user/me should return authenticated user profile with canonical links"() {
+        given: "an authenticated user session"
+            def targetEmail = "existing@example.com"
+            def expectedId = userRepository.findByEmail(targetEmail).get().id
+            def auth = oauth2Login().attributes { it.put("email", targetEmail) }
+
+        when: "requesting the 'me' endpoint"
+            def response = mockMvc.perform(get("/api/user/me").with(auth))
+
+        then: "response status is 200 OK"
+            response.andExpect(status().isOk())
+                    .andExpect(content().contentType(HAL_JSON_VALUE))
+
+        and: "the returned profile matches the authenticated user"
+            response.andExpect(jsonPath('$.id').value(expectedId))
+            response.andExpect(jsonPath('$.email').value(targetEmail))
+
+        and: "the links contain both canonical self and 'me' alias"
+            response.andExpect(jsonPath('$._links.self.href').value(containsString("/api/user/${expectedId}")))
+            response.andExpect(jsonPath('$._links.me.href').value(containsString("/api/user/me")))
+    }
+
+    def "GET /api/user/me should return 404 when authenticated user is missing from DB"() {
+        given: "an authenticated user session for a non-existent local user"
+            def auth = oauth2Login().attributes { it.put("email", "ghost@example.com") }
+
+        when: "requesting the 'me' endpoint"
+            def response = mockMvc.perform(get("/api/user/me").with(auth))
+
+        then: "404 ProblemDetail is returned"
+            response.andExpect(status().isNotFound())
+                    .andExpect(jsonPath('$.type').value("NOT_FOUND"))
+                    .andExpect(jsonPath('$.detail').value(containsString("ghost@example.com")))
     }
 
     @Sql("/scripts/sql/user-profile-test-data.sql")
