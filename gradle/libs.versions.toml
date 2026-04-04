@@ -1,0 +1,46 @@
+[versions]
+java = "25"
+springBoot = "4.0.0"
+springDependencyManagement = "1.1.7"
+lombok = "1.18.38"
+postgresql = "42.7.3"
+micrometer = "1.12.0"
+testcontainers = "1.19.3"
+spock = "2.4-M4-groovy-4.0"
+groovy = "4.0.22"
+
+[libraries]
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-liquibase = { module = "org.springframework.boot:spring-boot-starter-liquibase" }
+spring-boot-starter-webmvc = { module = "org.springframework.boot:spring-boot-starter-webmvc" }
+spring-boot-devtools = { module = "org.springframework.boot:spring-boot-devtools" }
+spring-boot-docker-compose = { module = "org.springframework.boot:spring-boot-docker-compose" }
+
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
+
+spring-boot-starter-actuator-test = { module = "org.springframework.boot:spring-boot-starter-actuator-test" }
+spring-boot-starter-data-jpa-test = { module = "org.springframework.boot:spring-boot-starter-data-jpa-test" }
+spring-boot-starter-liquibase-test = { module = "org.springframework.boot:spring-boot-starter-liquibase-test" }
+spring-boot-starter-webmvc-test = { module = "org.springframework.boot:spring-boot-starter-webmvc-test" }
+spring-boot-testcontainers = { module = "org.springframework.boot:spring-boot-testcontainers" }
+testcontainers-junit = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testcontainers" }
+testcontainers-postgresql = { module = "org.testcontainers:testcontainers-postgresql", version.ref = "testcontainers" }
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
+
+spock-core = { module = "org.spockframework:spock-core", version.ref = "spock" }
+spock-spring = { module = "org.spockframework:spock-spring", version.ref = "spock" }
+groovy = { module = "org.apache.groovy:groovy", version.ref = "groovy" }
+
+[plugins]
+spring-boot = { id = "org.springframework.boot", version.ref = "springBoot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "springDependencyManagement" }
+
+[bundles]
+spring-boot-starters = ["spring-boot-starter-actuator", "spring-boot-starter-data-jpa", "spring-boot-starter-liquibase", "spring-boot-starter-webmvc"]
+spring-boot-dev = ["spring-boot-devtools", "spring-boot-docker-compose"]
+spring-boot-test = ["spring-boot-starter-actuator-test", "spring-boot-starter-data-jpa-test", "spring-boot-starter-liquibase-test", "spring-boot-starter-webmvc-test", "spring-boot-testcontainers"]
+testcontainers = ["testcontainers-junit", "testcontainers-postgresql"]
+spock = ["spock-core", "spock-spring", "groovy"]

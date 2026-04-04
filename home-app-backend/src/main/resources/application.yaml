@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: Home Application
+  
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+    
+  datasource:
+    url: jdbc:postgresql://localhost:5432/homeapp
+    username: homeapp
+    password: homeapp
+    driver-class-name: org.postgresql.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
