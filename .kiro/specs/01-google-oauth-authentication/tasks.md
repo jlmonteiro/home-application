@@ -13,7 +13,7 @@
 - [x] Create migration `05-add-timestamps.sql`
 - [x] Update `db.changelog-master.xml` to include new migrations
 - [x] Test migrations on clean database
-- [ ] Test rollback scripts
+- [x] Test rollback scripts
 
 ## Entity Updates
 

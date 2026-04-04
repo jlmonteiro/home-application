@@ -10,4 +10,4 @@ CREATE TABLE profiles.user (
     enabled BOOLEAN NOT NULL DEFAULT true
 );
 
---rollback DROP TABLE IF EXISTS profiles.users CASCADE; DROP SCHEMA IF EXISTS profiles CASCADE;
+--rollback DROP TABLE IF EXISTS profiles.user CASCADE; DROP SCHEMA IF EXISTS profiles CASCADE;
