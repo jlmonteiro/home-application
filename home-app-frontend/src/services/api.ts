@@ -22,9 +22,8 @@ export async function fetchCurrentUser(): Promise<UserProfile | null> {
 
 export async function logout(): Promise<void> {
   const response = await fetch('/logout', {
-    method: 'POST',
+    method: 'GET',
     headers: {
-      // Spring Security CSRF protection might require a token if not configured otherwise
       'X-Requested-With': 'XMLHttpRequest',
     },
   })
