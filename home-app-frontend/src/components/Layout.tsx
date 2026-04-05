@@ -18,7 +18,7 @@ import { useAuth } from '../context/AuthContext'
 
 export function Layout() {
   const { user, logout } = useAuth()
-  const { setColorScheme } = useMantineColorScheme()
+  const { setColorScheme, colorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
 
   const photoSrc = user?.photo?.startsWith('data:image')
@@ -33,9 +33,9 @@ export function Layout() {
       <AppShell.Header 
         withBorder={false}
         style={{
-          backgroundColor: 'light-dark(rgba(255, 255, 255, 0.8), rgba(26, 27, 30, 0.8))',
+          backgroundColor: computedColorScheme === 'dark' ? 'rgba(26, 27, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(10px)',
-          borderBottom: '1px solid light-dark(#e9ecef, #2c2e33)',
+          borderBottom: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}`,
         }}
       >
         <Container size="xl" h="100%">
@@ -79,14 +79,14 @@ export function Layout() {
               >
                 <Menu.Target>
                   <UnstyledButton 
-                    style={(theme) => ({
+                    style={{
                       padding: `${rem(4)} ${rem(8)}`,
-                      borderRadius: theme.radius.md,
+                      borderRadius: rem(8),
                       transition: 'background-color 100ms ease',
                       '&:hover': {
-                        backgroundColor: 'light-dark(#f8f9fa, #2c2e33)',
+                        backgroundColor: computedColorScheme === 'dark' ? '#2c2e33' : '#f8f9fa',
                       },
-                    })}
+                    }}
                   >
                     <Group gap={8}>
                       <Avatar
