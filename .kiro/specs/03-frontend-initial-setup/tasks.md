@@ -29,15 +29,15 @@
     - **Validate**: Run `npm run lint`.
 
 ## Phase 3: Authentication & State Management
-- [ ] **Task 3.1: API Service & Auth Types**
+- [x] **Task 3.1: API Service & Auth Types**
     - **Plan**: Define TypeScript interfaces for the User Profile and create a basic fetcher using `fetch` or `axios`.
     - **Act**: Create `src/services/api.ts` and `src/types/user.ts`.
     - **Validate**: N/A (compile check).
-- [ ] **Task 3.2: AuthContext & Provider**
+- [x] **Task 3.2: AuthContext & Provider**
     - **Plan**: Create an `AuthContext` to manage the user session and provide a `useAuth` hook. Use TanStack Query to fetch `/api/user/me`.
     - **Act**: Implement `src/context/AuthContext.tsx`.
     - **Validate**: Verify the hook correctly identifies authenticated/unauthenticated states.
-- [ ] **Task 3.3: Protected Route Guard**
+- [x] **Task 3.3: Protected Route Guard**
     - **Plan**: Create a `ProtectedRoute` component to handle redirection.
     - **Act**: Implement `src/components/ProtectedRoute.tsx`.
     - **Validate**: Try accessing a protected route while unauthenticated and verify redirect to `/login`.
