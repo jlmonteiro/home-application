@@ -1,4 +1,4 @@
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { LoadingOverlay, Alert, Box } from '@mantine/core'
 import { IconAlertCircle } from '@tabler/icons-react'

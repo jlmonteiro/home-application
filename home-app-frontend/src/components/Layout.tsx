@@ -10,9 +10,10 @@ import {
   ActionIcon,
   useMantineColorScheme,
   useComputedColorScheme,
+  Box,
 } from '@mantine/core'
 import { Outlet } from 'react-router-dom'
-import { IconLogout, IconChevronDown, IconSun, IconMoon } from '@tabler/icons-react'
+import { IconLogout, IconChevronDown, IconSun, IconMoon, IconSettings, IconUser } from '@tabler/icons-react'
 import { useAuth } from '../context/AuthContext'
 
 export function Layout() {
@@ -20,59 +21,105 @@ export function Layout() {
   const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
 
-  // Base64 image needs prefix if not present
   const photoSrc = user?.photo?.startsWith('data:image')
     ? user.photo
     : `data:image/png;base64,${user?.photo}`
 
   return (
-    <AppShell header={{ height: 60 }} padding="md">
-      <AppShell.Header>
+    <AppShell 
+      header={{ height: 70 }} 
+      padding="md"
+    >
+      <AppShell.Header 
+        withBorder={false}
+        style={{
+          backgroundColor: 'light-dark(rgba(255, 255, 255, 0.8), rgba(26, 27, 30, 0.8))',
+          backdropFilter: 'blur(10px)',
+          borderBottom: '1px solid light-dark(#e9ecef, #2c2e33)',
+        }}
+      >
         <Container size="xl" h="100%">
           <Group justify="space-between" h="100%">
-            <Text size="xl" fw={700}>
-              Home App
-            </Text>
+            <Group gap="xs">
+              <Box 
+                w={34} 
+                h={34} 
+                bg="indigo" 
+                style={{ borderRadius: rem(8), display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Text color="white" fw={900} size="xl" style={{ lineHeight: 1 }}>H</Text>
+              </Box>
+              <Text size="lg" fw={800} style={{ letterSpacing: rem(-0.5) }}>
+                HOME APP
+              </Text>
+            </Group>
 
-            <Group>
+            <Group gap="lg">
               <ActionIcon
                 onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
-                variant="default"
+                variant="subtle"
+                color="gray"
                 size="lg"
+                radius="md"
                 aria-label="Toggle color scheme"
               >
                 {computedColorScheme === 'light' ? (
-                  <IconMoon style={{ width: rem(22), height: rem(22) }} stroke={1.5} />
+                  <IconMoon style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 ) : (
-                  <IconSun style={{ width: rem(22), height: rem(22) }} stroke={1.5} />
+                  <IconSun style={{ width: rem(20), height: rem(20) }} stroke={1.5} />
                 )}
               </ActionIcon>
 
-              <Menu width={200} position="bottom-end" transitionProps={{ transition: 'pop-top-right' }}>
+              <Menu 
+                width={220} 
+                position="bottom-end" 
+                transitionProps={{ transition: 'pop-top-right' }}
+                radius="md"
+                shadow="xl"
+              >
                 <Menu.Target>
-                  <UnstyledButton>
-                    <Group gap={7}>
+                  <UnstyledButton 
+                    style={(theme) => ({
+                      padding: `${rem(4)} ${rem(8)}`,
+                      borderRadius: theme.radius.md,
+                      transition: 'background-color 100ms ease',
+                      '&:hover': {
+                        backgroundColor: 'light-dark(#f8f9fa, #2c2e33)',
+                      },
+                    })}
+                  >
+                    <Group gap={8}>
                       <Avatar
                         src={user?.photo ? photoSrc : null}
                         alt={user?.firstName}
                         radius="xl"
-                        size={30}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <Text size="sm" fw={500}>
+                        size={32}
+                        color="indigo"
+                      >
+                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      </Avatar>
+                      <Box visibleFrom="sm">
+                        <Text size="sm" fw={600} lh={1}>
                           {user?.firstName} {user?.lastName}
                         </Text>
-                        <Text c="dimmed" size="xs">
-                          {user?.email}
-                        </Text>
-                      </div>
-                      <IconChevronDown style={{ width: rem(12), height: rem(12) }} stroke={1.5} />
+                      </Box>
+                      <IconChevronDown style={{ width: rem(14), height: rem(14) }} stroke={1.5} />
                     </Group>
                   </UnstyledButton>
                 </Menu.Target>
 
-                <Menu.Dropdown>
-                  <Menu.Label>Settings</Menu.Label>
+                <Menu.Dropdown p={4}>
+                  <Menu.Label>Application</Menu.Label>
+                  <Menu.Item leftSection={<IconUser style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}>
+                    Profile
+                  </Menu.Item>
+                  <Menu.Item leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}>
+                    Settings
+                  </Menu.Item>
+                  
+                  <Menu.Divider />
+                  
+                  <Menu.Label>Danger zone</Menu.Label>
                   <Menu.Item
                     color="red"
                     leftSection={
@@ -89,7 +136,7 @@ export function Layout() {
         </Container>
       </AppShell.Header>
 
-      <AppShell.Main>
+      <AppShell.Main pt={rem(70 + 24)}>
         <Container size="xl">
           <Outlet />
         </Container>
