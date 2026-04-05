@@ -1,29 +1,29 @@
 # Tasks: Frontend Initial Setup
 
 ## Phase 1: Project Bootstrapping & Gradle Integration
-- [ ] **Task 1.1: Create Frontend Module**
+- [x] **Task 1.1: Create Frontend Module**
     - **Plan**: Create the `home-app-frontend` directory and initialize a Vite project with React and TypeScript.
     - **Act**: Run `npm create vite@latest home-app-frontend -- --template react-ts`.
     - **Validate**: Ensure the directory structure is created and `package.json` is present.
-- [ ] **Task 1.2: Gradle Integration**
+- [x] **Task 1.2: Gradle Integration**
     - **Plan**: Configure the root `settings.gradle.kts` and create `home-app-frontend/build.gradle.kts` using the `com.github.node-gradle.node` plugin.
     - **Act**: Update `settings.gradle.kts`, create `build.gradle.kts`, and configure tasks to sync with npm.
     - **Validate**: Run `./gradlew :home-app-frontend:nodeSetup` and ensure it succeeds.
-- [ ] **Task 1.3: Configure Vite Proxy & Base URL**
+- [x] **Task 1.3: Configure Vite Proxy & Base URL**
     - **Plan**: Update `vite.config.ts` to proxy `/api`, `/oauth2`, and `/logout` to `http://localhost:8080`.
     - **Act**: Modify `vite.config.ts`.
     - **Validate**: Start the backend and frontend, then verify a test request is proxied correctly.
 
 ## Phase 2: UI Foundation & Core Libraries
-- [ ] **Task 2.1: Install Dependencies**
+- [x] **Task 2.1: Install Dependencies**
     - **Plan**: Install Mantine, TanStack Query, React Router, and their dependencies.
     - **Act**: `npm install @mantine/core @mantine/hooks @tanstack/react-query react-router-dom lucide-react`.
     - **Validate**: Check `package.json` for correct versions.
-- [ ] **Task 2.2: Mantine & Global Styles Setup**
+- [x] **Task 2.2: Mantine & Global Styles Setup**
     - **Plan**: Configure `MantineProvider` and basic theme in `App.tsx`.
     - **Act**: Update `main.tsx` and `App.tsx` with providers.
     - **Validate**: Verify the app renders with Mantine styles.
-- [ ] **Task 2.3: ESLint & Prettier Configuration**
+- [x] **Task 2.3: ESLint & Prettier Configuration**
     - **Plan**: Standardize code quality tools.
     - **Act**: Configure `.eslintrc.cjs` and `.prettierrc`.
     - **Validate**: Run `npm run lint`.
