@@ -43,15 +43,15 @@
     - **Validate**: Try accessing a protected route while unauthenticated and verify redirect to `/login`.
 
 ## Phase 4: Pages & Shell Implementation
-- [ ] **Task 4.1: Login Page**
+- [x] **Task 4.1: Login Page**
     - **Plan**: Create a simple, centered login page with a "Login with Google" button.
     - **Act**: Create `src/pages/LoginPage.tsx`.
     - **Validate**: Verify the button redirects to the backend's `/oauth2/authorization/google`.
-- [ ] **Task 4.2: App Layout (AppShell)**
+- [x] **Task 4.2: App Layout (AppShell)**
     - **Plan**: Implement the main layout with a Header featuring the user's name, email, and avatar.
     - **Act**: Create `src/components/Layout.tsx` using Mantine's `AppShell`.
     - **Validate**: Login and verify user info is correctly displayed in the header.
-- [ ] **Task 4.3: Logout Functionality**
+- [x] **Task 4.3: Logout Functionality**
     - **Plan**: Add a logout button that redirects to the backend's `/logout` endpoint.
     - **Act**: Update the Header component.
     - **Validate**: Verify logout redirects the user and clears the session.

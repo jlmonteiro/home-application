@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { UserProfile } from '../types/user'
+import type { UserProfile } from '../types/user'
 import { fetchCurrentUser, logout as apiLogout } from '../services/api'
 
 interface AuthContextType {
@@ -19,12 +19,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     isLoading,
     isError,
+    error,
   } = useQuery({
     queryKey: ['user'],
     queryFn: fetchCurrentUser,
     retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
+
+  console.log('AuthContext State:', { user, isLoading, isError, error })
 
   const logout = async () => {
     try {

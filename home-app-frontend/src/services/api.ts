@@ -1,4 +1,4 @@
-import { UserProfile } from '../types/user'
+import type { UserProfile } from '../types/user'
 
 const API_BASE = '/api'
 
