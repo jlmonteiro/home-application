@@ -111,12 +111,44 @@ The Home Application employs a multi-layered testing strategy to ensure the reli
 - *Then*: The system SHALL render a linear 1D barcode encoding the exact card number.
 - *Validates*: FR-12
 
+### TS-18: First User Bootstrap (Adult Assignment)
+- *Given*: A completely empty system with no users.
+- *When*: The first user successfully authenticates via Google.
+- *Then*: The system SHALL assign them the "Adult" age group, regardless of their actual age.
+- *Validates*: UJ-1
+
+### TS-19: Automated Age Group Classification
+- *Given*: Configured age ranges: Child (0-12), Teenager (13-17), Adult (18+).
+- *And*: A user with a birthdate exactly 13 years ago today.
+- *When*: The user logs in or the daily recalculation task runs.
+- *Then*: The user's profile SHALL be updated from "Child" to "Teenager".
+- *Validates*: FR-16
+
+### TS-20: Google Birthdate Synchronization
+- *Given*: An authenticated session with the `user.birthday.read` scope.
+- *When*: The onboarding process calls the Google People API.
+- *Then*: The system SHALL extract the birthdate and persist it in the `UserProfile`.
+- *And*: If Google returns no birthdate, the system SHALL prompt the user for manual entry.
+- *Validates*: FR-17
+
+### TS-21: Settings Access Control
+- *Given*: A user classified as "Child" or "Teenager".
+- *When*: They attempt to access `GET /api/settings/**` or `PUT /api/settings/**`.
+- *Then*: The system SHALL return a 403 Forbidden status.
+- *Validates*: FR-18, FR-19
+
+### TS-22: Documentation Generation Verification
+- *Given*: A valid `mkdocs.yml` and markdown files in `docs/`.
+- *When*: The Gradle task `./gradlew generateDocs` is executed.
+- *Then*: A directory `build/docs/` SHALL be created containing a functional static HTML site.
+- *Validates*: FR-20, FR-21
+
 ## 3. Test Data & Environment
 - **Testcontainers:** Used for PostgreSQL 16 integration.
-- **Mocks:** Google OAuth2 API is mocked for deterministic testing.
+- **Mocks:** Google OAuth2 and People API are mocked for deterministic testing.
 
 ## 4. Acceptance Criteria
 - 100% of BDD scenarios (Happy & Sad) MUST pass.
 - RFC 7807 validation for all error responses.
 - Immutable fields (email, firstName, lastName) remain unchanged after any profile update.
-- UI components correctly implement conditional rendering based on profile data presence.
+- UI components correctly implement conditional rendering based on profile data presence and age-group permissions.

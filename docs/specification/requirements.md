@@ -23,6 +23,8 @@ The primary goal is to provide a unified, secure entry point for all household m
 | **FR-2** | [Automatic User Registration](./requirements/auth-profile.md#fr-2-automatic-user-registration) |
 | **FR-3** | [User Profile Quick View](./requirements/auth-profile.md#fr-3-user-profile-quick-view) |
 | **FR-4** | [Update User Profile](./requirements/auth-profile.md#fr-4-update-user-profile) |
+| **FR-16** | [Automated Age Group Classification](./requirements/auth-profile.md#fr-16-automated-age-group-classification) |
+| **FR-17** | [Google Birthdate Integration](./requirements/auth-profile.md#fr-17-google-birthdate-integration) |
 | **NFR-1** | [Security (Zero Trust)](./requirements/auth-profile.md#nfr-1-security-zero-trust) |
 
 ### 3.2. Shopping List
@@ -42,8 +44,24 @@ The primary goal is to provide a unified, secure entry point for all household m
 | **FR-15** | [Expiration Warning Panel (Dashboard)](./requirements/shopping-list.md#fr-15-expiration-warning-panel-dashboard) |
 | **NFR-3** | [Reliability & Sync](./requirements/shopping-list.md#nfr-3-reliability--sync) |
 | **NFR-4** | [Accessibility & UX](./requirements/shopping-list.md#nfr-4-accessibility--ux) |
+### 3.3. Settings & Configuration
+| ID | Title |
+| --- | --- |
+| **UJ-5** | [Configuring Household Age Groups](./requirements/settings.md#uj-5-configuring-household-age-groups) |
+| **FR-18** | [Age Group Configuration](./requirements/settings.md#fr-18-age-group-configuration) |
+| **FR-19** | [Family Role Configuration](./requirements/settings.md#fr-19-family-role-configuration) |
 
-### 3.3. Shared Requirements
+### 3.4. Application Documentation
+| ID | Title |
+| --- | --- |
+| **FR-20** | [Integrated Documentation Build (MkDocs)](./requirements/documentation.md#fr-20-integrated-documentation-build-mkdocs) |
+| **FR-21** | [Gradle Integration](./requirements/documentation.md#fr-21-gradle-integration) |
+| **FR-22** | [Content Organization](./requirements/documentation.md#fr-22-content-organization) |
+| **NFR-5** | [Documentation Portability](./requirements/documentation.md#nfr-5-documentation-portability) |
+
+### 3.5. Shared Requirements
+...
+
 | ID | Title |
 | --- | --- |
 | **FR-14** | [Module Navigation (Nested Menus)](./requirements/shared.md#fr-14-module-navigation-nested-menus) |
