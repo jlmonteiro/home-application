@@ -12,25 +12,39 @@ import {
   useComputedColorScheme,
   Box,
 } from '@mantine/core'
-import { Outlet } from 'react-router-dom'
-import { IconLogout, IconChevronDown, IconSun, IconMoon, IconSettings, IconUser } from '@tabler/icons-react'
+import { Outlet, Link } from 'react-router-dom'
+import {
+  IconLogout,
+  IconChevronDown,
+  IconSun,
+  IconMoon,
+  IconSettings,
+  IconUser,
+  IconPhone,
+  IconBrandFacebook,
+  IconBrandInstagram,
+  IconBrandLinkedin,
+} from '@tabler/icons-react'
 import { useAuth } from '../context/AuthContext'
 
 export function Layout() {
   const { user, logout } = useAuth()
+  // @ts-ignore
   const { setColorScheme, colorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
 
-  const photoSrc = user?.photo?.startsWith('data:image')
+  const photoSrc = user?.photo?.startsWith('http')
     ? user.photo
-    : `data:image/png;base64,${user?.photo}`
+    : user?.photo?.startsWith('data:image')
+      ? user.photo
+      : `data:image/png;base64,${user?.photo}`
 
   return (
-    <AppShell 
-      header={{ height: 70 }} 
+    <AppShell
+      header={{ height: 70 }}
       padding="md"
     >
-      <AppShell.Header 
+      <AppShell.Header
         withBorder={false}
         style={{
           backgroundColor: computedColorScheme === 'dark' ? 'rgba(26, 27, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)',
@@ -41,15 +55,17 @@ export function Layout() {
         <Container size="xl" h="100%">
           <Group justify="space-between" h="100%">
             <Group gap="xs">
-              <Box 
-                w={34} 
-                h={34} 
-                bg="indigo" 
-                style={{ borderRadius: rem(8), display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              <Box
+                w={34}
+                h={34}
+                bg="indigo"
+                component={Link}
+                to="/"
+                style={{ borderRadius: rem(8), display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
               >
                 <Text color="white" fw={900} size="xl" style={{ lineHeight: 1 }}>H</Text>
               </Box>
-              <Text size="lg" fw={800} style={{ letterSpacing: rem(-0.5) }}>
+              <Text size="lg" fw={800} style={{ letterSpacing: rem(-0.5), textDecoration: 'none' }} component={Link} to="/" c="var(--mantine-color-text)">
                 HOME APP
               </Text>
             </Group>
@@ -70,15 +86,15 @@ export function Layout() {
                 )}
               </ActionIcon>
 
-              <Menu 
-                width={220} 
-                position="bottom-end" 
+              <Menu
+                width={220}
+                position="bottom-end"
                 transitionProps={{ transition: 'pop-top-right' }}
                 radius="md"
                 shadow="xl"
               >
                 <Menu.Target>
-                  <UnstyledButton 
+                  <UnstyledButton
                     style={{
                       padding: `${rem(4)} ${rem(8)}`,
                       borderRadius: rem(8),
@@ -110,15 +126,76 @@ export function Layout() {
 
                 <Menu.Dropdown p={4}>
                   <Menu.Label>Application</Menu.Label>
-                  <Menu.Item leftSection={<IconUser style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}>
-                    Profile
+                  <Menu.Item
+                    component={Link}
+                    to="/profile"
+                    leftSection={<IconUser style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
+                  >
+                    View/Edit Profile
                   </Menu.Item>
                   <Menu.Item leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}>
                     Settings
                   </Menu.Item>
-                  
+
+                  {user?.mobilePhone && (
+                    <>
+                      <Menu.Divider />
+                      <Menu.Label>Contact</Menu.Label>
+                      <Menu.Item
+                        leftSection={<IconPhone style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
+                      >
+                        {user.mobilePhone}
+                      </Menu.Item>
+                    </>
+                  )}
+
+                  {(user?.facebook || user?.instagram || user?.linkedin) && (
+                    <>
+                      <Menu.Divider />
+                      <Menu.Label>Social Profiles</Menu.Label>
+                      <Group gap={4} px="sm" py="xs">
+                        {user?.facebook && (
+                          <ActionIcon
+                            component="a"
+                            href={user.facebook}
+                            target="_blank"
+                            variant="subtle"
+                            color="blue"
+                            radius="md"
+                          >
+                            <IconBrandFacebook size={18} stroke={1.5} />
+                          </ActionIcon>
+                        )}
+                        {user?.instagram && (
+                          <ActionIcon
+                            component="a"
+                            href={user.instagram}
+                            target="_blank"
+                            variant="subtle"
+                            color="pink"
+                            radius="md"
+                          >
+                            <IconBrandInstagram size={18} stroke={1.5} />
+                          </ActionIcon>
+                        )}
+                        {user?.linkedin && (
+                          <ActionIcon
+                            component="a"
+                            href={user.linkedin}
+                            target="_blank"
+                            variant="subtle"
+                            color="blue"
+                            radius="md"
+                          >
+                            <IconBrandLinkedin size={18} stroke={1.5} />
+                          </ActionIcon>
+                        )}
+                      </Group>
+                    </>
+                  )}
+
                   <Menu.Divider />
-                  
+
                   <Menu.Label>Danger zone</Menu.Label>
                   <Menu.Item
                     color="red"

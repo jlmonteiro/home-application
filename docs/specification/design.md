@@ -90,7 +90,23 @@ interface UserProfileUpdateRequest {
 ```
 **Constraint:** Fields `email`, `firstName`, and `lastName` MUST be ignored by the backend if provided in the request, as they are managed via OAuth2.
 
-## 4. Error Handling & Observability
+## 4. Performance & Caching Strategy
+To meet the responsiveness requirements (*NFR-2*), the system employs a dual-layer caching and optimization strategy.
+
+### Backend Performance (Latency)
+- **Database Indexing:** Ensure `email` field in `users` table has a unique index for O(1) lookups during authentication and profile retrieval.
+- **Connection Pooling:** Use HikariCP with optimized settings to minimize connection acquisition time.
+- **Minimal Payload:** The `/api/user/me` endpoint returns a focused HATEOAS resource to reduce serialization overhead and network transfer time.
+- **Target:** 95% of requests < 150ms.
+
+### Frontend Caching (TanStack Query)
+- **Global Server State:** The `AuthContext` uses TanStack Query's `useQuery` to manage the `['user']` query key.
+- **Stale-While-Revalidate (SWR):** 
+    - `staleTime: 300000` (5 minutes): The profile data is considered fresh for 5 minutes, preventing redundant network requests during navigation. (*Implements: NFR-2*)
+    - `gcTime: 600000` (10 minutes): Unused profile data is kept in memory for 10 minutes before garbage collection.
+- **Optimistic Updates:** Profile updates (`PUT /api/user/me`) use `queryClient.setQueryData` to immediately update the local cache upon success, ensuring the UI reflects changes instantly without a full page reload or a follow-up GET request.
+
+## 5. Error Handling & Observability
 ### Error Handling Strategy
 The system follows **RFC 7807 (Problem Detail)** for all backend errors.
 

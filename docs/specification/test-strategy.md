@@ -75,6 +75,12 @@ The Home Application employs a multi-layered testing strategy to ensure the reli
 - *Then*: The system displays only basic info (name, photo) and the "View/Edit Profile" link, omitting phone and social sections.
 - *Validates*: FR-3
 
+### TS-12: Frontend Cache Utilization (Performance)
+- *Given*: An authenticated user who has already loaded their profile.
+- *When*: The user navigates between the Dashboard and Profile pages within a 5-minute window.
+- *Then*: The system SHALL NOT trigger a new network request to `/api/user/me`, serving the data from the TanStack Query cache instead.
+- *Validates*: NFR-2
+
 ## 3. Test Data & Environment
 - **Testcontainers:** Used for PostgreSQL 16 integration.
 - **Mocks:** Google OAuth2 API is mocked for deterministic testing of "Sad Paths."
