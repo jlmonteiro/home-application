@@ -81,9 +81,39 @@ The Home Application employs a multi-layered testing strategy to ensure the reli
 - *Then*: The system SHALL NOT trigger a new network request to `/api/user/me`, serving the data from the TanStack Query cache instead.
 - *Validates*: NFR-2
 
+### TS-13: Collaborative Item Check-off (Real-time)
+- *Given*: Two users (A and B) belong to the same household and are viewing the same shopping list.
+- *When*: User A marks "Apples" as "Bought".
+- *Then*: The backend updates the item status, and User B's UI automatically reflects the "Bought" state.
+- *Validates*: FR-7, FR-10
+
+### TS-14: Intelligent Price Suggestions
+- *Given*: A user has previously bought "Bread" at "Store X" for €1.50 and "Store Y" for €1.20.
+- *When*: The user adds "Bread" to a new list and selects "Store X".
+- *Then*: The system suggests €1.50 as the price.
+- *Validates*: FR-9
+
+### TS-15: Automatic Data Retention (Cleanup)
+- *Given*: A shopping list that was marked as "Completed" 95 days ago.
+- *When*: The daily retention background task executes.
+- *Then*: The system SHALL permanently delete the list and all its associated `ListItem` records.
+- *Validates*: FR-11
+
+### TS-16: Dashboard Coupon Warning
+- *Given*: An unused coupon for "Lidl" expiring in 48 hours.
+- *When*: The user views the application Dashboard.
+- *Then*: The "Expiring Coupons" panel displays the Lidl coupon with its expiration date highlighted.
+- *Validates*: FR-15
+
+### TS-17: Loyalty Card Barcode Validation
+- *Given*: A loyalty card configured with the "Code 128" barcode type.
+- *When*: The user views the card details in the UI.
+- *Then*: The system SHALL render a linear 1D barcode encoding the exact card number.
+- *Validates*: FR-12
+
 ## 3. Test Data & Environment
 - **Testcontainers:** Used for PostgreSQL 16 integration.
-- **Mocks:** Google OAuth2 API is mocked for deterministic testing of "Sad Paths."
+- **Mocks:** Google OAuth2 API is mocked for deterministic testing.
 
 ## 4. Acceptance Criteria
 - 100% of BDD scenarios (Happy & Sad) MUST pass.
