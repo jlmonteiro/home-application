@@ -3,6 +3,7 @@ package com.jorgemonteiro.home_app.config;
 import com.jorgemonteiro.home_app.exception.AppErrorType;
 import com.jorgemonteiro.home_app.exception.HomeAppException;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.validation.FieldError;
@@ -55,6 +56,20 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setTitle("Object Not Found");
         problemDetail.setType(URI.create(AppErrorType.NOT_FOUND.name()));
+        return problemDetail;
+    }
+
+    /**
+     * Handles database connection failures and returns HTTP 503 Service Unavailable.
+     *
+     * @param ex the exception carrying the error message
+     * @return {@link ProblemDetail} for 503 response
+     */
+    @ExceptionHandler(DataAccessResourceFailureException.class)
+    public ProblemDetail handleDatabaseUnreachable(DataAccessResourceFailureException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, "The database is currently unreachable. Please try again later.");
+        problemDetail.setTitle("Service Unavailable");
+        problemDetail.setType(URI.create(AppErrorType.SERVICE_UNAVAILABLE.name()));
         return problemDetail;
     }
 

@@ -16,18 +16,15 @@ public class UserProfileDTO {
     private Long id;
 
     /** The user's unique email address. */
-    @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
     @Size(max = 100, message = "Email must not exceed 100 characters")
     private String email;
 
     /** The user's first name. */
-    @NotBlank(message = "First name is required")
     @Size(max = 50, message = "First name must not exceed 50 characters")
     private String firstName;
 
     /** The user's last name. */
-    @NotBlank(message = "Last name is required")
     @Size(max = 50, message = "Last name must not exceed 50 characters")
     private String lastName;
 

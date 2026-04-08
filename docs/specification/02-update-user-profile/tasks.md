@@ -24,10 +24,10 @@ The goal of this epic is to enable authenticated users to update their profile i
 - [ ] AC-1.6: Returns 503 Service Unavailable if the database is unreachable.
 
 #### Tasks
-- [ ] T-1.1: Add `putUserProfile` method to `UserProfileController` mapped to `PUT /api/user/me`.
-- [ ] T-1.2: Add `updateProfile` method to `UserProfileService` to handle entity updates and photo conversion (if needed).
-- [ ] T-1.3: Ensure `UserProfileDTO` validation annotations are correctly triggered by `@Valid` in the controller.
-- [ ] T-1.4: Implement `UserProfileUpdateSpec.groovy` integration test covering Happy and Sad paths (TS-7, TS-8, TS-9).
+- [x] T-1.1: Add `putUserProfile` method to `UserProfileController` mapped to `PUT /api/user/me`.
+- [x] T-1.2: Add `updateProfile` method to `UserProfileService` to handle entity updates and photo conversion (if needed).
+- [x] T-1.3: Ensure `UserProfileDTO` validation annotations are correctly triggered by `@Valid` in the controller.
+- [x] T-1.4: Implement `UserProfileUpdateSpec.groovy` integration test covering Happy and Sad paths (TS-7, TS-8, TS-9).
 - [ ] T-1.5: Run `/sdd:check` to verify specification compliance and traceability.
 
 ---

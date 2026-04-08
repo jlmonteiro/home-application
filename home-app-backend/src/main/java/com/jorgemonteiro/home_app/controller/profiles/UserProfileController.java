@@ -3,7 +3,7 @@ package com.jorgemonteiro.home_app.controller.profiles;
 import com.jorgemonteiro.home_app.controller.profiles.resource.PagedUserProfileResource;
 import com.jorgemonteiro.home_app.controller.profiles.resource.UserProfileResource;
 import com.jorgemonteiro.home_app.controller.profiles.resource.UserProfileResourceAssembler;
-import com.jorgemonteiro.home_app.exception.HomeAppException;
+import com.jorgemonteiro.home_app.exception.AuthenticationException;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO;
 import com.jorgemonteiro.home_app.service.profiles.UserProfileService;
@@ -48,7 +48,7 @@ public class UserProfileController {
     public ResponseEntity<UserProfileResource> getMyProfile(@AuthenticationPrincipal OAuth2User principal) {
         String email = principal.getAttribute("email");
         if (email == null || email.isBlank()) {
-            throw new HomeAppException("Authentication principal is missing email attribute");
+            throw new AuthenticationException("Authentication principal is missing email attribute");
         }
 
         return userProfileService.getUserProfile(email)
@@ -116,5 +116,32 @@ public class UserProfileController {
         UserProfileDTO updated = userProfileService.updateUserProfile(userProfileDTO);
 
         return ResponseEntity.ok(resourceAssembler.toModel(updated));
+    }
+
+    /**
+     * Updates the profile of the currently authenticated user.
+     *
+     * @param principal      the authenticated OAuth2 user
+     * @param userProfileDTO updated profile data
+     * @return 200 with the updated UserProfileResource
+     * @throws HomeAppException if the principal is missing the required email attribute
+     */
+    @PutMapping("/me")
+    public ResponseEntity<UserProfileResource> putUserProfile(
+            @AuthenticationPrincipal OAuth2User principal,
+            @RequestBody @Valid UserProfileDTO userProfileDTO) {
+
+        String email = principal.getAttribute("email");
+        if (email == null || email.isBlank()) {
+            throw new AuthenticationException("Authentication principal is missing email attribute");
+        }
+
+        userProfileDTO.setEmail(email);
+        UserProfileDTO updated = userProfileService.updateMyProfile(userProfileDTO);
+
+        UserProfileResource resource = resourceAssembler.toModel(updated);
+        resource.add(linkTo(methodOn(UserProfileController.class).getMyProfile(null)).withRel("me"));
+
+        return ResponseEntity.ok(resource);
     }
 }

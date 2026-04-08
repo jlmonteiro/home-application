@@ -1,18 +1,20 @@
 package com.jorgemonteiro.home_app.exception;
 
 /**
- * Base exception for all application-specific errors.
+ * Marker class for all application-specific errors.
  * All custom exceptions in this application must extend this class.
+ * Direct instantiation of this class is discouraged; instead, create specific
+ * subclasses for each error condition.
  * Maps to HTTP 500 via {@link com.jorgemonteiro.home_app.config.GlobalExceptionHandler}.
  */
-public class HomeAppException extends RuntimeException {
+public abstract class HomeAppException extends RuntimeException {
 
     /**
      * Creates a new exception with the given message.
      *
      * @param message human-readable description of the error
      */
-    public HomeAppException(String message) {
+    protected HomeAppException(String message) {
         super(message);
     }
 
@@ -22,7 +24,7 @@ public class HomeAppException extends RuntimeException {
      * @param message human-readable description of the error
      * @param cause   the underlying exception that triggered this error
      */
-    public HomeAppException(String message, Throwable cause) {
+    protected HomeAppException(String message, Throwable cause) {
         super(message, cause);
     }
 }

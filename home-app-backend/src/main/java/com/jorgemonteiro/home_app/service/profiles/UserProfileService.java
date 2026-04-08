@@ -28,6 +28,7 @@ import java.util.Optional;
 public class UserProfileService {
 
     private final UserRepository userRepository;
+    private final PhotoService photoService;
 
     /**
      * Returns a paginated list of all user profile DTOs.
@@ -92,7 +93,7 @@ public class UserProfileService {
             existingUser.setUserProfile(newProfile);
         } else {
             UserProfile profile = existingUser.getUserProfile();
-            profile.setPhoto(dto.getPhoto());
+            profile.setPhoto(processPhoto(dto.getPhoto()));
             profile.setFacebook(dto.getFacebook());
             profile.setMobilePhone(dto.getMobilePhone());
             profile.setInstagram(dto.getInstagram());
@@ -101,5 +102,42 @@ public class UserProfileService {
 
         User savedUser = userRepository.save(existingUser);
         return UserProfileAdapter.toDTO(savedUser);
+    }
+
+    /**
+     * Updates the profile of the currently authenticated user identified by email.
+     * Enforces that email, firstName, and lastName are NOT updated.
+     *
+     * @param dto the DTO with new profile information
+     * @return the updated profile DTO
+     * @throws ObjectNotFoundException if the user doesn't exist
+     */
+    public UserProfileDTO updateMyProfile(@Valid UserProfileDTO dto) {
+        User existingUser = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new ObjectNotFoundException("User not found with email: " + dto.getEmail()));
+
+        if (existingUser.getUserProfile() == null) {
+            UserProfile newProfile = new UserProfile();
+            newProfile.setUser(existingUser);
+            existingUser.setUserProfile(newProfile);
+        }
+
+        UserProfile profile = existingUser.getUserProfile();
+
+        profile.setPhoto(processPhoto(dto.getPhoto()));
+        profile.setFacebook(dto.getFacebook());
+        profile.setMobilePhone(dto.getMobilePhone());
+        profile.setInstagram(dto.getInstagram());
+        profile.setLinkedin(dto.getLinkedin());
+
+        User savedUser = userRepository.save(existingUser);
+        return UserProfileAdapter.toDTO(savedUser);
+    }
+
+    private String processPhoto(String photo) {
+        if (photo != null && photo.startsWith("http")) {
+            return photoService.downloadAndConvertToBase64(photo);
+        }
+        return photo;
     }
 }

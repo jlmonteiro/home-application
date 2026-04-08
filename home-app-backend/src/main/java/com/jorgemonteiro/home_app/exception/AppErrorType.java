@@ -11,6 +11,9 @@ public enum AppErrorType {
     /** Input validation failed. */
     VALIDATION_ERROR,
     
+    /** Service or database is unreachable. */
+    SERVICE_UNAVAILABLE,
+    
     /** Unexpected internal server error. */
     INTERNAL_SERVER_ERROR
 }
