@@ -3,6 +3,7 @@ package com.jorgemonteiro.home_app.config;
 import com.jorgemonteiro.home_app.exception.AppErrorType;
 import com.jorgemonteiro.home_app.exception.HomeAppException;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
+import com.jorgemonteiro.home_app.exception.ValidationException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -29,7 +30,7 @@ public class GlobalExceptionHandler {
      * @return {@link ProblemDetail} with a map of field errors
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ProblemDetail handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ProblemDetail handleMethodValidationExceptions(MethodArgumentNotValidException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed for one or more fields");
         problemDetail.setTitle("Constraint Violation");
         problemDetail.setType(URI.create(AppErrorType.VALIDATION_ERROR.name()));
@@ -42,6 +43,20 @@ public class GlobalExceptionHandler {
         });
         problemDetail.setProperty("errors", errors);
         
+        return problemDetail;
+    }
+
+    /**
+     * Handles business validation errors and returns HTTP 400.
+     *
+     * @param ex the exception carrying the validation message
+     * @return {@link ProblemDetail} for 400 response
+     */
+    @ExceptionHandler(ValidationException.class)
+    public ProblemDetail handleValidationException(ValidationException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Validation Error");
+        problemDetail.setType(URI.create(AppErrorType.VALIDATION_ERROR.name()));
         return problemDetail;
     }
 

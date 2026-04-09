@@ -44,9 +44,12 @@ public class GooglePeopleService {
                     .map(date -> LocalDate.of(date.year(), date.month(), date.day()))
                     .findFirst();
 
-        } catch (FeignException.Unauthorized | FeignException.Forbidden e) {
+        } catch (FeignException.Unauthorized e) {
             log.error("Authentication failed while calling Google People API", e);
             throw new AuthenticationException("Failed to authenticate with Google People API", e);
+        } catch (FeignException.Forbidden e) {
+            log.warn("Access forbidden to Google People API (likely API disabled in Cloud Console): {}", e.getMessage());
+            return Optional.empty(); // Graceful degradation: proceed without birthdate
         } catch (FeignException e) {
             log.error("Error calling Google People API: status {}", e.status(), e);
             return Optional.empty(); // Treat other API errors as missing data for onboarding flow

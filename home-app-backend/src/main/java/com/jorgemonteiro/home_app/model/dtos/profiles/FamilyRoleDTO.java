@@ -6,6 +6,6 @@ package com.jorgemonteiro.home_app.model.dtos.profiles;
 public record FamilyRoleDTO(
         Long id,
         String name,
-        boolean immutable
+        Boolean immutable
 ) {
 }

@@ -131,7 +131,6 @@ export function ProfilePage() {
   }
 
   const handleSubmit = (values: Partial<UserProfile>) => {
-    // Convert Date to ISO string if it's a Date object
     const payload = {
       ...values,
       birthdate: values.birthdate ? dayjs(values.birthdate).format('YYYY-MM-DD') : undefined,
@@ -151,6 +150,14 @@ export function ProfilePage() {
     Teenager: 'orange',
     Child: 'green',
   }[user.ageGroupName || 'Adult']
+
+  const getPhotoSrc = (photo: string | undefined) => {
+    if (!photo) return null
+    if (photo.startsWith('http') || photo.startsWith('data:image')) {
+      return photo
+    }
+    return `data:image/png;base64,${photo}`
+  }
 
   return (
     <Container size="md" py="xl">
@@ -173,7 +180,7 @@ export function ProfilePage() {
               <Group align="flex-start" wrap="nowrap">
                 <Stack align="center" gap="xs">
                   <Avatar
-                    src={form.values.photo}
+                    src={getPhotoSrc(form.values.photo)}
                     size={120}
                     radius={120}
                     variant="filled"

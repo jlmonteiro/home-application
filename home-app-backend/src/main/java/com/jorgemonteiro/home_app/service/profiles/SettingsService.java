@@ -5,6 +5,7 @@ import com.jorgemonteiro.home_app.exception.ValidationException;
 import com.jorgemonteiro.home_app.model.dtos.profiles.AgeGroupConfigDTO;
 import com.jorgemonteiro.home_app.model.dtos.profiles.FamilyRoleDTO;
 import com.jorgemonteiro.home_app.model.entities.profiles.AgeGroupConfig;
+import com.jorgemonteiro.home_app.model.entities.profiles.FamilyRole;
 import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile;
 import com.jorgemonteiro.home_app.repository.profiles.AgeGroupConfigRepository;
 import com.jorgemonteiro.home_app.repository.profiles.FamilyRoleRepository;
@@ -39,6 +40,56 @@ public class SettingsService {
         return familyRoleRepository.findAll().stream()
                 .map(r -> new FamilyRoleDTO(r.getId(), r.getName(), r.isImmutable()))
                 .toList();
+    }
+
+    public FamilyRoleDTO createFamilyRole(FamilyRoleDTO dto) {
+        if (familyRoleRepository.findByName(dto.name()).isPresent()) {
+            throw new ValidationException("Role with this name already exists");
+        }
+        FamilyRole role = FamilyRole.builder()
+                .name(dto.name())
+                .immutable(false)
+                .build();
+        return toRoleDTO(familyRoleRepository.save(role));
+    }
+
+    public FamilyRoleDTO updateFamilyRole(Long id, FamilyRoleDTO dto) {
+        FamilyRole role = familyRoleRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("Family role not found"));
+
+        if (role.isImmutable()) {
+            throw new ValidationException("Cannot update predefined family roles");
+        }
+
+        familyRoleRepository.findByName(dto.name())
+                .ifPresent(existing -> {
+                    if (!existing.getId().equals(id)) {
+                        throw new ValidationException("Role with this name already exists");
+                    }
+                });
+
+        role.setName(dto.name());
+        return toRoleDTO(familyRoleRepository.save(role));
+    }
+
+    public void deleteFamilyRole(Long id) {
+        FamilyRole role = familyRoleRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("Family role not found"));
+
+        if (role.isImmutable()) {
+            throw new ValidationException("Cannot delete predefined family roles");
+        }
+
+        // Check if any user is using this role
+        if (userProfileRepository.existsByFamilyRoleId(id)) {
+            throw new ValidationException("Cannot delete role that is currently assigned to users");
+        }
+
+        familyRoleRepository.delete(role);
+    }
+
+    private FamilyRoleDTO toRoleDTO(FamilyRole role) {
+        return new FamilyRoleDTO(role.getId(), role.getName(), role.isImmutable());
     }
 
     public void updateAgeGroups(List<AgeGroupConfigDTO> dtos) {

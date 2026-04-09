@@ -53,4 +53,39 @@ public class SettingsController {
     public ResponseEntity<List<FamilyRoleDTO>> getFamilyRoles() {
         return ResponseEntity.ok(settingsService.getFamilyRoles());
     }
+
+    /**
+     * Creates a new family role.
+     *
+     * @param dto the role details
+     * @return 200 with the created role
+     */
+    @PostMapping("/roles")
+    public ResponseEntity<FamilyRoleDTO> createFamilyRole(@RequestBody FamilyRoleDTO dto) {
+        return ResponseEntity.ok(settingsService.createFamilyRole(dto));
+    }
+
+    /**
+     * Updates an existing custom family role.
+     *
+     * @param id  the role ID
+     * @param dto the new role details
+     * @return 200 with the updated role
+     */
+    @PutMapping("/roles/{id}")
+    public ResponseEntity<FamilyRoleDTO> updateFamilyRole(@PathVariable Long id, @RequestBody FamilyRoleDTO dto) {
+        return ResponseEntity.ok(settingsService.updateFamilyRole(id, dto));
+    }
+
+    /**
+     * Deletes a custom family role.
+     *
+     * @param id the role ID
+     * @return 204 No Content
+     */
+    @DeleteMapping("/roles/{id}")
+    public ResponseEntity<Void> deleteFamilyRole(@PathVariable Long id) {
+        settingsService.deleteFamilyRole(id);
+        return ResponseEntity.noContent().build();
+    }
 }

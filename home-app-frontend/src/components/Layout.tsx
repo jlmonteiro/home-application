@@ -11,8 +11,13 @@ import {
   useMantineColorScheme,
   useComputedColorScheme,
   Box,
+  Burger,
+  NavLink,
+  Stack,
+  Divider,
 } from '@mantine/core'
-import { Outlet, Link } from 'react-router-dom'
+import { useDisclosure } from '@mantine/hooks'
+import { Outlet, Link, useLocation } from 'react-router-dom'
 import {
   IconLogout,
   IconChevronDown,
@@ -25,11 +30,14 @@ import {
   IconBrandInstagram,
   IconBrandLinkedin,
   IconShoppingCart,
+  IconLayoutDashboard,
 } from '@tabler/icons-react'
 import { useAuth } from '../context/AuthContext'
 
 export function Layout() {
   const { user, logout } = useAuth()
+  const location = useLocation()
+  const [opened, { toggle }] = useDisclosure(true)
   // @ts-ignore
   const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
@@ -42,10 +50,20 @@ export function Layout() {
 
   const isAdult = user?.ageGroupName === 'Adult'
 
+  const isActive = (path: string) => 
+    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
+
   return (
     <AppShell
       header={{ height: 70 }}
+      navbar={{
+        width: 260,
+        breakpoint: 'sm',
+        collapsed: { mobile: !opened, desktop: !opened },
+      }}
       padding="md"
+      transitionDuration={300}
+      transitionTimingFunction="ease"
     >
       <AppShell.Header
         withBorder={false}
@@ -53,11 +71,13 @@ export function Layout() {
           backgroundColor: computedColorScheme === 'dark' ? 'rgba(26, 27, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(10px)',
           borderBottom: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}`,
+          zIndex: 1000,
         }}
       >
-        <Container size="xl" h="100%">
+        <Container size="xl" h="100%" fluid>
           <Group justify="space-between" h="100%">
             <Group gap="xs">
+              <Burger opened={opened} onClick={toggle} size="sm" mr="sm" />
               <Box
                 w={34}
                 h={34}
@@ -90,7 +110,7 @@ export function Layout() {
               </ActionIcon>
 
               <Menu
-                width={220}
+                width={240}
                 position="bottom-end"
                 transitionProps={{ transition: 'pop-top-right' }}
                 radius="md"
@@ -118,9 +138,16 @@ export function Layout() {
                         {user?.firstName?.[0]}{user?.lastName?.[0]}
                       </Avatar>
                       <Box visibleFrom="sm">
-                        <Text size="sm" fw={600} lh={1}>
-                          {user?.firstName} {user?.lastName}
-                        </Text>
+                        <Stack gap={0}>
+                          <Text size="sm" fw={600} lh={1}>
+                            {user?.firstName} {user?.lastName}
+                          </Text>
+                          {user?.familyRoleName && (
+                            <Text size="xs" c="dimmed" lh={1.2}>
+                              {user.familyRoleName}
+                            </Text>
+                          )}
+                        </Stack>
                       </Box>
                       <IconChevronDown style={{ width: rem(14), height: rem(14) }} stroke={1.5} />
                     </Group>
@@ -128,7 +155,7 @@ export function Layout() {
                 </Menu.Target>
 
                 <Menu.Dropdown p={4}>
-                  <Menu.Label>Application</Menu.Label>
+                  <Menu.Label>User Account</Menu.Label>
                   <Menu.Item
                     component={Link}
                     to="/profile"
@@ -136,28 +163,11 @@ export function Layout() {
                   >
                     View/Edit Profile
                   </Menu.Item>
-                  
-                  <Menu.Item 
-                    leftSection={<IconShoppingCart style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
-                    disabled
-                  >
-                    Shopping (TBD)
-                  </Menu.Item>
-
-                  {isAdult && (
-                    <Menu.Item 
-                      component={Link}
-                      to="/settings"
-                      leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
-                    >
-                      Household Settings
-                    </Menu.Item>
-                  )}
 
                   {user?.mobilePhone && (
                     <>
                       <Menu.Divider />
-                      <Menu.Label>Contact</Menu.Label>
+                      <Menu.Label>Contact Info</Menu.Label>
                       <Menu.Item
                         leftSection={<IconPhone style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
                       >
@@ -229,6 +239,64 @@ export function Layout() {
           </Group>
         </Container>
       </AppShell.Header>
+
+      <AppShell.Navbar 
+        p="md" 
+        style={{ 
+          borderRight: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}`,
+          overflow: 'hidden',
+          display: opened ? 'block' : 'none'
+        }}
+      >
+        <Stack gap="xs">
+          <Text size="xs" fw={700} c="dimmed" tt="uppercase" pl="xs" mb={4} style={{ whiteSpace: 'nowrap' }}>
+            Main Menu
+          </Text>
+          
+          <NavLink
+            component={Link}
+            to="/"
+            label="Dashboard"
+            leftSection={<IconLayoutDashboard size={20} stroke={1.5} />}
+            active={isActive('/')}
+            variant="filled"
+            color="indigo"
+            radius="md"
+          />
+
+          <NavLink
+            label="Shopping"
+            leftSection={<IconShoppingCart size={20} stroke={1.5} />}
+            childrenOffset={28}
+            defaultOpened
+            radius="md"
+          >
+            <NavLink component={Link} to="/shopping/lists" label="Lists" active={isActive('/shopping/lists')} />
+            <NavLink component={Link} to="/shopping/stores" label="Stores" active={isActive('/shopping/stores')} />
+            <NavLink component={Link} to="/shopping/categories" label="Categories" active={isActive('/shopping/categories')} />
+            <NavLink component={Link} to="/shopping/items" label="Items" active={isActive('/shopping/items')} />
+          </NavLink>
+
+          {isAdult && (
+            <>
+              <Divider my="sm" />
+              <Text size="xs" fw={700} c="dimmed" tt="uppercase" pl="xs" mb={4} style={{ whiteSpace: 'nowrap' }}>
+                Administration
+              </Text>
+              <NavLink
+                component={Link}
+                to="/settings"
+                label="Household Settings"
+                leftSection={<IconSettings size={20} stroke={1.5} />}
+                active={isActive('/settings')}
+                variant="filled"
+                color="indigo"
+                radius="md"
+              />
+            </>
+          )}
+        </Stack>
+      </AppShell.Navbar>
 
       <AppShell.Main pt={rem(70 + 24)}>
         <Container size="xl">

@@ -89,6 +89,36 @@ export async function fetchFamilyRoles(): Promise<FamilyRole[]> {
   return response.json()
 }
 
+export async function createFamilyRole(role: Partial<FamilyRole>): Promise<FamilyRole> {
+  const response = await fetch(`${API_BASE}/settings/roles`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(role),
+  })
+  if (!response.ok) throw new Error('Failed to create family role')
+  return response.json()
+}
+
+export async function updateFamilyRole(id: number, role: Partial<FamilyRole>): Promise<FamilyRole> {
+  const response = await fetch(`${API_BASE}/settings/roles/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(role),
+  })
+  if (!response.ok) throw new Error('Failed to update family role')
+  return response.json()
+}
+
+export async function deleteFamilyRole(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE}/settings/roles/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Failed to delete family role')
+  }
+}
+
 export async function logout(): Promise<void> {
   const response = await fetch('/logout', {
     method: 'GET',

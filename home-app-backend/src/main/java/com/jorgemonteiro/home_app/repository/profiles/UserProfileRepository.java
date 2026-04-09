@@ -20,4 +20,12 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
      * @return an {@link Optional} containing the profile if found, or empty if none exists
      */
     Optional<UserProfile> findByUserId(Long userId);
-}
+
+    /**
+     * Checks if any user profile is currently assigned the given family role ID.
+     *
+     * @param familyRoleId the surrogate key of the family role
+     * @return {@code true} if at least one profile is assigned to this role
+     */
+    boolean existsByFamilyRoleId(Long familyRoleId);
+    }
