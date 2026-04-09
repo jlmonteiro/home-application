@@ -10,8 +10,10 @@ spring:
             client-id: ${GOOGLE_CLIENT_ID}
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope:
+              - openid
               - email
               - profile
+              - https://www.googleapis.com/auth/user.birthday.read
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
         provider:
           google:
@@ -19,6 +21,13 @@ spring:
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub
+
+  cloud:
+    openfeign:
+      client:
+        config:
+          google-people-api:
+            url: https://people.googleapis.com/v1
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml

@@ -4,6 +4,8 @@ import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.hateoas.server.core.Relation;
 
+import java.time.LocalDate;
+
 /**
  * Data transfer object for reading and updating a user's profile.
  * Combines fields from both the {@code User} and {@code UserProfile} entities.
@@ -30,6 +32,19 @@ public class UserProfileDTO {
 
     /** Whether the user account is active. */
     private Boolean enabled;
+
+    /** The user's birthdate. */
+    @Past(message = "Birthdate must be in the past")
+    private LocalDate birthdate;
+
+    /** The ID of the assigned family role. */
+    private Long familyRoleId;
+
+    /** The display name of the assigned family role. */
+    private String familyRoleName;
+
+    /** The name of the calculated age group. */
+    private String ageGroupName;
 
     /** Base64-encoded profile photo data. */
     private String photo;

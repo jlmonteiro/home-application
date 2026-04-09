@@ -11,6 +11,19 @@ export interface ProblemDetail {
   errors?: Record<string, string>
 }
 
+export interface AgeGroupConfig {
+  id: number
+  name: string
+  minAge: number
+  maxAge: number
+}
+
+export interface FamilyRole {
+  id: number
+  name: string
+  immutable: boolean
+}
+
 export async function fetchCurrentUser(): Promise<UserProfile | null> {
   const response = await fetch(`${API_BASE}/user/me`, {
     headers: {
@@ -49,6 +62,30 @@ export async function updateUserProfile(
     throw error
   }
 
+  return response.json()
+}
+
+export async function fetchAgeGroups(): Promise<AgeGroupConfig[]> {
+  const response = await fetch(`${API_BASE}/settings/age-groups`)
+  if (!response.ok) throw new Error('Failed to fetch age groups')
+  return response.json()
+}
+
+export async function updateAgeGroups(configs: AgeGroupConfig[]): Promise<void> {
+  const response = await fetch(`${API_BASE}/settings/age-groups`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(configs),
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.detail || 'Failed to update age groups')
+  }
+}
+
+export async function fetchFamilyRoles(): Promise<FamilyRole[]> {
+  const response = await fetch(`${API_BASE}/settings/roles`)
+  if (!response.ok) throw new Error('Failed to fetch family roles')
   return response.json()
 }
 

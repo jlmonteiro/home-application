@@ -24,13 +24,14 @@ import {
   IconBrandFacebook,
   IconBrandInstagram,
   IconBrandLinkedin,
+  IconShoppingCart,
 } from '@tabler/icons-react'
 import { useAuth } from '../context/AuthContext'
 
 export function Layout() {
   const { user, logout } = useAuth()
   // @ts-ignore
-  const { setColorScheme, colorScheme } = useMantineColorScheme()
+  const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
 
   const photoSrc = user?.photo?.startsWith('http')
@@ -38,6 +39,8 @@ export function Layout() {
     : user?.photo?.startsWith('data:image')
       ? user.photo
       : `data:image/png;base64,${user?.photo}`
+
+  const isAdult = user?.ageGroupName === 'Adult'
 
   return (
     <AppShell
@@ -63,7 +66,7 @@ export function Layout() {
                 to="/"
                 style={{ borderRadius: rem(8), display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
               >
-                <Text color="white" fw={900} size="xl" style={{ lineHeight: 1 }}>H</Text>
+                <Text c="white" fw={900} size="xl" style={{ lineHeight: 1 }}>H</Text>
               </Box>
               <Text size="lg" fw={800} style={{ letterSpacing: rem(-0.5), textDecoration: 'none' }} component={Link} to="/" c="var(--mantine-color-text)">
                 HOME APP
@@ -133,9 +136,23 @@ export function Layout() {
                   >
                     View/Edit Profile
                   </Menu.Item>
-                  <Menu.Item leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}>
-                    Settings
+                  
+                  <Menu.Item 
+                    leftSection={<IconShoppingCart style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
+                    disabled
+                  >
+                    Shopping (TBD)
                   </Menu.Item>
+
+                  {isAdult && (
+                    <Menu.Item 
+                      component={Link}
+                      to="/settings"
+                      leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
+                    >
+                      Household Settings
+                    </Menu.Item>
+                  )}
 
                   {user?.mobilePhone && (
                     <>

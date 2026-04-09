@@ -1,0 +1,55 @@
+package com.jorgemonteiro.home_app.service.profiles;
+
+import com.jorgemonteiro.home_app.exception.AuthenticationException;
+import com.jorgemonteiro.home_app.model.dtos.profiles.GooglePeopleResponseDTO;
+import com.jorgemonteiro.home_app.service.profiles.client.GooglePeopleClient;
+import feign.FeignException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.Optional;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class GooglePeopleService {
+
+    private final GooglePeopleClient googlePeopleClient;
+
+    /**
+     * Fetches the user's birthdate from Google People API.
+     *
+     * @param accessToken the OAuth2 access token
+     * @return an Optional containing the birthdate if found, empty otherwise
+     * @throws AuthenticationException if the token is invalid or expired
+     */
+    public Optional<LocalDate> fetchBirthdate(String accessToken) {
+        try {
+            GooglePeopleResponseDTO response = googlePeopleClient.getPersonData(
+                    "birthdays",
+                    "Bearer " + accessToken
+            );
+
+            if (response == null || response.birthdays() == null || response.birthdays().isEmpty()) {
+                log.debug("No birthdate information returned from Google People API");
+                return Optional.empty();
+            }
+
+            return response.birthdays().stream()
+                    .map(GooglePeopleResponseDTO.BirthdayContainer::date)
+                    .filter(date -> date != null && date.year() != null && date.month() != null && date.day() != null)
+                    .map(date -> LocalDate.of(date.year(), date.month(), date.day()))
+                    .findFirst();
+
+        } catch (FeignException.Unauthorized | FeignException.Forbidden e) {
+            log.error("Authentication failed while calling Google People API", e);
+            throw new AuthenticationException("Failed to authenticate with Google People API", e);
+        } catch (FeignException e) {
+            log.error("Error calling Google People API: status {}", e.status(), e);
+            return Optional.empty(); // Treat other API errors as missing data for onboarding flow
+        }
+    }
+}

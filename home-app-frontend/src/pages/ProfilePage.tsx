@@ -1,5 +1,4 @@
 import {
-  Card,
   TextInput,
   Button,
   Avatar,
@@ -8,12 +7,13 @@ import {
   Title,
   Text,
   FileButton,
-  ActionIcon,
-  Tooltip,
   Container,
   Paper,
   SimpleGrid,
+  Select,
+  Badge,
 } from '@mantine/core'
+import { DateInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import {
   IconCamera,
@@ -24,12 +24,15 @@ import {
   IconMail,
   IconUser,
   IconCheck,
+  IconCake,
+  IconUsers,
 } from '@tabler/icons-react'
 import { useAuth } from '../context/AuthContext'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { updateUserProfile, type ProblemDetail } from '../services/api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { updateUserProfile, fetchFamilyRoles } from '../services/api'
 import { notifications } from '@mantine/notifications'
 import type { UserProfile } from '../types/user'
+import dayjs from 'dayjs'
 
 const PHONE_REGEX = /^\+?[0-9\s\-()]{7,20}$/
 const FACEBOOK_REGEX = /^https?:\/\/(www\.)?facebook\.com\/.*$/
@@ -40,6 +43,12 @@ export function ProfilePage() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
 
+  const { data: roles } = useQuery({
+    queryKey: ['family-roles'],
+    queryKeyHashFn: () => 'family-roles',
+    queryFn: fetchFamilyRoles,
+  })
+
   const form = useForm<Partial<UserProfile>>({
     initialValues: {
       photo: user?.photo || '',
@@ -47,6 +56,8 @@ export function ProfilePage() {
       mobilePhone: user?.mobilePhone || '',
       instagram: user?.instagram || '',
       linkedin: user?.linkedin || '',
+      birthdate: user?.birthdate || '',
+      familyRoleId: user?.familyRoleId,
     },
 
     validate: {
@@ -66,6 +77,8 @@ export function ProfilePage() {
         value && !LINKEDIN_REGEX.test(value)
           ? 'LinkedIn must be a valid LinkedIn URL'
           : null,
+      birthdate: (value) => (!value ? 'Birthdate is required' : null),
+      familyRoleId: (value) => (!value ? 'Family role is required' : null),
     },
   })
 
@@ -118,20 +131,46 @@ export function ProfilePage() {
   }
 
   const handleSubmit = (values: Partial<UserProfile>) => {
-    mutation.mutate(values)
+    // Convert Date to ISO string if it's a Date object
+    const payload = {
+      ...values,
+      birthdate: values.birthdate ? dayjs(values.birthdate).format('YYYY-MM-DD') : undefined,
+    }
+    mutation.mutate(payload)
   }
 
   if (!user) return null
 
+  const roleOptions = (roles || []).map((r) => ({
+    value: r.id.toString(),
+    label: r.name,
+  }))
+
+  const ageGroupColor = {
+    Adult: 'blue',
+    Teenager: 'orange',
+    Child: 'green',
+  }[user.ageGroupName || 'Adult']
+
   return (
     <Container size="md" py="xl">
       <Stack gap="xl">
-        <Title order={2}>Profile Settings</Title>
+        <Group justify="space-between" align="flex-end">
+          <Stack gap={0}>
+            <Title order={2}>Profile Settings</Title>
+            <Text c="dimmed" size="sm">
+              Manage your identity and household classification
+            </Text>
+          </Stack>
+          <Badge size="lg" color={ageGroupColor} variant="light">
+            {user.ageGroupName}
+          </Badge>
+        </Group>
 
         <Paper withBorder p="xl" radius="md">
           <form onSubmit={form.onSubmit(handleSubmit)}>
             <Stack gap="xl">
-              <Group align="flex-start">
+              <Group align="flex-start" wrap="nowrap">
                 <Stack align="center" gap="xs">
                   <Avatar
                     src={form.values.photo}
@@ -188,6 +227,29 @@ export function ProfilePage() {
                     variant="filled"
                     description="Managed by your Google account"
                   />
+
+                  <SimpleGrid cols={{ base: 1, sm: 2 }}>
+                    <DateInput
+                      label="Birthdate"
+                      placeholder="Pick your birthdate"
+                      leftSection={<IconCake size={16} />}
+                      required
+                      value={form.values.birthdate ? dayjs(form.values.birthdate).toDate() : null}
+                      onChange={(date) => form.setFieldValue('birthdate', date ? dayjs(date).format('YYYY-MM-DD') : '')}
+                      error={form.errors.birthdate}
+                      maxDate={new Date()}
+                    />
+                    <Select
+                      label="Family Role"
+                      placeholder="Select your role"
+                      data={roleOptions}
+                      leftSection={<IconUsers size={16} />}
+                      required
+                      {...form.getInputProps('familyRoleId')}
+                      value={form.values.familyRoleId?.toString()}
+                      onChange={(val) => form.setFieldValue('familyRoleId', val ? parseInt(val) : undefined)}
+                    />
+                  </SimpleGrid>
 
                   <TextInput
                     label="Mobile Phone"

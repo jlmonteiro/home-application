@@ -7,6 +7,7 @@ import { Layout } from './components/Layout'
 import { LoginPage } from './pages/LoginPage'
 import { Dashboard } from './pages/Dashboard'
 import { ProfilePage } from './pages/ProfilePage'
+import { SettingsPage } from './pages/SettingsPage'
 import './App.css'
 
 const queryClient = new QueryClient({
@@ -37,6 +38,7 @@ function App() {
             >
               <Route index element={<Dashboard />} />
               <Route path="profile" element={<ProfilePage />} />
+              <Route path="settings" element={<SettingsPage />} />
             </Route>
 
             <Route path="*" element={<Navigate to="/" replace />} />

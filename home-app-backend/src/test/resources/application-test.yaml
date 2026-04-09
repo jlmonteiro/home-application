@@ -7,6 +7,13 @@ spring:
             client-id: test-client-id
             client-secret: test-client-secret
 
+  cloud:
+    openfeign:
+      client:
+        config:
+          google-people-api:
+            url: http://localhost:8089
+
   datasource:
     url: jdbc:postgresql://localhost:5432/mydatabase
     username: myuser

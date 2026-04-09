@@ -33,6 +33,13 @@ public class UserProfileAdapter {
             dto.setMobilePhone(user.getUserProfile().getMobilePhone());
             dto.setInstagram(user.getUserProfile().getInstagram());
             dto.setLinkedin(user.getUserProfile().getLinkedin());
+            dto.setBirthdate(user.getUserProfile().getBirthdate());
+            dto.setAgeGroupName(user.getUserProfile().getAgeGroupName());
+
+            if (user.getUserProfile().getFamilyRole() != null) {
+                dto.setFamilyRoleId(user.getUserProfile().getFamilyRole().getId());
+                dto.setFamilyRoleName(user.getUserProfile().getFamilyRole().getName());
+            }
         }
 
         return dto;
@@ -69,11 +76,13 @@ public class UserProfileAdapter {
         if (dto == null || user == null) return null;
 
         UserProfile userProfile = new UserProfile();
+        userProfile.setUser(user);
         userProfile.setPhoto(dto.getPhoto());
         userProfile.setFacebook(dto.getFacebook());
         userProfile.setMobilePhone(dto.getMobilePhone());
         userProfile.setInstagram(dto.getInstagram());
         userProfile.setLinkedin(dto.getLinkedin());
+        userProfile.setBirthdate(dto.getBirthdate());
 
         return userProfile;
     }

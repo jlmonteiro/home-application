@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -29,6 +30,19 @@ public class UserProfile {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
+
+    /** The user's birthdate. Synchronized from Google or manually entered. */
+    @Column(name = "birthdate")
+    private LocalDate birthdate;
+
+    /** The user's specific role in the family hierarchy. */
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "family_role_id")
+    private FamilyRole familyRole;
+
+    /** The name of the age group this user belongs to (Child, Teenager, Adult). */
+    @Column(name = "age_group_name")
+    private String ageGroupName;
 
     /** Profile photo encoded as a Base64 string. May be {@code null} if none was provided. */
     @Column(columnDefinition = "TEXT")
@@ -59,4 +73,8 @@ public class UserProfile {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    /** Version number for optimistic locking. */
+    @Version
+    private Integer version;
 }

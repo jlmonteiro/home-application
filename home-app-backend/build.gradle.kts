@@ -27,12 +27,14 @@ repositories {
 }
 
 dependencies {
+	implementation(platform(libs.spring.cloud.dependencies))
 	implementation(libs.bundles.spring.boot.starters)
 	compileOnly(libs.lombok)
 	developmentOnly(libs.bundles.spring.boot.dev)
 	runtimeOnly(libs.micrometer.prometheus)
 	runtimeOnly(libs.postgresql)
 	annotationProcessor(libs.lombok)
+	testImplementation(libs.spring.boot.starter.test)
 	testImplementation(libs.bundles.spring.boot.test)
 	testImplementation(libs.bundles.testcontainers)
 	testImplementation(libs.bundles.spock)

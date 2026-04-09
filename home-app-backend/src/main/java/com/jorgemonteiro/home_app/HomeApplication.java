@@ -2,11 +2,13 @@ package com.jorgemonteiro.home_app;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.openfeign.EnableFeignClients;
 
 /**
  * Entry point for the Home Application Spring Boot service.
  */
 @SpringBootApplication
+@EnableFeignClients
 public class HomeApplication {
 
 	/**

@@ -8,6 +8,10 @@ export interface UserProfile {
   firstName: string
   lastName: string
   enabled: boolean
+  birthdate?: string
+  familyRoleId?: number
+  familyRoleName?: string
+  ageGroupName: 'Adult' | 'Teenager' | 'Child'
   photo?: string
   facebook?: string
   mobilePhone?: string
