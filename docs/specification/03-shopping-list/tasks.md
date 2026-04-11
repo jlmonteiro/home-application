@@ -39,17 +39,17 @@ Implement a comprehensive shopping assistant module that allows household member
 **Dependencies:** US-1
 
 #### Acceptance Criteria
-- [ ] AC-2.1: CRUD for Stores (Name, Description, Icon, Photo).
-- [ ] AC-2.2: Add/Display Loyalty Cards for a store with QR/Code 128 rendering.
-- [ ] AC-2.3: Manage Coupons with due dates, photos, and "Used" status.
-- [ ] AC-2.4: Loyalty cards are shared with the entire household.
+- [x] AC-2.1: CRUD for Stores (Name, Description, Icon, Photo).
+- [x] AC-2.2: Add/Display Loyalty Cards for a store with QR/Code 128 rendering.
+- [x] AC-2.3: Manage Coupons with due dates, photos, and "Used" status.
+- [x] AC-2.4: Loyalty cards are shared with the entire household.
 
 #### Tasks
-- [ ] T-2.1: Create Liquibase migration for `shopping_stores`, `loyalty_cards`, and `coupons` tables.
-- [ ] T-2.2: Implement JPA Entities and HATEOAS Controllers for Store, Card, and Coupon.
-- [ ] T-2.3: Integrate `react-barcode` and `qrcode.react` libraries in the frontend.
-- [ ] T-2.4: Build Store details view with nested Loyalty Card and Coupon sections.
-- [ ] T-2.5: Run /sdd:check to verify specification compliance and traceability.
+- [x] T-2.1: Create Liquibase migration for `shopping_stores`, `loyalty_cards`, and `coupons` tables.
+- [x] T-2.2: Implement JPA Entities and HATEOAS Controllers for Store, Card, and Coupon.
+- [x] T-2.3: Integrate `react-barcode` and `qrcode.react` libraries in the frontend.
+- [x] T-2.4: Build Store details view with nested Loyalty Card and Coupon sections.
+- [x] T-2.5: Run /sdd:check to verify specification compliance and traceability.
 
 ---
 
@@ -77,7 +77,7 @@ Implement a comprehensive shopping assistant module that allows household member
 ---
 
 ### US-4: Shopping Mode - In-Store Experience
-**As a** shopper, **I want** to check off items in real-time while at the store, **so that** I don't miss anything and others know what was bought.
+**As a shopper**, **I want** to check off items in real-time while at the store, **so that** I don't miss anything and others know what was bought.
 
 **Persona:** Frontend Engineer
 **Linked Requirements:** FR-10, NFR-3, NFR-4
@@ -99,7 +99,7 @@ Implement a comprehensive shopping assistant module that allows household member
 ---
 
 ### US-5: Global Maintenance & Warnings
-**As a** system user, **I want** to be warned about expiring coupons and have old data purged, **so that** the app remains relevant and fast.
+**As a system user**, **I want** to be warned about expiring coupons and have old data purged, **so that** the app remains relevant and fast.
 
 **Persona:** Full-stack Engineer
 **Linked Requirements:** FR-11, FR-14, FR-15

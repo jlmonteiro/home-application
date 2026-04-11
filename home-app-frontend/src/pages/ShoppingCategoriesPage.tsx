@@ -125,7 +125,7 @@ export function ShoppingCategoriesPage() {
   const rows = categories
     .filter((cat) => cat.name.toLowerCase().includes(search.toLowerCase()))
     .map((category) => {
-      const IconComponent = (TablerIcons as any)[category.icon] || IconQuestionMark
+      const IconComponent = (category.icon ? (TablerIcons as any)[category.icon] : null) || IconQuestionMark
       return (
         <Table.Tr key={category.id}>
           <Table.Td>

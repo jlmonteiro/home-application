@@ -15,14 +15,26 @@ import {
   LoadingOverlay,
   Box,
   Avatar,
+  FileButton,
+  Image,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
-import { IconPlus, IconEdit, IconTrash, IconSearch, IconBasket } from '@tabler/icons-react'
+import { IconPlus, IconEdit, IconTrash, IconSearch, IconBasket, IconUpload } from '@tabler/icons-react'
 import { fetchItems, createItem, updateItem, deleteItem, fetchCategories } from '../services/api'
 import type { ShoppingItem } from '../services/api'
+
+/**
+ * Helper to determine the correct image source for item photos.
+ * Handles direct URLs and Base64 strings (with or without prefixes).
+ */
+const getPhotoSrc = (photo: string | undefined | null) => {
+  if (!photo) return null
+  if (photo.startsWith('http') || photo.startsWith('data:image')) return photo
+  return `data:image/png;base64,${photo}`
+}
 
 export function ShoppingItemsPage() {
   const queryClient = useQueryClient()
@@ -52,6 +64,17 @@ export function ShoppingItemsPage() {
       categoryId: (value) => (!value ? 'Category is required' : null),
     },
   })
+
+  const handleFileUpload = (file: File | null) => {
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const base64 = e.target?.result as string
+        form.setFieldValue('photo', base64)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   const createMutation = useMutation({
     mutationFn: createItem,
@@ -140,9 +163,20 @@ export function ShoppingItemsPage() {
       <Table.Tr key={item.id}>
         <Table.Td>
           <Group gap="sm">
-            <Avatar src={item.photo} radius="sm" size="sm">
-              <IconBasket size={16} />
-            </Avatar>
+            <Box w={32} h={32} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              {item.photo ? (
+                <Image 
+                  src={getPhotoSrc(item.photo)} 
+                  fit="contain" 
+                  h={32} 
+                  w={32} 
+                />
+              ) : (
+                <Avatar radius="sm" size="sm">
+                  <IconBasket size={16} />
+                </Avatar>
+              )}
+            </Box>
             <Text fw={500}>{item.name}</Text>
           </Group>
         </Table.Td>
@@ -206,7 +240,7 @@ export function ShoppingItemsPage() {
 
           {itemsData && itemsData.page.totalPages > 1 && (
             <Group justify="center">
-              <Pagination total={itemsData.page.totalPages} value={activePage} onChange={setPage} />
+              <Pagination total={data.page.totalPages} value={activePage} onChange={setPage} />
             </Group>
           )}
         </Stack>
@@ -217,6 +251,7 @@ export function ShoppingItemsPage() {
         onClose={close}
         title={editingItem ? 'Edit Item' : 'Add Item'}
         radius="md"
+        zIndex={2000}
       >
         <form onSubmit={form.onSubmit(handleSubmit)}>
           <Stack gap="md">
@@ -231,13 +266,39 @@ export function ShoppingItemsPage() {
               label="Category"
               placeholder="Select category"
               data={categoryOptions}
+              searchable
+              nothingFoundMessage="No categories found"
+              comboboxProps={{ withinPortal: true, zIndex: 3000 }}
               {...form.getInputProps('categoryId')}
             />
-            <TextInput
-              label="Photo URL (optional)"
-              placeholder="https://..."
-              {...form.getInputProps('photo')}
-            />
+            
+            <Group align="flex-end">
+              <Box w={64} h={64} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--mantine-color-gray-3)', borderRadius: rem(4), overflow: 'hidden' }}>
+                {form.values.photo ? (
+                  <Image 
+                    src={getPhotoSrc(form.values.photo)} 
+                    fit="contain" 
+                    h={64} 
+                    w={64} 
+                  />
+                ) : (
+                  <IconBasket size={32} stroke={1.5} color="var(--mantine-color-gray-4)" />
+                )}
+              </Box>
+              <FileButton onChange={handleFileUpload} accept="image/png,image/jpeg">
+                {(props) => (
+                  <Button {...props} variant="light" leftSection={<IconUpload size={16} />}>
+                    Upload Photo
+                  </Button>
+                )}
+              </FileButton>
+              {form.values.photo && (
+                <Button variant="subtle" color="red" size="xs" onClick={() => form.setFieldValue('photo', '')}>
+                  Remove
+                </Button>
+              )}
+            </Group>
+
             <Group justify="flex-end" mt="md">
               <Button variant="subtle" onClick={close}>Cancel</Button>
               <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>

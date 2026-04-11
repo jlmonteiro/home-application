@@ -49,6 +49,51 @@ export interface ShoppingItem {
   }
 }
 
+export interface ShoppingStore {
+  id: number
+  name: string
+  description?: string
+  icon?: string
+  photo?: string
+  version: number
+  _links?: {
+    self: { href: string }
+    loyaltyCards: { href: string }
+    coupons: { href: string }
+  }
+}
+
+export interface LoyaltyCard {
+  id: number
+  storeId: number
+  storeName: string
+  name: string
+  number: string
+  barcodeType: 'QR' | 'CODE_128'
+  version: number
+  _links?: {
+    self: { href: string }
+    delete: { href: string }
+  }
+}
+
+export interface Coupon {
+  id: number
+  storeId: number
+  storeName: string
+  name: string
+  description?: string
+  value?: string
+  photo?: string
+  dueDate?: string
+  used: boolean
+  version: number
+  _links?: {
+    self: { href: string }
+    delete: { href: string }
+  }
+}
+
 export interface PagedResponse<T> {
   _embedded: Record<string, T[]>
   page: {
@@ -159,7 +204,7 @@ export async function deleteFamilyRole(id: number): Promise<void> {
   }
 }
 
-// --- Shopping API ---
+// --- Shopping Categories & Items API ---
 
 export async function fetchCategories(page = 0, size = 20): Promise<PagedResponse<ShoppingCategory>> {
   const response = await fetch(`${API_BASE}/shopping/categories?page=${page}&size=${size}`)
@@ -251,6 +296,125 @@ export async function deleteItem(id: number): Promise<void> {
     method: 'DELETE',
   })
   if (!response.ok) throw new Error('Failed to delete item')
+}
+
+// --- Shopping Stores API ---
+
+export async function fetchStores(page = 0, size = 20): Promise<PagedResponse<ShoppingStore>> {
+  const response = await fetch(`${API_BASE}/shopping/stores?page=${page}&size=${size}`)
+  if (!response.ok) throw new Error('Failed to fetch stores')
+  return response.json()
+}
+
+export async function fetchStore(id: number): Promise<ShoppingStore> {
+  const response = await fetch(`${API_BASE}/shopping/stores/${id}`)
+  if (!response.ok) throw new Error('Failed to fetch store')
+  return response.json()
+}
+
+export async function createStore(store: Partial<ShoppingStore>): Promise<ShoppingStore> {
+  const response = await fetch(`${API_BASE}/shopping/stores`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(store),
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    const error = new Error(errorData.detail || 'Failed to create store') as any
+    error.data = errorData
+    throw error
+  }
+  return response.json()
+}
+
+export async function updateStore(id: number, store: Partial<ShoppingStore>): Promise<ShoppingStore> {
+  const response = await fetch(`${API_BASE}/shopping/stores/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(store),
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    const error = new Error(errorData.detail || 'Failed to update store') as any
+    error.data = errorData
+    throw error
+  }
+  return response.json()
+}
+
+export async function deleteStore(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE}/shopping/stores/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) throw new Error('Failed to delete store')
+}
+
+// --- Loyalty Cards API ---
+
+export async function fetchLoyaltyCards(storeId: number): Promise<LoyaltyCard[]> {
+  const response = await fetch(`${API_BASE}/shopping/stores/${storeId}/loyalty-cards`)
+  if (!response.ok) throw new Error('Failed to fetch loyalty cards')
+  const data = await response.json()
+  return data._embedded?.loyaltyCards || []
+}
+
+export async function createLoyaltyCard(storeId: number, card: Partial<LoyaltyCard>): Promise<LoyaltyCard> {
+  const response = await fetch(`${API_BASE}/shopping/stores/${storeId}/loyalty-cards`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(card),
+  })
+  if (!response.ok) throw new Error('Failed to create loyalty card')
+  return response.json()
+}
+
+export async function deleteLoyaltyCard(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE}/shopping/loyalty-cards/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) throw new Error('Failed to delete loyalty card')
+}
+
+// --- Coupons API ---
+
+export async function fetchCoupons(storeId: number, page = 0, size = 20): Promise<PagedResponse<Coupon>> {
+  const response = await fetch(`${API_BASE}/shopping/stores/${storeId}/coupons?page=${page}&size=${size}`)
+  if (!response.ok) throw new Error('Failed to fetch coupons')
+  return response.json()
+}
+
+export async function fetchExpiringCoupons(): Promise<Coupon[]> {
+  const response = await fetch(`${API_BASE}/shopping/coupons/expiring`)
+  if (!response.ok) throw new Error('Failed to fetch expiring coupons')
+  const data = await response.json()
+  return data._embedded?.coupons || []
+}
+
+export async function createCoupon(storeId: number, coupon: Partial<Coupon>): Promise<Coupon> {
+  const response = await fetch(`${API_BASE}/shopping/stores/${storeId}/coupons`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(coupon),
+  })
+  if (!response.ok) throw new Error('Failed to create coupon')
+  return response.json()
+}
+
+export async function updateCoupon(id: number, coupon: Partial<Coupon>): Promise<Coupon> {
+  const response = await fetch(`${API_BASE}/shopping/coupons/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(coupon),
+  })
+  if (!response.ok) throw new Error('Failed to update coupon')
+  return response.json()
+}
+
+export async function deleteCoupon(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE}/shopping/coupons/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) throw new Error('Failed to delete coupon')
 }
 
 // --- Auth ---
