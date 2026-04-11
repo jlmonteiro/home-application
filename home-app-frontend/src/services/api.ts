@@ -24,6 +24,44 @@ export interface FamilyRole {
   immutable: boolean
 }
 
+// --- Shopping Module Types ---
+
+export interface ShoppingCategory {
+  id: number
+  name: string
+  description?: string
+  icon?: string
+  version: number
+  _links?: {
+    self: { href: string }
+  }
+}
+
+export interface ShoppingItem {
+  id: number
+  name: string
+  photo?: string
+  categoryId: number
+  categoryName: string
+  version: number
+  _links?: {
+    self: { href: string }
+  }
+}
+
+export interface PagedResponse<T> {
+  _embedded: Record<string, T[]>
+  page: {
+    size: number
+    totalElements: number
+    totalPages: number
+    number: number
+  }
+  _links: Record<string, { href: string }>
+}
+
+// --- Auth & Profile ---
+
 export async function fetchCurrentUser(): Promise<UserProfile | null> {
   const response = await fetch(`${API_BASE}/user/me`, {
     headers: {
@@ -64,6 +102,8 @@ export async function updateUserProfile(
 
   return response.json()
 }
+
+// --- Settings ---
 
 export async function fetchAgeGroups(): Promise<AgeGroupConfig[]> {
   const response = await fetch(`${API_BASE}/settings/age-groups`)
@@ -118,6 +158,102 @@ export async function deleteFamilyRole(id: number): Promise<void> {
     throw new Error(errorData.detail || 'Failed to delete family role')
   }
 }
+
+// --- Shopping API ---
+
+export async function fetchCategories(page = 0, size = 20): Promise<PagedResponse<ShoppingCategory>> {
+  const response = await fetch(`${API_BASE}/shopping/categories?page=${page}&size=${size}`)
+  if (!response.ok) throw new Error('Failed to fetch categories')
+  return response.json()
+}
+
+export async function createCategory(category: Partial<ShoppingCategory>): Promise<ShoppingCategory> {
+  const response = await fetch(`${API_BASE}/shopping/categories`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(category),
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    const error = new Error(errorData.detail || 'Failed to create category') as any
+    error.data = errorData
+    throw error
+  }
+  return response.json()
+}
+
+export async function updateCategory(id: number, category: Partial<ShoppingCategory>): Promise<ShoppingCategory> {
+  const response = await fetch(`${API_BASE}/shopping/categories/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(category),
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    const error = new Error(errorData.detail || 'Failed to update category') as any
+    error.data = errorData
+    throw error
+  }
+  return response.json()
+}
+
+export async function deleteCategory(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE}/shopping/categories/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) throw new Error('Failed to delete category')
+}
+
+export async function fetchItems(page = 0, size = 20): Promise<PagedResponse<ShoppingItem>> {
+  const response = await fetch(`${API_BASE}/shopping/items?page=${page}&size=${size}`)
+  if (!response.ok) throw new Error('Failed to fetch items')
+  return response.json()
+}
+
+export async function fetchItemsByCategory(categoryId: number, page = 0, size = 20): Promise<PagedResponse<ShoppingItem>> {
+  const response = await fetch(`${API_BASE}/shopping/categories/${categoryId}/items?page=${page}&size=${size}`)
+  if (!response.ok) throw new Error('Failed to fetch items by category')
+  return response.json()
+}
+
+export async function createItem(item: Partial<ShoppingItem>): Promise<ShoppingItem> {
+  const response = await fetch(`${API_BASE}/shopping/items`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(item),
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    const error = new Error(errorData.detail || 'Failed to create item') as any
+    error.data = errorData
+    throw error
+  }
+  return response.json()
+}
+
+export async function updateItem(id: number, item: Partial<ShoppingItem>): Promise<ShoppingItem> {
+  const response = await fetch(`${API_BASE}/shopping/items/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(item),
+  })
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    const error = new Error(errorData.detail || 'Failed to update item') as any
+    error.data = errorData
+    throw error
+  }
+  return response.json()
+}
+
+export async function deleteItem(id: number): Promise<void> {
+  const response = await fetch(`${API_BASE}/shopping/items/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) throw new Error('Failed to delete item')
+}
+
+// --- Auth ---
 
 export async function logout(): Promise<void> {
   const response = await fetch('/logout', {

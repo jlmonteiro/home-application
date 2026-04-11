@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Notifications } from '@mantine/notifications'
+import { ModalsProvider } from '@mantine/modals'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -8,6 +9,8 @@ import { LoginPage } from './pages/LoginPage'
 import { Dashboard } from './pages/Dashboard'
 import { ProfilePage } from './pages/ProfilePage'
 import { SettingsPage } from './pages/SettingsPage'
+import { ShoppingCategoriesPage } from './pages/ShoppingCategoriesPage'
+import { ShoppingItemsPage } from './pages/ShoppingItemsPage'
 import './App.css'
 
 const queryClient = new QueryClient({
@@ -23,27 +26,38 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Notifications />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<LoginPage />} />
+        <ModalsProvider>
+          <Notifications />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/login" element={<LoginPage />} />
 
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <Layout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="profile" element={<ProfilePage />} />
-              <Route path="settings" element={<SettingsPage />} />
-            </Route>
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <Layout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="profile" element={<ProfilePage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                
+                {/* Shopping Routes */}
+                <Route path="shopping">
+                  <Route path="categories" element={<ShoppingCategoriesPage />} />
+                  <Route path="items" element={<ShoppingItemsPage />} />
+                  {/* Placeholders for future stories */}
+                  <Route path="lists" element={<Dashboard />} />
+                  <Route path="stores" element={<Dashboard />} />
+                </Route>
+              </Route>
 
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </BrowserRouter>
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </ModalsProvider>
       </AuthProvider>
     </QueryClientProvider>
   )

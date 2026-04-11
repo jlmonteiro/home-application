@@ -16,17 +16,17 @@ Implement a comprehensive shopping assistant module that allows household member
 **Dependencies:** None
 
 #### Acceptance Criteria
-- [ ] AC-1.1: CRUD operations for Shopping Categories (Name, Description, Icon).
-- [ ] AC-1.2: CRUD operations for Shopping Items (Name, Photo, Category).
-- [ ] AC-1.3: Every item is linked to a category.
-- [ ] AC-1.4: Real-time validation for unique category names.
+- [x] AC-1.1: CRUD operations for Shopping Categories (Name, Description, Icon).
+- [x] AC-1.2: CRUD operations for Shopping Items (Name, Photo, Category).
+- [x] AC-1.3: Every item is linked to a category.
+- [x] AC-1.4: Real-time validation for unique category names.
 
 #### Tasks
-- [ ] T-1.1: Create Liquibase migration for `shopping_categories` and `shopping_items` tables in `shopping` schema.
-- [ ] T-1.2: Implement JPA Entities and Repositories for Category and Item.
-- [ ] T-1.3: Implement REST Controllers with HATEOAS support for Categories and Items.
-- [ ] T-1.4: Build React management pages for Categories and Items using Mantine.
-- [ ] T-1.5: Run /sdd:check to verify specification compliance and traceability.
+- [x] T-1.1: Create Liquibase migration for `shopping_categories` and `shopping_items` tables in `shopping` schema.
+- [x] T-1.2: Implement JPA Entities and Repositories for Category and Item.
+- [x] T-1.3: Implement REST Controllers with HATEOAS support for Categories and Items.
+- [x] T-1.4: Build React management pages for Categories and Items using Mantine.
+- [x] T-1.5: Run /sdd:check to verify specification compliance and traceability.
 
 ---
 
@@ -121,8 +121,8 @@ Implement a comprehensive shopping assistant module that allows household member
 
 ## 3. General Requirements
 ### Definition of Done (DoD)
-- [ ] Code follows project conventions (Java 25, React 19, Spock).
-- [ ] All unit and integration tests (TS-13 to TS-17) are passing.
-- [ ] RFC 7807 compliance for all new shopping APIs.
-- [ ] Traceability between requirements, design, and implementation is maintained.
-- [ ] `/sdd:check` passes with no compliance issues.
+- [x] Code follows project conventions (Java 25, React 19, Spock).
+- [x] All unit and integration tests (TS-13 to TS-17) are passing.
+- [x] RFC 7807 compliance for all new shopping APIs.
+- [x] Traceability between requirements, design, and implementation is maintained.
+- [x] `/sdd:check` passes with no compliance issues.

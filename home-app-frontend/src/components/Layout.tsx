@@ -261,7 +261,6 @@ export function Layout() {
             active={isActive('/')}
             variant="filled"
             color="indigo"
-            radius="md"
           />
 
           <NavLink
@@ -269,7 +268,6 @@ export function Layout() {
             leftSection={<IconShoppingCart size={20} stroke={1.5} />}
             childrenOffset={28}
             defaultOpened
-            radius="md"
           >
             <NavLink component={Link} to="/shopping/lists" label="Lists" active={isActive('/shopping/lists')} />
             <NavLink component={Link} to="/shopping/stores" label="Stores" active={isActive('/shopping/stores')} />
@@ -291,7 +289,6 @@ export function Layout() {
                 active={isActive('/settings')}
                 variant="filled"
                 color="indigo"
-                radius="md"
               />
             </>
           )}
