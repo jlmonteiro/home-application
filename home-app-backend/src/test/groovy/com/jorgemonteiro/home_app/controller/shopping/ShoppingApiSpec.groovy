@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
 import spock.lang.Title
 
+import static org.hamcrest.Matchers.hasItem
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
@@ -59,7 +60,7 @@ class ShoppingApiSpec extends BaseIntegrationTest {
 
         then: "new category is in the list"
             listResponse.andExpect(status().isOk())
-                .andExpect(jsonPath('$._embedded.categories[0].name').value("Groceries"))
+                .andExpect(jsonPath('$._embedded.categories[*].name').value(hasItem("Groceries")))
     }
 
     def "should create an item in a category"() {

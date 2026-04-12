@@ -159,6 +159,7 @@ export interface PagedResponse<T> {
 
 export interface UserPreference {
   showShoppingWidget: boolean
+  showCouponsWidget: boolean
   version: number
 }
 

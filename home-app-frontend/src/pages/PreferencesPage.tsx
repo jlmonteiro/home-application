@@ -1,7 +1,7 @@
 import { Title, Text, Paper, Stack, Switch, Group, Divider, Button, LoadingOverlay, Box, ThemeIcon } from '@mantine/core'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
-import { IconSettings, IconShoppingCart, IconLayoutDashboard, IconDeviceFloppy } from '@tabler/icons-react'
+import { IconSettings, IconShoppingCart, IconLayoutDashboard, IconTicket } from '@tabler/icons-react'
 import { fetchUserPreferences, updateUserPreferences } from '../services/api'
 
 export function PreferencesPage() {
@@ -33,6 +33,10 @@ export function PreferencesPage() {
 
   const handleToggleShopping = (checked: boolean) => {
     mutation.mutate({ showShoppingWidget: checked })
+  }
+
+  const handleToggleCoupons = (checked: boolean) => {
+    mutation.mutate({ showCouponsWidget: checked })
   }
 
   return (
@@ -77,6 +81,26 @@ export function PreferencesPage() {
                       onChange={(event) => handleToggleShopping(event.currentTarget.checked)}
                       size="md"
                       color="indigo"
+                    />
+                  </Group>
+                </Paper>
+
+                <Paper withBorder p="md" radius="md" bg="gray.0">
+                  <Group justify="space-between">
+                    <Group gap="md">
+                      <ThemeIcon variant="white" color="teal" withBorder>
+                        <IconTicket size={18} />
+                      </ThemeIcon>
+                      <div>
+                        <Text fw={600} size="sm">Pending Coupons</Text>
+                        <Text size="xs" c="dimmed">Shows coupons that are close to expiring and haven't been used yet.</Text>
+                      </div>
+                    </Group>
+                    <Switch 
+                      checked={preferences?.showCouponsWidget ?? true} 
+                      onChange={(event) => handleToggleCoupons(event.currentTarget.checked)}
+                      size="md"
+                      color="teal"
                     />
                   </Group>
                 </Paper>

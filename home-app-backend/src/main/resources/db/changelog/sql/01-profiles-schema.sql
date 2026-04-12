@@ -63,6 +63,7 @@ CREATE TABLE profiles.user_preferences (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL UNIQUE,
     show_shopping_widget BOOLEAN NOT NULL DEFAULT true,
+    show_coupons_widget BOOLEAN NOT NULL DEFAULT true,
     version BIGINT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,

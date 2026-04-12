@@ -21,7 +21,7 @@ public class UserPreferenceService {
     private final UserPreferenceRepository preferenceRepository;
     private final UserRepository userRepository;
 
-    @Transactional(readOnly = true)
+    @Transactional
     public UserPreferenceDTO getPreferences(String email) {
         UserPreference preference = getOrCreatePreference(email);
         return toDTO(preference);
@@ -31,6 +31,7 @@ public class UserPreferenceService {
         UserPreference preference = getOrCreatePreference(email);
         
         preference.setShowShoppingWidget(dto.isShowShoppingWidget());
+        preference.setShowCouponsWidget(dto.isShowCouponsWidget());
         
         return toDTO(preferenceRepository.save(preference));
     }
@@ -48,6 +49,7 @@ public class UserPreferenceService {
     private UserPreferenceDTO toDTO(UserPreference entity) {
         UserPreferenceDTO dto = new UserPreferenceDTO();
         dto.setShowShoppingWidget(entity.isShowShoppingWidget());
+        dto.setShowCouponsWidget(entity.isShowCouponsWidget());
         dto.setVersion(entity.getVersion());
         return dto;
     }

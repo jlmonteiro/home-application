@@ -6,6 +6,7 @@ import com.jorgemonteiro.home_app.repository.shopping.ShoppingItemPriceHistoryRe
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.stream.Collectors;
 
 /**
@@ -159,7 +160,7 @@ public class ShoppingAdapter {
         dto.setDescription(entity.getDescription());
         dto.setValue(entity.getValue());
         dto.setPhoto(entity.getPhoto());
-        dto.setDueDate(entity.getDueDate());
+        dto.setDueDate(entity.getDueDate() != null ? entity.getDueDate().toLocalDate() : null);
         dto.setCode(entity.getCode());
         dto.setBarcodeType(entity.getBarcodeType());
         dto.setUsed(entity.isUsed());
@@ -179,7 +180,7 @@ public class ShoppingAdapter {
         entity.setDescription(dto.getDescription());
         entity.setValue(dto.getValue());
         entity.setPhoto(dto.getPhoto());
-        entity.setDueDate(dto.getDueDate());
+        entity.setDueDate(dto.getDueDate() != null ? dto.getDueDate().atStartOfDay() : null);
         entity.setCode(dto.getCode());
         entity.setBarcodeType(dto.getBarcodeType());
         entity.setUsed(dto.isUsed());

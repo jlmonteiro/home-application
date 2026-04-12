@@ -6,6 +6,7 @@ import lombok.Setter;
 import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -22,7 +23,7 @@ public class CouponResource extends RepresentationModel<CouponResource> {
     private String description;
     private String value;
     private String photo;
-    private LocalDateTime dueDate;
+    private LocalDate dueDate;
     private String code;
     private String barcodeType;
     private boolean used;

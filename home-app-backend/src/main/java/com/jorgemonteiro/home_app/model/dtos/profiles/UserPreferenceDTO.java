@@ -8,5 +8,6 @@ import lombok.Data;
 @Data
 public class UserPreferenceDTO {
     private boolean showShoppingWidget;
+    private boolean showCouponsWidget;
     private Long version;
 }

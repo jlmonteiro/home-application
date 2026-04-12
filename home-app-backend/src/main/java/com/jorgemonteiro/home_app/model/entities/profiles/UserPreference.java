@@ -30,6 +30,9 @@ public class UserPreference {
     @Column(name = "show_shopping_widget", nullable = false)
     private boolean showShoppingWidget = true;
 
+    @Column(name = "show_coupons_widget", nullable = false)
+    private boolean showCouponsWidget = true;
+
     @Version
     private Long version;
 

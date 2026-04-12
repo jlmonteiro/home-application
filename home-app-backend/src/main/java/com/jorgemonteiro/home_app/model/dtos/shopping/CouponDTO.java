@@ -7,6 +7,7 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.hateoas.server.core.Relation;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -33,7 +34,7 @@ public class CouponDTO {
 
     private String photo;
 
-    private LocalDateTime dueDate;
+    private LocalDate dueDate;
 
     private String code;
 

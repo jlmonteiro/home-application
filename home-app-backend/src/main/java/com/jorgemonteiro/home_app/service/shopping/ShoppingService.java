@@ -240,6 +240,7 @@ public class ShoppingService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public CouponDTO createCoupon(@Valid CouponDTO dto) {
         ShoppingStore store = storeRepository.findById(dto.getStoreId())
                 .orElseThrow(() -> new ObjectNotFoundException("Store not found with ID: " + dto.getStoreId()));
@@ -249,6 +250,7 @@ public class ShoppingService {
         return shoppingAdapter.toCouponDTO(couponRepository.save(entity));
     }
 
+    @Transactional
     public CouponDTO updateCoupon(Long id, @Valid CouponDTO dto) {
         Coupon existing = couponRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("Coupon not found with ID: " + id));
@@ -257,7 +259,7 @@ public class ShoppingService {
         existing.setDescription(dto.getDescription());
         existing.setValue(dto.getValue());
         existing.setPhoto(dto.getPhoto());
-        existing.setDueDate(dto.getDueDate());
+        existing.setDueDate(dto.getDueDate() != null ? dto.getDueDate().atStartOfDay() : null);
         existing.setCode(dto.getCode());
         existing.setBarcodeType(dto.getBarcodeType());
         existing.setUsed(dto.isUsed());
