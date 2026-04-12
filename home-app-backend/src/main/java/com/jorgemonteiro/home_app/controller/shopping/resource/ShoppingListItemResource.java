@@ -19,6 +19,8 @@ public class ShoppingListItemResource extends RepresentationModel<ShoppingListIt
     private Long itemId;
     private String itemName;
     private String itemPhoto;
+    private String categoryName;
+    private String categoryIcon;
     private Long storeId;
     private String storeName;
     private BigDecimal quantity;
@@ -33,6 +35,8 @@ public class ShoppingListItemResource extends RepresentationModel<ShoppingListIt
         this.itemId = dto.getItemId();
         this.itemName = dto.getItemName();
         this.itemPhoto = dto.getItemPhoto();
+        this.categoryName = dto.getCategoryName();
+        this.categoryIcon = dto.getCategoryIcon();
         this.storeId = dto.getStoreId();
         this.storeName = dto.getStoreName();
         this.quantity = dto.getQuantity();

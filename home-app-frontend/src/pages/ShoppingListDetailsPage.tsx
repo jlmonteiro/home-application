@@ -24,6 +24,7 @@ import {
   Image,
   Textarea,
   Accordion,
+  Center,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
@@ -80,6 +81,7 @@ export function ShoppingListDetailsPage() {
   const [editListOpened, { open: openEditList, close: closeEditList }] = useDisclosure(false)
   const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null)
   const [editItemOpened, { open: openEditItem, close: closeEditItem }] = useDisclosure(false)
+  const [previewImage, setPreviewImage] = useState<{ url: string, title: string } | null>(null)
 
   // Queries
   const { data: list, isLoading: listLoading } = useQuery({
@@ -313,18 +315,20 @@ export function ShoppingListDetailsPage() {
       // Initial count to see which categories have > 1 item
       const counts: Record<string, number> = {}
       store.items.forEach(i => {
-        const catName = i.categoryIcon ? i.categoryIcon.replace('Icon', '') : 'Others'
-        counts[catName] = (counts[catName] || 0) + 1
+        const name = i.categoryName || 'Others'
+        counts[name] = (counts[name] || 0) + 1
       })
 
       store.items.forEach(item => {
-        const catIcon = item.categoryIcon || 'IconBasket'
-        const rawCatName = catIcon.replace('Icon', '')
-        const catName = counts[rawCatName] > 1 ? rawCatName : 'Others'
-        const finalIcon = catName === 'Others' ? 'IconBasket' : catIcon
+        const rawCatName = item.categoryName || 'Others'
+        const isSingleton = counts[rawCatName] === 1
+        const catName = isSingleton ? 'Others' : rawCatName
+        
+        // If it's Others, use generic basket icon, otherwise use the specific icon
+        const catIcon = catName === 'Others' ? 'IconBasket' : (item.categoryIcon || 'IconBasket')
 
         if (!categoriesMap.has(catName)) {
-          categoriesMap.set(catName, { icon: finalIcon, items: [], isDone: false })
+          categoriesMap.set(catName, { icon: catIcon, items: [], isDone: false })
         }
         categoriesMap.get(catName)!.items.push(item)
       })
@@ -359,7 +363,21 @@ export function ShoppingListDetailsPage() {
       
       <Box style={{ flex: 1 }}>
         <Group gap="xs" wrap="nowrap">
-          <Box w={24} h={24} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Box 
+            w={24} h={24} 
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              flexShrink: 0,
+              cursor: item.itemPhoto ? 'pointer' : 'default' 
+            }}
+            onClick={() => {
+              if (item.itemPhoto) {
+                setPreviewImage({ url: getPhotoSrc(item.itemPhoto)!, title: item.itemName })
+              }
+            }}
+          >
             {item.itemPhoto ? (
               <Image src={getPhotoSrc(item.itemPhoto)} fit="contain" h={24} w={24} />
             ) : (
@@ -773,6 +791,25 @@ export function ShoppingListDetailsPage() {
             <Button type="submit" mt="md" loading={updateListMutation.isPending}>Save Changes</Button>
           </Stack>
         </form>
+      </Modal>
+
+      {/* Image Preview Modal */}
+      <Modal 
+        opened={!!previewImage} 
+        onClose={() => setPreviewImage(null)} 
+        title={previewImage?.title}
+        size="lg"
+        radius="md"
+        zIndex={6000}
+      >
+        <Center pb="xl">
+          <Image 
+            src={previewImage?.url} 
+            alt={previewImage?.title} 
+            radius="md" 
+            style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain' }} 
+          />
+        </Center>
       </Modal>
     </Stack>
   )

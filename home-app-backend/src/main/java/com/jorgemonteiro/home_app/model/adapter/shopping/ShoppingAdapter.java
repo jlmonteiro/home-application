@@ -236,6 +236,7 @@ public class ShoppingAdapter {
             dto.setItemName(entity.getItem().getName());
             dto.setItemPhoto(entity.getItem().getPhoto());
             if (entity.getItem().getCategory() != null) {
+                dto.setCategoryName(entity.getItem().getCategory().getName());
                 dto.setCategoryIcon(entity.getItem().getCategory().getIcon());
             }
         }

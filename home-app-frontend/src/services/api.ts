@@ -103,6 +103,7 @@ export interface ShoppingListItem {
   itemId: number
   itemName: string
   itemPhoto: string
+  categoryName: string
   categoryIcon: string
   storeId: number | null
   storeName: string | null

@@ -21,6 +21,8 @@ public class ShoppingListItemDTO {
 
     private String itemPhoto;
 
+    private String categoryName;
+
     private String categoryIcon;
 
     private Long storeId;
