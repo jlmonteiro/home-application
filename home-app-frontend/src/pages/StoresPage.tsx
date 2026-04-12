@@ -16,6 +16,7 @@ import {
   Box,
   Anchor,
   Image,
+  Badge,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
@@ -30,7 +31,8 @@ import {
   IconSearch, 
   IconQuestionMark, 
   IconExternalLink, 
-  IconArrowRight 
+  IconArrowRight,
+  IconTicket
 } from '@tabler/icons-react'
 import { fetchStores, createStore, updateStore, deleteStore } from '../services/api'
 import type { ShoppingStore } from '../services/api'
@@ -172,7 +174,19 @@ export function StoresPage() {
                 )}
               </Box>
               <div>
-                <Text fw={500}>{store.name}</Text>
+                <Group gap="xs" align="center">
+                  <Text fw={500}>{store.name}</Text>
+                  {store.validCouponsCount && store.validCouponsCount > 0 ? (
+                    <Badge 
+                      color="green" 
+                      variant="light" 
+                      size="sm" 
+                      leftSection={<IconTicket size={12} />}
+                    >
+                      {store.validCouponsCount} {store.validCouponsCount === 1 ? 'coupon' : 'coupons'}
+                    </Badge>
+                  ) : null}
+                </Group>
                 <Text size="xs" c="dimmed" lineClamp={1}>{store.description}</Text>
               </div>
             </Group>

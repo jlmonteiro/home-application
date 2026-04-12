@@ -92,6 +92,17 @@ public class ShoppingAdapter {
         dto.setIcon(entity.getIcon());
         dto.setPhoto(entity.getPhoto());
         dto.setVersion(entity.getVersion());
+
+        if (entity.getCoupons() != null) {
+            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            long count = entity.getCoupons().stream()
+                    .filter(c -> !c.isUsed() && (c.getDueDate() == null || c.getDueDate().isAfter(now)))
+                    .count();
+            dto.setValidCouponsCount((int) count);
+        } else {
+            dto.setValidCouponsCount(0);
+        }
+
         return dto;
     }
 

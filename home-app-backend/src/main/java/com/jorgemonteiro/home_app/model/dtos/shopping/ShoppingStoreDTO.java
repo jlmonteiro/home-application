@@ -25,5 +25,7 @@ public class ShoppingStoreDTO {
 
     private String photo;
 
+    private Integer validCouponsCount;
+
     private Long version;
 }

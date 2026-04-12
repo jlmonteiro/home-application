@@ -56,6 +56,7 @@ export interface ShoppingStore {
   description?: string
   icon?: string
   photo?: string
+  validCouponsCount?: number
   version: number
   _links?: {
     self: { href: string }

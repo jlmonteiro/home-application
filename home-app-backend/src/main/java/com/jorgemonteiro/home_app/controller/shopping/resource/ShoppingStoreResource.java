@@ -18,6 +18,7 @@ public class ShoppingStoreResource extends RepresentationModel<ShoppingStoreReso
     private String description;
     private String icon;
     private String photo;
+    private Integer validCouponsCount;
     private Long version;
 
     public ShoppingStoreResource(ShoppingStoreDTO dto) {
@@ -26,6 +27,7 @@ public class ShoppingStoreResource extends RepresentationModel<ShoppingStoreReso
         this.description = dto.getDescription();
         this.icon = dto.getIcon();
         this.photo = dto.getPhoto();
+        this.validCouponsCount = dto.getValidCouponsCount();
         this.version = dto.getVersion();
     }
 }
