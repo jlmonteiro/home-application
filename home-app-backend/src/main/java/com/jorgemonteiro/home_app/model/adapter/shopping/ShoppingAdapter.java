@@ -2,24 +2,27 @@ package com.jorgemonteiro.home_app.model.adapter.shopping;
 
 import com.jorgemonteiro.home_app.model.dtos.shopping.*;
 import com.jorgemonteiro.home_app.model.entities.shopping.*;
+import com.jorgemonteiro.home_app.repository.shopping.ShoppingItemPriceHistoryRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
 import java.util.stream.Collectors;
 
 /**
  * Adapter for converting between shopping entities and DTOs.
  */
+@Component
+@RequiredArgsConstructor
 public class ShoppingAdapter {
 
-    private ShoppingAdapter() {
-        // Private constructor to prevent instantiation
-    }
+    private final ShoppingItemPriceHistoryRepository priceHistoryRepository;
 
     /**
      * Converts a {@link ShoppingCategory} entity to a {@link ShoppingCategoryDTO}.
      * @param entity the category entity
      * @return the category DTO
      */
-    public static ShoppingCategoryDTO toDTO(ShoppingCategory entity) {
+    public ShoppingCategoryDTO toCategoryDTO(ShoppingCategory entity) {
         if (entity == null) return null;
         ShoppingCategoryDTO dto = new ShoppingCategoryDTO();
         dto.setId(entity.getId());
@@ -35,7 +38,7 @@ public class ShoppingAdapter {
      * @param dto the category DTO
      * @return the category entity
      */
-    public static ShoppingCategory toEntity(ShoppingCategoryDTO dto) {
+    public ShoppingCategory toCategoryEntity(ShoppingCategoryDTO dto) {
         if (dto == null) return null;
         ShoppingCategory entity = new ShoppingCategory();
         entity.setId(dto.getId());
@@ -51,7 +54,7 @@ public class ShoppingAdapter {
      * @param entity the item entity
      * @return the item DTO
      */
-    public static ShoppingItemDTO toDTO(ShoppingItem entity) {
+    public ShoppingItemDTO toItemDTO(ShoppingItem entity) {
         if (entity == null) return null;
         ShoppingItemDTO dto = new ShoppingItemDTO();
         dto.setId(entity.getId());
@@ -71,7 +74,7 @@ public class ShoppingAdapter {
      * @param dto the item DTO
      * @return the item entity
      */
-    public static ShoppingItem toEntity(ShoppingItemDTO dto) {
+    public ShoppingItem toItemEntity(ShoppingItemDTO dto) {
         if (dto == null) return null;
         ShoppingItem entity = new ShoppingItem();
         entity.setId(dto.getId());
@@ -83,7 +86,7 @@ public class ShoppingAdapter {
 
     // --- Store Methods ---
 
-    public static ShoppingStoreDTO toDTO(ShoppingStore entity) {
+    public ShoppingStoreDTO toStoreDTO(ShoppingStore entity) {
         if (entity == null) return null;
         ShoppingStoreDTO dto = new ShoppingStoreDTO();
         dto.setId(entity.getId());
@@ -106,7 +109,7 @@ public class ShoppingAdapter {
         return dto;
     }
 
-    public static ShoppingStore toEntity(ShoppingStoreDTO dto) {
+    public ShoppingStore toStoreEntity(ShoppingStoreDTO dto) {
         if (dto == null) return null;
         ShoppingStore entity = new ShoppingStore();
         entity.setId(dto.getId());
@@ -120,7 +123,7 @@ public class ShoppingAdapter {
 
     // --- LoyaltyCard Methods ---
 
-    public static LoyaltyCardDTO toDTO(LoyaltyCard entity) {
+    public LoyaltyCardDTO toLoyaltyCardDTO(LoyaltyCard entity) {
         if (entity == null) return null;
         LoyaltyCardDTO dto = new LoyaltyCardDTO();
         dto.setId(entity.getId());
@@ -135,7 +138,7 @@ public class ShoppingAdapter {
         return dto;
     }
 
-    public static LoyaltyCard toEntity(LoyaltyCardDTO dto) {
+    public LoyaltyCard toLoyaltyCardEntity(LoyaltyCardDTO dto) {
         if (dto == null) return null;
         LoyaltyCard entity = new LoyaltyCard();
         entity.setId(dto.getId());
@@ -148,7 +151,7 @@ public class ShoppingAdapter {
 
     // --- Coupon Methods ---
 
-    public static CouponDTO toDTO(Coupon entity) {
+    public CouponDTO toCouponDTO(Coupon entity) {
         if (entity == null) return null;
         CouponDTO dto = new CouponDTO();
         dto.setId(entity.getId());
@@ -168,7 +171,7 @@ public class ShoppingAdapter {
         return dto;
     }
 
-    public static Coupon toEntity(CouponDTO dto) {
+    public Coupon toCouponEntity(CouponDTO dto) {
         if (dto == null) return null;
         Coupon entity = new Coupon();
         entity.setId(dto.getId());
@@ -186,7 +189,7 @@ public class ShoppingAdapter {
 
     // --- Shopping List Methods ---
 
-    public static ShoppingListDTO toDTO(ShoppingList entity) {
+    public ShoppingListDTO toListDTO(ShoppingList entity) {
         if (entity == null) return null;
         ShoppingListDTO dto = new ShoppingListDTO();
         dto.setId(entity.getId());
@@ -203,13 +206,13 @@ public class ShoppingAdapter {
         }
         
         if (entity.getItems() != null) {
-            dto.setItems(entity.getItems().stream().map(ShoppingAdapter::toDTO).collect(Collectors.toList()));
+            dto.setItems(entity.getItems().stream().map(this::toListItemDTO).collect(Collectors.toList()));
         }
         
         return dto;
     }
 
-    public static ShoppingList toEntity(ShoppingListDTO dto) {
+    public ShoppingList toListEntity(ShoppingListDTO dto) {
         if (dto == null) return null;
         ShoppingList entity = new ShoppingList();
         entity.setId(dto.getId());
@@ -220,7 +223,20 @@ public class ShoppingAdapter {
         return entity;
     }
 
-    public static ShoppingListItemDTO toDTO(ShoppingListItem entity) {
+    public ShoppingItemPriceHistoryDTO toPriceHistoryDTO(ShoppingItemPriceHistory entity) {
+        if (entity == null) return null;
+        ShoppingItemPriceHistoryDTO dto = new ShoppingItemPriceHistoryDTO();
+        dto.setId(entity.getId());
+        dto.setPrice(entity.getPrice());
+        dto.setRecordedAt(entity.getRecordedAt());
+        if (entity.getStore() != null) {
+            dto.setStoreId(entity.getStore().getId());
+            dto.setStoreName(entity.getStore().getName());
+        }
+        return dto;
+    }
+
+    public ShoppingListItemDTO toListItemDTO(ShoppingListItem entity) {
         if (entity == null) return null;
         ShoppingListItemDTO dto = new ShoppingListItemDTO();
         dto.setId(entity.getId());
@@ -239,6 +255,18 @@ public class ShoppingAdapter {
                 dto.setCategoryName(entity.getItem().getCategory().getName());
                 dto.setCategoryIcon(entity.getItem().getCategory().getIcon());
             }
+
+            // Find previous price for comparison
+            priceHistoryRepository.findLatestPrice(entity.getItem().getId(), entity.getStore() != null ? entity.getStore().getId() : null)
+                    .ifPresent(latest -> {
+                        // If current price is the same as latest history, we need the one BEFORE latest
+                        if (entity.getPrice() != null && latest.getPrice().compareTo(entity.getPrice()) == 0) {
+                            priceHistoryRepository.findLatestPriceExcluding(entity.getItem().getId(), entity.getStore() != null ? entity.getStore().getId() : null, latest.getId())
+                                    .ifPresent(prev -> dto.setPreviousPrice(prev.getPrice()));
+                        } else {
+                            dto.setPreviousPrice(latest.getPrice());
+                        }
+                    });
         }
 
         if (entity.getStore() != null) {
@@ -249,7 +277,7 @@ public class ShoppingAdapter {
         return dto;
     }
 
-    public static ShoppingListItem toEntity(ShoppingListItemDTO dto) {
+    public ShoppingListItem toListItemEntity(ShoppingListItemDTO dto) {
         if (dto == null) return null;
         ShoppingListItem entity = new ShoppingListItem();
         entity.setId(dto.getId());

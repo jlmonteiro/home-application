@@ -4,6 +4,7 @@ import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListItemR
 import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListItemResourceAssembler;
 import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListResource;
 import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListResourceAssembler;
+import com.jorgemonteiro.home_app.model.adapter.shopping.ShoppingAdapter;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListItemDTO;
 import com.jorgemonteiro.home_app.service.shopping.ShoppingService;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * REST controller for managing shopping lists and items.
@@ -28,6 +30,7 @@ import java.util.List;
 public class ShoppingListController {
 
     private final ShoppingService shoppingService;
+    private final ShoppingAdapter shoppingAdapter;
     private final ShoppingListResourceAssembler listAssembler;
     private final ShoppingListItemResourceAssembler itemAssembler;
 

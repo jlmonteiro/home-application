@@ -50,6 +50,14 @@ export interface ShoppingItem {
   }
 }
 
+export interface ShoppingItemPriceHistory {
+  id: number
+  storeId: number | null
+  storeName: string | null
+  price: number
+  recordedAt: string
+}
+
 export interface ShoppingStore {
   id: number
   name: string
@@ -110,6 +118,7 @@ export interface ShoppingListItem {
   quantity: number
   unit: string
   price: number | null
+  previousPrice: number | null
   bought: boolean
   unavailable: boolean
   version: number
@@ -339,6 +348,12 @@ export async function deleteItem(id: number): Promise<void> {
     method: 'DELETE',
   })
   if (!response.ok) throw new Error('Failed to delete item')
+}
+
+export async function fetchItemPriceHistory(id: number): Promise<ShoppingItemPriceHistory[]> {
+  const response = await fetch(`${API_BASE}/shopping/items/${id}/price-history`)
+  if (!response.ok) throw new Error('Failed to fetch price history')
+  return response.json()
 }
 
 // --- Shopping Stores API ---

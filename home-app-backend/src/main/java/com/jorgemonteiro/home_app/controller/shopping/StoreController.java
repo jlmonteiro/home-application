@@ -1,6 +1,7 @@
 package com.jorgemonteiro.home_app.controller.shopping;
 
 import com.jorgemonteiro.home_app.controller.shopping.resource.*;
+import com.jorgemonteiro.home_app.model.adapter.shopping.ShoppingAdapter;
 import com.jorgemonteiro.home_app.model.dtos.shopping.CouponDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.LoyaltyCardDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingStoreDTO;
@@ -29,6 +30,7 @@ import java.util.List;
 public class StoreController {
 
     private final ShoppingService shoppingService;
+    private final ShoppingAdapter shoppingAdapter;
 
     private final ShoppingStoreResourceAssembler storeAssembler;
     private final PagedResourcesAssembler<ShoppingStoreDTO> pagedStoreAssembler;

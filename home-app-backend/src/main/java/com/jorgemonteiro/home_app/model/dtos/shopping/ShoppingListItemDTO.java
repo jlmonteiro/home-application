@@ -36,6 +36,8 @@ public class ShoppingListItemDTO {
 
     private BigDecimal price;
 
+    private BigDecimal previousPrice;
+
     private Boolean bought;
 
     private Boolean unavailable;

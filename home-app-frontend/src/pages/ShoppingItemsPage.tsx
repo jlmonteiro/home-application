@@ -17,14 +17,32 @@ import {
   Avatar,
   FileButton,
   Image,
+  Timeline,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
-import { IconPlus, IconEdit, IconTrash, IconSearch, IconBasket, IconUpload } from '@tabler/icons-react'
-import { fetchItems, createItem, updateItem, deleteItem, fetchCategories } from '../services/api'
-import type { ShoppingItem } from '../services/api'
+import { 
+  IconPlus, 
+  IconEdit, 
+  IconTrash, 
+  IconSearch, 
+  IconBasket, 
+  IconUpload, 
+  IconHistory, 
+  IconBuildingStore,
+  IconArrowRight
+} from '@tabler/icons-react'
+import { 
+  fetchItems, 
+  createItem, 
+  updateItem, 
+  deleteItem, 
+  fetchCategories,
+  fetchItemPriceHistory
+} from '../services/api'
+import type { ShoppingItem, ShoppingItemPriceHistory } from '../services/api'
 
 /**
  * Helper to determine the correct image source for item photos.
@@ -42,6 +60,9 @@ export function ShoppingItemsPage() {
   const [search, setSearch] = useState('')
   const [opened, { open, close }] = useDisclosure(false)
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
+  
+  const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false)
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<ShoppingItem | null>(null)
 
   const { data: itemsData, isLoading: itemsLoading } = useQuery({
     queryKey: ['shopping-items', activePage],
@@ -50,7 +71,13 @@ export function ShoppingItemsPage() {
 
   const { data: categoriesData } = useQuery({
     queryKey: ['shopping-categories-all'],
-    queryFn: () => fetchCategories(0, 100), // Get first 100 categories for the select
+    queryFn: () => fetchCategories(0, 100),
+  })
+
+  const { data: priceHistory, isLoading: historyLoading } = useQuery({
+    queryKey: ['price-history', selectedHistoryItem?.id],
+    queryFn: () => fetchItemPriceHistory(selectedHistoryItem!.id),
+    enabled: !!selectedHistoryItem,
   })
 
   const form = useForm({
@@ -133,6 +160,11 @@ export function ShoppingItemsPage() {
     open()
   }
 
+  const handleShowHistory = (item: ShoppingItem) => {
+    setSelectedHistoryItem(item)
+    openHistory()
+  }
+
   const handleSubmit = (values: typeof form.values) => {
     const payload = {
       ...values,
@@ -185,6 +217,9 @@ export function ShoppingItemsPage() {
         </Table.Td>
         <Table.Td>
           <Group gap="xs" justify="flex-end">
+            <ActionIcon variant="light" color="indigo" onClick={() => handleShowHistory(item)} title="Price History">
+              <IconHistory style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+            </ActionIcon>
             <ActionIcon variant="light" color="blue" onClick={() => handleEdit(item)}>
               <IconEdit style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
             </ActionIcon>
@@ -224,7 +259,7 @@ export function ShoppingItemsPage() {
               <Table.Tr>
                 <Table.Th>Item</Table.Th>
                 <Table.Th>Category</Table.Th>
-                <Table.Th style={{ width: rem(100) }} />
+                <Table.Th style={{ width: rem(140) }} />
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
@@ -246,6 +281,7 @@ export function ShoppingItemsPage() {
         </Stack>
       </Box>
 
+      {/* Edit/Add Modal */}
       <Modal
         opened={opened}
         onClose={close}
@@ -307,6 +343,48 @@ export function ShoppingItemsPage() {
             </Group>
           </Stack>
         </form>
+      </Modal>
+
+      {/* Price History Modal */}
+      <Modal
+        opened={historyOpened}
+        onClose={() => { closeHistory(); setSelectedHistoryItem(null); }}
+        title={`Price History: ${selectedHistoryItem?.name}`}
+        radius="md"
+        size="lg"
+        zIndex={2000}
+      >
+        <Box pos="relative" minH={200}>
+          <LoadingOverlay visible={historyLoading} />
+          
+          {priceHistory && priceHistory.length > 0 ? (
+            <Timeline active={0} bulletSize={24} lineWidth={2}>
+              {priceHistory.map((entry) => (
+                <Timeline.Item 
+                  key={entry.id} 
+                  bullet={<IconBuildingStore size={14} />} 
+                  title={
+                    <Group justify="space-between">
+                      <Text fw={700} size="lg">€{entry.price.toFixed(2)}</Text>
+                      <Text size="xs" c="dimmed">
+                        {new Date(entry.recordedAt).toLocaleDateString()} {new Date(entry.recordedAt).toLocaleTimeString()}
+                      </Text>
+                    </Group>
+                  }
+                >
+                  <Text size="sm" c="dimmed">
+                    Recorded at <Text span fw={500} c="dark">{entry.storeName || 'Any Store'}</Text>
+                  </Text>
+                </Timeline.Item>
+              ))}
+            </Timeline>
+          ) : (
+            <Stack align="center" py="xl">
+              <IconHistory size={48} color="var(--mantine-color-gray-3)" />
+              <Text c="dimmed">No price history available for this item yet.</Text>
+            </Stack>
+          )}
+        </Box>
       </Modal>
     </Stack>
   )

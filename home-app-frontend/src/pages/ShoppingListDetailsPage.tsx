@@ -25,6 +25,7 @@ import {
   Textarea,
   Accordion,
   Center,
+  Timeline,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
@@ -44,7 +45,11 @@ import {
   IconAlertCircle,
   IconBuildingStore,
   IconArrowRight,
-  IconChevronRight
+  IconChevronRight,
+  IconTrendingUp,
+  IconTrendingDown,
+  IconMinus,
+  IconHistory
 } from '@tabler/icons-react'
 import { 
   fetchList, 
@@ -56,9 +61,10 @@ import {
   updateList,
   fetchStores,
   createItem,
-  fetchCategories
+  fetchCategories,
+  fetchItemPriceHistory
 } from '../services/api'
-import type { ShoppingList, ShoppingListItem, ShoppingStore } from '../services/api'
+import type { ShoppingList, ShoppingListItem, ShoppingStore, ShoppingItemPriceHistory } from '../services/api'
 import { MarkdownContent } from '../components/MarkdownContent'
 
 /**
@@ -82,6 +88,9 @@ export function ShoppingListDetailsPage() {
   const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null)
   const [editItemOpened, { open: openEditItem, close: closeEditItem }] = useDisclosure(false)
   const [previewImage, setPreviewImage] = useState<{ url: string, title: string } | null>(null)
+  
+  const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false)
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<{ id: number, name: string } | null>(null)
 
   // Queries
   const { data: list, isLoading: listLoading } = useQuery({
@@ -102,6 +111,12 @@ export function ShoppingListDetailsPage() {
   const { data: categoriesData } = useQuery({
     queryKey: ['shopping-categories-all'],
     queryFn: () => fetchCategories(0, 100),
+  })
+
+  const { data: priceHistory, isLoading: historyLoading } = useQuery({
+    queryKey: ['price-history', selectedHistoryItem?.id],
+    queryFn: () => fetchItemPriceHistory(selectedHistoryItem!.id),
+    enabled: !!selectedHistoryItem,
   })
 
   // Mutations
@@ -245,6 +260,11 @@ export function ShoppingListDetailsPage() {
     openEditItem()
   }
 
+  const handleShowHistory = (item: ShoppingListItem) => {
+    setSelectedHistoryItem({ id: item.itemId, name: item.itemName })
+    openHistory()
+  }
+
   // Fetch suggested price when item or store changes
   useEffect(() => {
     if (addItemForm.values.itemId) {
@@ -353,6 +373,32 @@ export function ShoppingListDetailsPage() {
   if (listLoading) return <LoadingOverlay visible />
   if (!list) return <Text>List not found</Text>
 
+  const PriceTrendIcon = ({ item }: { item: ShoppingListItem }) => {
+    if (item.price === null || item.previousPrice === null) return null;
+    
+    if (item.price > item.previousPrice) {
+      return (
+        <ActionIcon variant="subtle" color="red" size="sm" onClick={() => handleShowHistory(item)} title="Price Increased">
+          <IconTrendingUp size={16} />
+        </ActionIcon>
+      );
+    }
+    
+    if (item.price < item.previousPrice) {
+      return (
+        <ActionIcon variant="subtle" color="green" size="sm" onClick={() => handleShowHistory(item)} title="Price Decreased">
+          <IconTrendingDown size={16} />
+        </ActionIcon>
+      );
+    }
+    
+    return (
+      <ActionIcon variant="subtle" color="gray" size="sm" onClick={() => handleShowHistory(item)} title="Price Same">
+        <IconMinus size={16} />
+      </ActionIcon>
+    );
+  }
+
   const ItemRow = ({ item }: { item: ShoppingListItem }) => (
     <Group key={item.id} wrap="nowrap" gap="sm" style={{ opacity: item.bought ? 0.5 : 1 }}>
       <Checkbox 
@@ -385,7 +431,10 @@ export function ShoppingListDetailsPage() {
             )}
           </Box>
           <Stack gap={0} style={{ overflow: 'hidden' }}>
-            <Text fw={500} size="sm" td={item.bought ? 'line-through' : 'none'} truncate>{item.itemName}</Text>
+            <Group gap={4} wrap="nowrap">
+              <Text fw={500} size="sm" td={item.bought ? 'line-through' : 'none'} truncate>{item.itemName}</Text>
+              <PriceTrendIcon item={item} />
+            </Group>
             <Text size="xs" c="dimmed">{item.quantity} {item.unit} • €{(item.price || 0).toFixed(2)}</Text>
           </Stack>
         </Group>
@@ -810,6 +859,48 @@ export function ShoppingListDetailsPage() {
             style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain' }} 
           />
         </Center>
+      </Modal>
+
+      {/* Price History Modal */}
+      <Modal
+        opened={historyOpened}
+        onClose={() => { closeHistory(); setSelectedHistoryItem(null); }}
+        title={`Price History: ${selectedHistoryItem?.name}`}
+        radius="md"
+        size="lg"
+        zIndex={2000}
+      >
+        <Box pos="relative" minH={200}>
+          <LoadingOverlay visible={historyLoading} />
+          
+          {priceHistory && priceHistory.length > 0 ? (
+            <Timeline active={0} bulletSize={24} lineWidth={2}>
+              {priceHistory.map((entry) => (
+                <Timeline.Item 
+                  key={entry.id} 
+                  bullet={<IconBuildingStore size={14} />} 
+                  title={
+                    <Group justify="space-between">
+                      <Text fw={700} size="lg">€{entry.price.toFixed(2)}</Text>
+                      <Text size="xs" c="dimmed">
+                        {new Date(entry.recordedAt).toLocaleDateString()} {new Date(entry.recordedAt).toLocaleTimeString()}
+                      </Text>
+                    </Group>
+                  }
+                >
+                  <Text size="sm" c="dimmed">
+                    Recorded at <Text span fw={500} c="dark">{entry.storeName || 'Any Store'}</Text>
+                  </Text>
+                </Timeline.Item>
+              ))}
+            </Timeline>
+          ) : (
+            <Stack align="center" py="xl">
+              <IconHistory size={48} color="var(--mantine-color-gray-3)" />
+              <Text c="dimmed">No price history available for this item yet.</Text>
+            </Stack>
+          )}
+        </Box>
       </Modal>
     </Stack>
   )

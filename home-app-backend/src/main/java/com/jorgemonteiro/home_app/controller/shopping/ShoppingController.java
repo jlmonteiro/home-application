@@ -1,8 +1,10 @@
 package com.jorgemonteiro.home_app.controller.shopping;
 
 import com.jorgemonteiro.home_app.controller.shopping.resource.*;
+import com.jorgemonteiro.home_app.model.adapter.shopping.ShoppingAdapter;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingCategoryDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingItemDTO;
+import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingItemPriceHistoryDTO;
 import com.jorgemonteiro.home_app.service.shopping.ShoppingService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * REST controller for managing shopping master data (Categories and Items).
  */
@@ -25,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 public class ShoppingController {
 
     private final ShoppingService shoppingService;
+    private final ShoppingAdapter shoppingAdapter;
     
     private final ShoppingCategoryResourceAssembler categoryAssembler;
     private final PagedResourcesAssembler<ShoppingCategoryDTO> pagedCategoryAssembler;
@@ -114,5 +119,10 @@ public class ShoppingController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteItem(@PathVariable Long id) {
         shoppingService.deleteItem(id);
+    }
+
+    @GetMapping("/items/{id}/price-history")
+    public ResponseEntity<List<ShoppingItemPriceHistoryDTO>> getPriceHistory(@PathVariable Long id) {
+        return ResponseEntity.ok(shoppingService.getItemPriceHistory(id));
     }
 }
