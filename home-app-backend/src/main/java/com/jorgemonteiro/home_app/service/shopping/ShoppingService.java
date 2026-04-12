@@ -3,21 +3,11 @@ package com.jorgemonteiro.home_app.service.shopping;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.exception.ValidationException;
 import com.jorgemonteiro.home_app.model.adapter.shopping.ShoppingAdapter;
-import com.jorgemonteiro.home_app.model.dtos.shopping.CouponDTO;
-import com.jorgemonteiro.home_app.model.dtos.shopping.LoyaltyCardDTO;
-import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingCategoryDTO;
-import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingItemDTO;
-import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingStoreDTO;
-import com.jorgemonteiro.home_app.model.entities.shopping.Coupon;
-import com.jorgemonteiro.home_app.model.entities.shopping.LoyaltyCard;
-import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingCategory;
-import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingItem;
-import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingStore;
-import com.jorgemonteiro.home_app.repository.shopping.CouponRepository;
-import com.jorgemonteiro.home_app.repository.shopping.LoyaltyCardRepository;
-import com.jorgemonteiro.home_app.repository.shopping.ShoppingCategoryRepository;
-import com.jorgemonteiro.home_app.repository.shopping.ShoppingItemRepository;
-import com.jorgemonteiro.home_app.repository.shopping.ShoppingStoreRepository;
+import com.jorgemonteiro.home_app.model.dtos.shopping.*;
+import com.jorgemonteiro.home_app.model.entities.profiles.User;
+import com.jorgemonteiro.home_app.model.entities.shopping.*;
+import com.jorgemonteiro.home_app.repository.profiles.UserRepository;
+import com.jorgemonteiro.home_app.repository.shopping.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,12 +16,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Service for managing shopping master data (Categories, Items, Stores, Cards, Coupons).
+ * Service for managing shopping master data (Categories, Items, Stores, Cards, Coupons, Lists).
  */
 @Service
 @RequiredArgsConstructor
@@ -44,6 +35,9 @@ public class ShoppingService {
     private final ShoppingStoreRepository storeRepository;
     private final LoyaltyCardRepository loyaltyCardRepository;
     private final CouponRepository couponRepository;
+    private final ShoppingListRepository listRepository;
+    private final ShoppingListItemRepository listItemRepository;
+    private final UserRepository userRepository;
 
     // --- Category Methods ---
 
@@ -251,6 +245,8 @@ public class ShoppingService {
         existing.setValue(dto.getValue());
         existing.setPhoto(dto.getPhoto());
         existing.setDueDate(dto.getDueDate());
+        existing.setCode(dto.getCode());
+        existing.setBarcodeType(dto.getBarcodeType());
         existing.setUsed(dto.isUsed());
 
         return ShoppingAdapter.toDTO(couponRepository.save(existing));
@@ -261,5 +257,119 @@ public class ShoppingService {
             throw new ObjectNotFoundException("Coupon not found with ID: " + id);
         }
         couponRepository.deleteById(id);
+    }
+
+    // --- Shopping List Methods ---
+
+    @Transactional(readOnly = true)
+    public List<ShoppingListDTO> findAllLists() {
+        return listRepository.findAllByOrderByCreatedAtDesc().stream()
+                .map(ShoppingAdapter::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public ShoppingListDTO getList(Long id) {
+        return listRepository.findById(id)
+                .map(ShoppingAdapter::toDTO)
+                .orElseThrow(() -> new ObjectNotFoundException("Shopping list not found with ID: " + id));
+    }
+
+    public ShoppingListDTO createList(@Valid ShoppingListDTO dto, String userEmail) {
+        User creator = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ObjectNotFoundException("User not found: " + userEmail));
+        
+        ShoppingList entity = ShoppingAdapter.toEntity(dto);
+        entity.setCreatedBy(creator);
+        
+        return ShoppingAdapter.toDTO(listRepository.save(entity));
+    }
+
+    public ShoppingListDTO updateList(Long id, @Valid ShoppingListDTO dto) {
+        ShoppingList existing = listRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("Shopping list not found with ID: " + id));
+
+        if (dto.getName() != null) existing.setName(dto.getName());
+        if (dto.getDescription() != null) existing.setDescription(dto.getDescription());
+        if (dto.getStatus() != null) {
+            existing.setStatus(dto.getStatus());
+            if ("COMPLETED".equals(dto.getStatus()) && existing.getCompletedAt() == null) {
+                existing.setCompletedAt(LocalDateTime.now());
+            }
+        }
+
+        return ShoppingAdapter.toDTO(listRepository.save(existing));
+    }
+    public void deleteList(Long id) {
+        if (!listRepository.existsById(id)) {
+            throw new ObjectNotFoundException("Shopping list not found with ID: " + id);
+        }
+        listRepository.deleteById(id);
+    }
+
+    // --- Shopping List Item Methods ---
+
+    public ShoppingListItemDTO addItemToList(Long listId, @Valid ShoppingListItemDTO dto) {
+        ShoppingList list = listRepository.findById(listId)
+                .orElseThrow(() -> new ObjectNotFoundException("Shopping list not found with ID: " + listId));
+        
+        ShoppingItem item = itemRepository.findById(dto.getItemId())
+                .orElseThrow(() -> new ObjectNotFoundException("Item not found with ID: " + dto.getItemId()));
+        
+        ShoppingListItem entity = ShoppingAdapter.toEntity(dto);
+        entity.setItem(item);
+
+        if (dto.getStoreId() != null) {
+            ShoppingStore store = storeRepository.findById(dto.getStoreId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Store not found with ID: " + dto.getStoreId()));
+            entity.setStore(store);
+        }
+
+        list.addItem(entity);
+        
+        return ShoppingAdapter.toDTO(listItemRepository.save(entity));
+    }
+
+    public ShoppingListItemDTO updateListItem(Long itemId, @Valid ShoppingListItemDTO dto) {
+        ShoppingListItem existing = listItemRepository.findById(itemId)
+                .orElseThrow(() -> new ObjectNotFoundException("List item not found with ID: " + itemId));
+        
+        existing.setQuantity(dto.getQuantity());
+        existing.setUnit(dto.getUnit());
+        existing.setPrice(dto.getPrice());
+        existing.setBought(dto.isBought());
+
+        if (dto.getStoreId() != null) {
+            ShoppingStore store = storeRepository.findById(dto.getStoreId())
+                    .orElseThrow(() -> new ObjectNotFoundException("Store not found with ID: " + dto.getStoreId()));
+            existing.setStore(store);
+        } else {
+            existing.setStore(null);
+        }
+        
+        return ShoppingAdapter.toDTO(listItemRepository.save(existing));
+    }
+
+    public void removeListItem(Long itemId) {
+        if (!listItemRepository.existsById(itemId)) {
+            throw new ObjectNotFoundException("List item not found with ID: " + itemId);
+        }
+        listItemRepository.deleteById(itemId);
+    }
+
+    // --- Price Suggestion Logic ---
+
+    @Transactional(readOnly = true)
+    public BigDecimal suggestPrice(Long itemId, Long storeId) {
+        if (storeId != null) {
+            return listItemRepository.findLastPriceAtStore(itemId, storeId)
+                    .map(ShoppingListItem::getPrice)
+                    .orElseGet(() -> listItemRepository.findGlobalLastPrice(itemId)
+                            .map(ShoppingListItem::getPrice)
+                            .orElse(null));
+        }
+        return listItemRepository.findGlobalLastPrice(itemId)
+                .map(ShoppingListItem::getPrice)
+                .orElse(null);
     }
 }

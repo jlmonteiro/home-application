@@ -240,7 +240,7 @@ export function ShoppingItemsPage() {
 
           {itemsData && itemsData.page.totalPages > 1 && (
             <Group justify="center">
-              <Pagination total={data.page.totalPages} value={activePage} onChange={setPage} />
+              <Pagination total={itemsData.page.totalPages} value={activePage} onChange={setPage} />
             </Group>
           )}
         </Stack>

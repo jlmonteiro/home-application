@@ -23,6 +23,8 @@ public class CouponResource extends RepresentationModel<CouponResource> {
     private String value;
     private String photo;
     private LocalDateTime dueDate;
+    private String code;
+    private String barcodeType;
     private boolean used;
     private Long version;
 
@@ -35,6 +37,8 @@ public class CouponResource extends RepresentationModel<CouponResource> {
         this.value = dto.getValue();
         this.photo = dto.getPhoto();
         this.dueDate = dto.getDueDate();
+        this.code = dto.getCode();
+        this.barcodeType = dto.getBarcodeType();
         this.used = dto.isUsed();
         this.version = dto.getVersion();
     }

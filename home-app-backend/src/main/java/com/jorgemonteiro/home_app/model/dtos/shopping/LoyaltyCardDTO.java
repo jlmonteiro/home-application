@@ -16,7 +16,6 @@ public class LoyaltyCardDTO {
 
     private Long id;
 
-    @NotNull(message = "Store ID is required")
     private Long storeId;
 
     private String storeName;

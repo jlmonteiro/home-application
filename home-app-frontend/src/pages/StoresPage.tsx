@@ -15,7 +15,6 @@ import {
   LoadingOverlay,
   Box,
   Anchor,
-  Avatar,
   Image,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'

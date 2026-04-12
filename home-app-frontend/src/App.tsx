@@ -13,6 +13,8 @@ import { ShoppingCategoriesPage } from './pages/ShoppingCategoriesPage'
 import { ShoppingItemsPage } from './pages/ShoppingItemsPage'
 import { StoresPage } from './pages/StoresPage'
 import { StoreDetailsPage } from './pages/StoreDetailsPage'
+import { ShoppingListsPage } from './pages/ShoppingListsPage'
+import { ShoppingListDetailsPage } from './pages/ShoppingListDetailsPage'
 import './App.css'
 
 const queryClient = new QueryClient({
@@ -52,8 +54,8 @@ function App() {
                   <Route path="items" element={<ShoppingItemsPage />} />
                   <Route path="stores" element={<StoresPage />} />
                   <Route path="stores/:id" element={<StoreDetailsPage />} />
-                  {/* Placeholders for future stories */}
-                  <Route path="lists" element={<Dashboard />} />
+                  <Route path="lists" element={<ShoppingListsPage />} />
+                  <Route path="lists/:id" element={<ShoppingListDetailsPage />} />
                 </Route>
               </Route>
 

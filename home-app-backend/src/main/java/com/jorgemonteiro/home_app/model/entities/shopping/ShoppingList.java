@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.entities.shopping;
 
+import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,25 +8,22 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * JPA entity representing a discount coupon for a store,
- * stored in {@code shopping.coupons}.
+ * JPA entity representing a shopping list.
  */
 @Entity
-@Table(name = "coupons", schema = "shopping")
+@Table(name = "shopping_lists", schema = "shopping")
 @Data
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Coupon {
+public class ShoppingList {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "store_id", nullable = false)
-    private ShoppingStore store;
 
     @Column(name = "name", nullable = false, length = 100)
     private String name;
@@ -33,23 +31,20 @@ public class Coupon {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "value", length = 100)
-    private String value;
+    @Column(name = "status", nullable = false, length = 20)
+    private String status = "PENDING"; // PENDING, COMPLETED
 
-    @Column(name = "photo", columnDefinition = "TEXT")
-    private String photo;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by", nullable = false)
+    private User createdBy;
 
-    @Column(name = "due_date")
-    private LocalDateTime dueDate;
+    @OneToMany(mappedBy = "list", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ShoppingListItem> items = new ArrayList<>();
 
-    @Column(name = "code", length = 100)
-    private String code;
-
-    @Column(name = "barcode_type", length = 20)
-    private String barcodeType = "CODE_128";
-
-    @Column(name = "used", nullable = false)
-    private boolean used = false;
+    public void addItem(ShoppingListItem item) {
+        items.add(item);
+        item.setList(this);
+    }
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -58,6 +53,9 @@ public class Coupon {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
+
+    @Column(name = "completed_at")
+    private LocalDateTime completedAt;
 
     @Version
     private Long version;

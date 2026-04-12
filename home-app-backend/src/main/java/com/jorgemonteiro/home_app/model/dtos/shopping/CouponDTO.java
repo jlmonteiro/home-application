@@ -2,6 +2,7 @@ package com.jorgemonteiro.home_app.model.dtos.shopping;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.hateoas.server.core.Relation;
@@ -17,7 +18,6 @@ public class CouponDTO {
 
     private Long id;
 
-    @NotNull(message = "Store ID is required")
     private Long storeId;
 
     private String storeName;
@@ -34,6 +34,11 @@ public class CouponDTO {
     private String photo;
 
     private LocalDateTime dueDate;
+
+    private String code;
+
+    @Pattern(regexp = "^(QR|CODE_128)$", message = "Barcode type must be QR or CODE_128")
+    private String barcodeType;
 
     private boolean used;
 

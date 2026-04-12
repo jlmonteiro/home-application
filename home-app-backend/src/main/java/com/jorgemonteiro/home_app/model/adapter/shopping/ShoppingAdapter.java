@@ -1,15 +1,9 @@
 package com.jorgemonteiro.home_app.model.adapter.shopping;
 
-import com.jorgemonteiro.home_app.model.dtos.shopping.CouponDTO;
-import com.jorgemonteiro.home_app.model.dtos.shopping.LoyaltyCardDTO;
-import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingCategoryDTO;
-import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingItemDTO;
-import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingStoreDTO;
-import com.jorgemonteiro.home_app.model.entities.shopping.Coupon;
-import com.jorgemonteiro.home_app.model.entities.shopping.LoyaltyCard;
-import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingCategory;
-import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingItem;
-import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingStore;
+import com.jorgemonteiro.home_app.model.dtos.shopping.*;
+import com.jorgemonteiro.home_app.model.entities.shopping.*;
+
+import java.util.stream.Collectors;
 
 /**
  * Adapter for converting between shopping entities and DTOs.
@@ -152,6 +146,8 @@ public class ShoppingAdapter {
         dto.setValue(entity.getValue());
         dto.setPhoto(entity.getPhoto());
         dto.setDueDate(entity.getDueDate());
+        dto.setCode(entity.getCode());
+        dto.setBarcodeType(entity.getBarcodeType());
         dto.setUsed(entity.isUsed());
         dto.setVersion(entity.getVersion());
         if (entity.getStore() != null) {
@@ -170,7 +166,81 @@ public class ShoppingAdapter {
         entity.setValue(dto.getValue());
         entity.setPhoto(dto.getPhoto());
         entity.setDueDate(dto.getDueDate());
+        entity.setCode(dto.getCode());
+        entity.setBarcodeType(dto.getBarcodeType());
         entity.setUsed(dto.isUsed());
+        entity.setVersion(dto.getVersion());
+        return entity;
+    }
+
+    // --- Shopping List Methods ---
+
+    public static ShoppingListDTO toDTO(ShoppingList entity) {
+        if (entity == null) return null;
+        ShoppingListDTO dto = new ShoppingListDTO();
+        dto.setId(entity.getId());
+        dto.setName(entity.getName());
+        dto.setDescription(entity.getDescription());
+        dto.setStatus(entity.getStatus());
+        dto.setCreatedAt(entity.getCreatedAt());
+        dto.setCompletedAt(entity.getCompletedAt());
+        dto.setVersion(entity.getVersion());
+        
+        if (entity.getCreatedBy() != null) {
+            dto.setCreatedBy(entity.getCreatedBy().getEmail());
+            dto.setCreatorName(entity.getCreatedBy().getFirstName() + " " + entity.getCreatedBy().getLastName());
+        }
+        
+        if (entity.getItems() != null) {
+            dto.setItems(entity.getItems().stream().map(ShoppingAdapter::toDTO).collect(Collectors.toList()));
+        }
+        
+        return dto;
+    }
+
+    public static ShoppingList toEntity(ShoppingListDTO dto) {
+        if (dto == null) return null;
+        ShoppingList entity = new ShoppingList();
+        entity.setId(dto.getId());
+        entity.setName(dto.getName());
+        entity.setDescription(dto.getDescription());
+        entity.setStatus(dto.getStatus() != null ? dto.getStatus() : "PENDING");
+        entity.setVersion(dto.getVersion());
+        return entity;
+    }
+
+    public static ShoppingListItemDTO toDTO(ShoppingListItem entity) {
+        if (entity == null) return null;
+        ShoppingListItemDTO dto = new ShoppingListItemDTO();
+        dto.setId(entity.getId());
+        dto.setQuantity(entity.getQuantity());
+        dto.setUnit(entity.getUnit());
+        dto.setPrice(entity.getPrice());
+        dto.setBought(entity.isBought());
+        dto.setVersion(entity.getVersion());
+        
+        if (entity.getItem() != null) {
+            dto.setItemId(entity.getItem().getId());
+            dto.setItemName(entity.getItem().getName());
+            dto.setItemPhoto(entity.getItem().getPhoto());
+        }
+
+        if (entity.getStore() != null) {
+            dto.setStoreId(entity.getStore().getId());
+            dto.setStoreName(entity.getStore().getName());
+        }
+        
+        return dto;
+    }
+
+    public static ShoppingListItem toEntity(ShoppingListItemDTO dto) {
+        if (dto == null) return null;
+        ShoppingListItem entity = new ShoppingListItem();
+        entity.setId(dto.getId());
+        entity.setQuantity(dto.getQuantity());
+        entity.setUnit(dto.getUnit());
+        entity.setPrice(dto.getPrice());
+        entity.setBought(dto.isBought());
         entity.setVersion(dto.getVersion());
         return entity;
     }
