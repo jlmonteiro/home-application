@@ -33,4 +33,5 @@ public class ShoppingItemDTO {
 
     /** Version number for optimistic locking. */
     private Long version;
+
 }

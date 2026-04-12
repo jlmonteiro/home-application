@@ -1,6 +1,5 @@
 package com.jorgemonteiro.home_app.model.dtos.shopping;
 
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 import org.springframework.hateoas.server.core.Relation;
@@ -16,18 +15,18 @@ public class ShoppingListItemDTO {
 
     private Long id;
 
-    @NotNull(message = "Item ID is required")
     private Long itemId;
 
     private String itemName;
 
     private String itemPhoto;
 
+    private String categoryIcon;
+
     private Long storeId;
 
     private String storeName;
 
-    @NotNull(message = "Quantity is required")
     @Positive(message = "Quantity must be positive")
     private BigDecimal quantity;
 
@@ -35,7 +34,9 @@ public class ShoppingListItemDTO {
 
     private BigDecimal price;
 
-    private boolean bought;
+    private Boolean bought;
+
+    private Boolean unavailable;
 
     private Long version;
 }

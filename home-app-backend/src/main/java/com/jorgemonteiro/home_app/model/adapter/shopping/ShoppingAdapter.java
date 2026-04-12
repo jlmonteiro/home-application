@@ -228,12 +228,16 @@ public class ShoppingAdapter {
         dto.setUnit(entity.getUnit());
         dto.setPrice(entity.getPrice());
         dto.setBought(entity.isBought());
+        dto.setUnavailable(entity.isUnavailable());
         dto.setVersion(entity.getVersion());
         
         if (entity.getItem() != null) {
             dto.setItemId(entity.getItem().getId());
             dto.setItemName(entity.getItem().getName());
             dto.setItemPhoto(entity.getItem().getPhoto());
+            if (entity.getItem().getCategory() != null) {
+                dto.setCategoryIcon(entity.getItem().getCategory().getIcon());
+            }
         }
 
         if (entity.getStore() != null) {
@@ -251,7 +255,8 @@ public class ShoppingAdapter {
         entity.setQuantity(dto.getQuantity());
         entity.setUnit(dto.getUnit());
         entity.setPrice(dto.getPrice());
-        entity.setBought(dto.isBought());
+        entity.setBought(Boolean.TRUE.equals(dto.getBought()));
+        entity.setUnavailable(Boolean.TRUE.equals(dto.getUnavailable()));
         entity.setVersion(dto.getVersion());
         return entity;
     }

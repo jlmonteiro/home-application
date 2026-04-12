@@ -309,7 +309,10 @@ public class ShoppingService {
 
     // --- Shopping List Item Methods ---
 
-    public ShoppingListItemDTO addItemToList(Long listId, @Valid ShoppingListItemDTO dto) {
+    public ShoppingListItemDTO addItemToList(Long listId, ShoppingListItemDTO dto) {
+        if (dto.getItemId() == null) throw new ValidationException("Item ID is required");
+        if (dto.getQuantity() == null) throw new ValidationException("Quantity is required");
+
         ShoppingList list = listRepository.findById(listId)
                 .orElseThrow(() -> new ObjectNotFoundException("Shopping list not found with ID: " + listId));
         
@@ -330,20 +333,25 @@ public class ShoppingService {
         return ShoppingAdapter.toDTO(listItemRepository.save(entity));
     }
 
-    public ShoppingListItemDTO updateListItem(Long itemId, @Valid ShoppingListItemDTO dto) {
+    public ShoppingListItemDTO updateListItem(Long itemId, ShoppingListItemDTO dto) {
         ShoppingListItem existing = listItemRepository.findById(itemId)
                 .orElseThrow(() -> new ObjectNotFoundException("List item not found with ID: " + itemId));
         
-        existing.setQuantity(dto.getQuantity());
-        existing.setUnit(dto.getUnit());
-        existing.setPrice(dto.getPrice());
-        existing.setBought(dto.isBought());
+        if (dto.getQuantity() != null) existing.setQuantity(dto.getQuantity());
+        if (dto.getUnit() != null) existing.setUnit(dto.getUnit());
+        if (dto.getPrice() != null) existing.setPrice(dto.getPrice());
+        if (dto.getBought() != null) existing.setBought(dto.getBought());
+        if (dto.getUnavailable() != null) existing.setUnavailable(dto.getUnavailable());
 
+        // Update store only if storeId is explicitly provided in the DTO.
+        // To handle PATCH correctly, we assume if it's null it might be "not provided".
+        // However, if we have other fields like quantity/unit, it's an "edit" and we should update storeId even if null.
         if (dto.getStoreId() != null) {
             ShoppingStore store = storeRepository.findById(dto.getStoreId())
                     .orElseThrow(() -> new ObjectNotFoundException("Store not found with ID: " + dto.getStoreId()));
             existing.setStore(store);
-        } else {
+        } else if (dto.getQuantity() != null || dto.getUnit() != null) {
+            // If it's a structural update (from Edit Modal), we allow clearing the store
             existing.setStore(null);
         }
         

@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   Title,
   Text,
   Button,
   Group,
   Stack,
-  Table,
   ActionIcon,
   Modal,
   TextInput,
@@ -24,6 +23,7 @@ import {
   FileButton,
   Image,
   Textarea,
+  Accordion,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
@@ -38,7 +38,12 @@ import {
   IconCheck,
   IconCalculator,
   IconUpload,
-  IconEdit
+  IconEdit,
+  IconCircleX,
+  IconAlertCircle,
+  IconBuildingStore,
+  IconArrowRight,
+  IconChevronRight
 } from '@tabler/icons-react'
 import { 
   fetchList, 
@@ -118,7 +123,6 @@ export function ShoppingListDetailsPage() {
     onSuccess: (newItem) => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items-all'] })
       notifications.show({ title: 'Success', message: 'Master item created', color: 'green' })
-      // Auto-select the new item in the add form
       addItemForm.setFieldValue('itemId', newItem.id.toString())
       setItemSearch(newItem.name)
       closeCreateItem()
@@ -269,11 +273,140 @@ export function ShoppingListDetailsPage() {
     onDropdownClose: () => combobox.resetSelectedOption(),
   })
 
+  // --- Logic for grouping and costs ---
+
+  const groupedItems = useMemo(() => {
+    if (!list) return { stores: [], unavailable: [] }
+
+    const unavailable = list.items.filter(i => i.unavailable)
+    const available = list.items.filter(i => !i.unavailable)
+
+    // 1. Group by Store
+    const storesMap = new Map<number | string, { 
+      id: number | null, 
+      name: string, 
+      items: ShoppingListItem[],
+      cost: number,
+      isDone: boolean
+    }>()
+
+    available.forEach(item => {
+      const key = item.storeId || 'any'
+      if (!storesMap.has(key)) {
+        storesMap.set(key, { 
+          id: item.storeId, 
+          name: item.storeName || 'Any Store', 
+          items: [], 
+          cost: 0, 
+          isDone: false 
+        })
+      }
+      const store = storesMap.get(key)!
+      store.items.push(item)
+      store.cost += (item.price || 0) * item.quantity
+    })
+
+    // 2. For each store, group by Category
+    const result = Array.from(storesMap.values()).map(store => {
+      const categoriesMap = new Map<string, { icon: string, items: ShoppingListItem[], isDone: boolean }>()
+      
+      // Initial count to see which categories have > 1 item
+      const counts: Record<string, number> = {}
+      store.items.forEach(i => {
+        const catName = i.categoryIcon ? i.categoryIcon.replace('Icon', '') : 'Others'
+        counts[catName] = (counts[catName] || 0) + 1
+      })
+
+      store.items.forEach(item => {
+        const catIcon = item.categoryIcon || 'IconBasket'
+        const rawCatName = catIcon.replace('Icon', '')
+        const catName = counts[rawCatName] > 1 ? rawCatName : 'Others'
+        const finalIcon = catName === 'Others' ? 'IconBasket' : catIcon
+
+        if (!categoriesMap.has(catName)) {
+          categoriesMap.set(catName, { icon: finalIcon, items: [], isDone: false })
+        }
+        categoriesMap.get(catName)!.items.push(item)
+      })
+
+      // Check if categories are done
+      const categories = Array.from(categoriesMap.entries()).map(([name, data]) => {
+        data.isDone = data.items.every(i => i.bought)
+        return { name, ...data }
+      })
+
+      store.isDone = store.items.every(i => i.bought)
+      return { ...store, categories }
+    })
+
+    return { stores: result, unavailable }
+  }, [list])
+
   const totalEstimated = list?.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0) || 0
-  const boughtItemsCount = list?.items.filter(i => i.bought).length || 0
+  const activeItemsCount = list?.items.filter(i => !i.unavailable).length || 0
+  const boughtItemsCount = list?.items.filter(i => i.bought && !i.unavailable).length || 0
 
   if (listLoading) return <LoadingOverlay visible />
   if (!list) return <Text>List not found</Text>
+
+  const ItemRow = ({ item }: { item: ShoppingListItem }) => (
+    <Group key={item.id} wrap="nowrap" gap="sm" style={{ opacity: item.bought ? 0.5 : 1 }}>
+      <Checkbox 
+        checked={item.bought} 
+        onChange={(e) => updateItemMutation.mutate({ id: item.id, data: { bought: e.currentTarget.checked } })}
+        disabled={list.status === 'COMPLETED' || item.unavailable}
+      />
+      
+      <Box style={{ flex: 1 }}>
+        <Group gap="xs" wrap="nowrap">
+          <Box w={24} h={24} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            {item.itemPhoto ? (
+              <Image src={getPhotoSrc(item.itemPhoto)} fit="contain" h={24} w={24} />
+            ) : (
+              <Avatar radius="sm" size={24}><IconBasket size={14} /></Avatar>
+            )}
+          </Box>
+          <Stack gap={0} style={{ overflow: 'hidden' }}>
+            <Text fw={500} size="sm" td={item.bought ? 'line-through' : 'none'} truncate>{item.itemName}</Text>
+            <Text size="xs" c="dimmed">{item.quantity} {item.unit} • €{(item.price || 0).toFixed(2)}</Text>
+          </Stack>
+        </Group>
+      </Box>
+
+      <Group gap={4} wrap="nowrap">
+        {!item.bought && !item.unavailable && list.status === 'PENDING' && (
+          <ActionIcon 
+            variant="subtle" 
+            color="orange" 
+            size="sm"
+            onClick={() => updateItemMutation.mutate({ id: item.id, data: { unavailable: true } })}
+            title="Mark as unavailable"
+          >
+            <IconCircleX size={16} />
+          </ActionIcon>
+        )}
+        {item.unavailable && list.status === 'PENDING' && (
+          <ActionIcon 
+            variant="subtle" 
+            color="green" 
+            size="sm"
+            onClick={() => updateItemMutation.mutate({ id: item.id, data: { unavailable: false } })}
+            title="Mark as available"
+          >
+            <IconCheck size={16} />
+          </ActionIcon>
+        )}
+        <ActionIcon variant="subtle" color="blue" size="sm" onClick={() => handleEditItem(item)}>
+          <IconEdit size={16} />
+        </ActionIcon>
+        <ActionIcon variant="subtle" color="red" size="sm" onClick={() => {
+          if (window.confirm('Remove this item?')) removeItemMutation.mutate(item.id)
+        }}>
+          <IconTrash size={16} />
+        </ActionIcon>
+      </Group>
+    </Group>
+  )
 
   return (
     <Stack gap="lg">
@@ -340,94 +473,74 @@ export function ShoppingListDetailsPage() {
         </Stack>
       </Paper>
 
-      <Paper withBorder radius="md" p="md">
-        <Stack gap="md">
-          <Group justify="space-between">
-            <Title order={3}>Items ({boughtItemsCount}/{list.items.length})</Title>
-            {list.status === 'PENDING' && (
-              <Button leftSection={<IconPlus size={16} />} onClick={openAddItem}>Add Item</Button>
-            )}
-          </Group>
+      {/* Main Shopping Section */}
+      <Stack gap="md">
+        <Group justify="space-between">
+          <Title order={3}>Items ({boughtItemsCount}/{activeItemsCount})</Title>
+          {list.status === 'PENDING' && (
+            <Button leftSection={<IconPlus size={16} />} onClick={openAddItem}>Add Item</Button>
+          )}
+        </Group>
 
-          <Table verticalSpacing="sm">
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th style={{ width: rem(40) }}></Table.Th>
-                <Table.Th>Item</Table.Th>
-                <Table.Th>Store</Table.Th>
-                <Table.Th>Qty</Table.Th>
-                <Table.Th>Price</Table.Th>
-                <Table.Th>Total</Table.Th>
-                <Table.Th style={{ width: rem(100) }}></Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {list.items.map((item) => (
-                <Table.Tr key={item.id} style={{ opacity: item.bought ? 0.6 : 1 }}>
-                  <Table.Td>
-                    <Checkbox 
-                      checked={item.bought} 
-                      onChange={(e) => updateItemMutation.mutate({ id: item.id, data: { bought: e.currentTarget.checked } })}
-                      disabled={list.status === 'COMPLETED'}
-                    />
-                  </Table.Td>
-                  <Table.Td>
-                    <Group gap="sm">
-                      <Box w={32} h={32} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                        {item.itemPhoto ? (
-                          <Image src={getPhotoSrc(item.itemPhoto)} fit="contain" h={32} w={32} />
+        {groupedItems.stores.length === 0 && groupedItems.unavailable.length === 0 && (
+          <Paper withBorder p="xl" radius="md" bg="gray.0">
+            <Text ta="center" c="dimmed">Your list is empty. Add some items to start planning!</Text>
+          </Paper>
+        )}
+
+        <Accordion multiple variant="separated" defaultValue={groupedItems.stores.map(s => s.name)}>
+          {groupedItems.stores.map(store => (
+            <Accordion.Item key={store.name} value={store.name}>
+              <Accordion.Control>
+                <Group justify="space-between" pr="md">
+                  <Group gap="sm">
+                    <IconBuildingStore size={20} color={store.isDone ? 'var(--mantine-color-green-6)' : 'var(--mantine-color-indigo-6)'} />
+                    <Text fw={700}>{store.name}</Text>
+                    {store.isDone && <IconCheck size={18} color="var(--mantine-color-green-6)" />}
+                  </Group>
+                  <Badge variant="light" color="indigo" size="lg">€{store.cost.toFixed(2)}</Badge>
+                </Group>
+              </Accordion.Control>
+              <Accordion.Panel>
+                <Stack gap="lg" mt="sm">
+                  {store.categories.map(category => (
+                    <Box key={category.name}>
+                      <Group gap="xs" mb="xs">
+                        {category.isDone ? (
+                          <IconCheck size={16} color="var(--mantine-color-green-6)" />
                         ) : (
-                          <Avatar radius="sm" size="sm"><IconBasket size={16} /></Avatar>
+                          <IconChevronRight size={16} color="var(--mantine-color-gray-4)" />
                         )}
-                      </Box>
-                      <Text fw={500} td={item.bought ? 'line-through' : 'none'}>{item.itemName}</Text>
-                    </Group>
-                  </Table.Td>
-                  <Table.Td>
-                    {item.storeName ? (
-                      <Badge variant="dot" color="gray" size="sm">
-                        {item.storeName}
-                      </Badge>
-                    ) : (
-                      <Text size="xs" c="dimmed italic">Any</Text>
-                    )}
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm">{item.quantity} {item.unit}</Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text size="sm">€{(item.price || 0).toFixed(2)}</Text>
-                  </Table.Td>
-                  <Table.Td>
-                    <Text fw={700}>€{((item.price || 0) * item.quantity).toFixed(2)}</Text>
-                  </Table.Td>
-                  <Table.Td>
-                    {list.status === 'PENDING' && (
-                      <Group gap={4} wrap="nowrap">
-                        <ActionIcon variant="subtle" color="blue" onClick={() => handleEditItem(item)}>
-                          <IconEdit size={16} />
-                        </ActionIcon>
-                        <ActionIcon variant="subtle" color="red" onClick={() => {
-                          if (window.confirm('Remove this item?')) removeItemMutation.mutate(item.id)
-                        }}>
-                          <IconTrash size={16} />
-                        </ActionIcon>
+                        <Text fw={600} size="sm" c={category.isDone ? 'green' : 'dark'}>{category.name}</Text>
+                        <Divider style={{ flex: 1 }} />
                       </Group>
-                    )}
-                  </Table.Td>
-                </Table.Tr>
-              ))}
-              {list.items.length === 0 && (
-                <Table.Tr>
-                  <Table.Td colSpan={7}>
-                    <Text ta="center" py="xl" c="dimmed">Your list is empty. Add some items to start planning!</Text>
-                  </Table.Td>
-                </Table.Tr>
-              )}
-            </Table.Tbody>
-          </Table>
-        </Stack>
-      </Paper>
+                      <Stack gap="sm" pl="md">
+                        {category.items.map(item => <ItemRow key={item.id} item={item} />)}
+                      </Stack>
+                    </Box>
+                  ))}
+                </Stack>
+              </Accordion.Panel>
+            </Accordion.Item>
+          ))}
+        </Accordion>
+
+        {/* Unavailable Items Section */}
+        {groupedItems.unavailable.length > 0 && (
+          <Paper withBorder p="md" radius="md" bg="orange.0" style={{ borderColor: 'var(--mantine-color-orange-3)' }}>
+            <Stack gap="sm">
+              <Group gap="xs">
+                <IconAlertCircle size={20} color="var(--mantine-color-orange-6)" />
+                <Title order={4} c="orange.9">Unavailable / Plan for alternatives</Title>
+              </Group>
+              <Divider color="orange.2" />
+              <Stack gap="sm">
+                {groupedItems.unavailable.map(item => <ItemRow key={item.id} item={item} />)}
+              </Stack>
+            </Stack>
+          </Paper>
+        )}
+      </Stack>
 
       {/* Add Item Modal */}
       <Modal opened={addItemOpened} onClose={closeAddItem} title="Add Item to List" radius="md" zIndex={2000}>
@@ -510,7 +623,6 @@ export function ShoppingListDetailsPage() {
               </Combobox.Dropdown>
             </Combobox>
 
-            {/* Visual fallback button if nothing is selected */}
             {!addItemForm.values.itemId && itemSearch.length > 0 && filteredMasterItems.length === 0 && (
               <Button 
                 variant="light" 
@@ -571,8 +683,8 @@ export function ShoppingListDetailsPage() {
         }))}>
           <Stack gap="md">
             <Select 
-              label="Store (Optional)" 
-              placeholder="Where to buy?"
+              label="Change Store" 
+              placeholder="Move to a different store"
               data={storeOptions}
               searchable
               clearable

@@ -110,6 +110,7 @@ export interface ShoppingListItem {
   unit: string
   price: number | null
   bought: boolean
+  unavailable: boolean
   version: number
   _links?: {
     self: { href: string }

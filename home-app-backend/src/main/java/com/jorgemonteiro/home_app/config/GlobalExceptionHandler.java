@@ -4,6 +4,7 @@ import com.jorgemonteiro.home_app.exception.AppErrorType;
 import com.jorgemonteiro.home_app.exception.HomeAppException;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.exception.ValidationException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -43,6 +44,29 @@ public class GlobalExceptionHandler {
         });
         problemDetail.setProperty("errors", errors);
         
+        return problemDetail;
+    }
+
+    /**
+     * Handles validation errors from {@code @Validated} services.
+     *
+     * @param ex the constraint violation exception
+     * @return {@link ProblemDetail} with a map of field errors
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ProblemDetail handleConstraintViolationException(ConstraintViolationException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed for one or more fields");
+        problemDetail.setTitle("Constraint Violation");
+        problemDetail.setType(URI.create(AppErrorType.VALIDATION_ERROR.name()));
+
+        Map<String, String> errors = new HashMap<>();
+        ex.getConstraintViolations().forEach(violation -> {
+            String propertyPath = violation.getPropertyPath().toString();
+            String message = violation.getMessage();
+            errors.put(propertyPath, message);
+        });
+        problemDetail.setProperty("errors", errors);
+
         return problemDetail;
     }
 

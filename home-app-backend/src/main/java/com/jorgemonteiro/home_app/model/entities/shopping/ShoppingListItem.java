@@ -47,6 +47,9 @@ public class ShoppingListItem {
     @Column(name = "bought", nullable = false)
     private boolean bought = false;
 
+    @Column(name = "unavailable", nullable = false)
+    private boolean unavailable = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

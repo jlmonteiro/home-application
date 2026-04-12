@@ -25,6 +25,7 @@ public class ShoppingListItemResource extends RepresentationModel<ShoppingListIt
     private String unit;
     private BigDecimal price;
     private boolean bought;
+    private boolean unavailable;
     private Long version;
 
     public ShoppingListItemResource(ShoppingListItemDTO dto) {
@@ -37,7 +38,8 @@ public class ShoppingListItemResource extends RepresentationModel<ShoppingListIt
         this.quantity = dto.getQuantity();
         this.unit = dto.getUnit();
         this.price = dto.getPrice();
-        this.bought = dto.isBought();
+        this.bought = Boolean.TRUE.equals(dto.getBought());
+        this.unavailable = Boolean.TRUE.equals(dto.getUnavailable());
         this.version = dto.getVersion();
     }
 }
