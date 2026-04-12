@@ -9,6 +9,7 @@ import { LoginPage } from './pages/LoginPage'
 import { Dashboard } from './pages/Dashboard'
 import { ProfilePage } from './pages/ProfilePage'
 import { SettingsPage } from './pages/SettingsPage'
+import { PreferencesPage } from './pages/PreferencesPage'
 import { ShoppingCategoriesPage } from './pages/ShoppingCategoriesPage'
 import { ShoppingItemsPage } from './pages/ShoppingItemsPage'
 import { StoresPage } from './pages/StoresPage'
@@ -46,6 +47,7 @@ function App() {
               >
                 <Route index element={<Dashboard />} />
                 <Route path="profile" element={<ProfilePage />} />
+                <Route path="preferences" element={<PreferencesPage />} />
                 <Route path="settings" element={<SettingsPage />} />
                 
                 {/* Shopping Routes */}

@@ -157,6 +157,11 @@ export interface PagedResponse<T> {
   _links: Record<string, { href: string }>
 }
 
+export interface UserPreference {
+  showShoppingWidget: boolean
+  version: number
+}
+
 // --- Auth & Profile ---
 
 export async function fetchCurrentUser(): Promise<UserProfile | null> {
@@ -197,6 +202,22 @@ export async function updateUserProfile(
     throw error
   }
 
+  return response.json()
+}
+
+export async function fetchUserPreferences(): Promise<UserPreference> {
+  const response = await fetch(`${API_BASE}/user/preferences`)
+  if (!response.ok) throw new Error('Failed to fetch user preferences')
+  return response.json()
+}
+
+export async function updateUserPreferences(preferences: Partial<UserPreference>): Promise<UserPreference> {
+  const response = await fetch(`${API_BASE}/user/preferences`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(preferences),
+  })
+  if (!response.ok) throw new Error('Failed to update user preferences')
   return response.json()
 }
 

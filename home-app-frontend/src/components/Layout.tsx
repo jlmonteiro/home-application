@@ -38,6 +38,7 @@ export function Layout() {
   const { user, logout } = useAuth()
   const location = useLocation()
   const [opened, { toggle }] = useDisclosure(true)
+  const [shoppingOpened, { toggle: toggleShopping }] = useDisclosure(true)
   // @ts-ignore
   const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
@@ -164,6 +165,14 @@ export function Layout() {
                     View/Edit Profile
                   </Menu.Item>
 
+                  <Menu.Item
+                    component={Link}
+                    to="/preferences"
+                    leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
+                  >
+                    Preferences
+                  </Menu.Item>
+
                   {user?.mobilePhone && (
                     <>
                       <Menu.Divider />
@@ -244,8 +253,6 @@ export function Layout() {
         p="md" 
         style={{ 
           borderRight: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}`,
-          overflow: 'hidden',
-          display: opened ? 'block' : 'none'
         }}
       >
         <Stack gap="xs">
@@ -267,7 +274,8 @@ export function Layout() {
             label="Shopping"
             leftSection={<IconShoppingCart size={20} stroke={1.5} />}
             childrenOffset={28}
-            defaultOpened
+            opened={shoppingOpened}
+            onChange={toggleShopping}
           >
             <NavLink component={Link} to="/shopping/lists" label="Lists" active={isActive('/shopping/lists')} />
             <NavLink component={Link} to="/shopping/stores" label="Stores" active={isActive('/shopping/stores')} />

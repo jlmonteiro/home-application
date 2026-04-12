@@ -1,6 +1,6 @@
 --liquibase formatted sql
 
---changeset jorge:08-seed-shopping-categories
+--changeset jorge:03-seed-shopping-data
 INSERT INTO shopping.shopping_categories (name, description, icon) VALUES
 ('Fruits & Vegetables', 'Fresh produce, fruits, and vegetables', 'IconApple'),
 ('Dairy & Eggs', 'Milk, cheese, yogurt, and eggs', 'IconEgg'),
@@ -16,4 +16,11 @@ INSERT INTO shopping.shopping_categories (name, description, icon) VALUES
 ('Pet Supplies', 'Pet food, toys, and care items', 'IconPaw')
 ON CONFLICT (name) DO NOTHING;
 
---rollback DELETE FROM shopping.shopping_categories WHERE name IN ('Fruits & Vegetables', 'Dairy & Eggs', 'Meat & Poultry', 'Bakery & Bread', 'Pantry & Grains', 'Frozen Foods', 'Beverages', 'Snacks & Sweets', 'Household & Cleaning', 'Personal Care', 'Baby Care', 'Pet Supplies');
+INSERT INTO shopping.shopping_stores (name, description, icon, photo) VALUES
+('Tesco', 'Large international grocery and general merchandise retailer.', 'IconBuildingStore', '/logos/tesco.svg'),
+('Marks & Spencer', 'Premium retailer specializing in high-quality food and clothing.', 'IconBuildingStore', '/logos/marks_and_spencer.svg'),
+('Lidl', 'International discount supermarket chain.', 'IconBuildingStore', '/logos/lidl.svg'),
+('Aldi', 'Global discount supermarket chain known for high quality at low prices.', 'IconBuildingStore', '/logos/aldi.svg'),
+('Dunnes Stores', 'Leading Irish retail chain offering food, clothes, and homeware.', 'IconBuildingStore', '/logos/dunnes_stores.webp'),
+('SuperValu', 'Irish supermarket brand owned by Musgrave Group.', 'IconBuildingStore', '/logos/supervalu.png')
+ON CONFLICT (name) DO NOTHING;
