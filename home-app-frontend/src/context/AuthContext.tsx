@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryFn: fetchCurrentUser,
     retry: false,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnMount: 'always',
   })
 
   console.log('AuthContext State:', { user, isLoading, isError, error })
