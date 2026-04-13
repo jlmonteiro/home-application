@@ -32,7 +32,7 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
     if (token) headers.set('X-XSRF-TOKEN', token)
   }
 
-  const response = await apiFetch(url, { ...options, headers })
+  const response = await fetch(url, { ...options, headers })
 
   if (!response.ok && response.status !== 401) {
     let message = `Request failed (${response.status})`
