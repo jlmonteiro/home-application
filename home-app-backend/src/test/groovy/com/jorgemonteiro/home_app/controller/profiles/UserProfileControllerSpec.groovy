@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@Title("UserProfileController")
+@Title("User Profile API Integration")
 @Narrative("""
 As a client of the API
 I want to retrieve and update user profiles via REST endpoints with HATEOAS links

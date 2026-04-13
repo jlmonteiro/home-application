@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
 import spock.lang.Title
 
-@Title("ShoppingCatalogService")
+@Title("Shopping Catalog Service")
 @Narrative("""
 As a household member
 I want to manage shopping categories and items

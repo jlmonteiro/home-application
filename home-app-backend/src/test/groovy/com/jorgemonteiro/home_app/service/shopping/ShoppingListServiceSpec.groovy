@@ -18,7 +18,10 @@ import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
 import spock.lang.Title
 
-@Title("ShoppingListService")
+import static com.jorgemonteiro.home_app.model.entities.shopping.ShoppingListStatus.COMPLETED
+import static com.jorgemonteiro.home_app.model.entities.shopping.ShoppingListStatus.PENDING
+
+@Title("Shopping List Service")
 @Narrative("""
 As a household member
 I want to manage shopping lists and their items
@@ -54,7 +57,7 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
         then: "list is saved with correct data"
             result.id != null
             result.name == "Weekly groceries"
-            result.status == ShoppingListStatus.PENDING
+            result.status == PENDING
             result.createdBy == "existing@example.com"
     }
 
@@ -105,10 +108,10 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
             def list = listService.createList(new ShoppingListDTO(name: "Completable"), "existing@example.com")
 
         when: "marking as completed"
-            def result = listService.updateList(list.id, new ShoppingListDTO(name: "Completable", status: ShoppingListStatus.COMPLETED))
+            def result = listService.updateList(list.id, new ShoppingListDTO(name: "Completable", status: COMPLETED))
 
         then: "status and completedAt are set"
-            result.status == ShoppingListStatus.COMPLETED
+            result.status == COMPLETED
             result.completedAt != null
     }
 

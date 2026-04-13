@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import jakarta.transaction.Transactional
+import spock.lang.Unroll
+
 import java.time.LocalDate
 
 @Title("Age Classification Service")
@@ -23,6 +25,7 @@ class AgeClassificationServiceSpec extends BaseIntegrationTest {
     @Autowired
     AgeClassificationService ageClassificationService
 
+    @Unroll
     def "should classify user correctly based on age: #ageYears years old"() {
         given: "a birthdate calculated from age"
             def birthdate = LocalDate.now().minusYears(ageYears)

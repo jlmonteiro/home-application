@@ -9,12 +9,12 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.transaction.annotation.Transactional
-
-import java.util.Optional
 import spock.lang.Narrative
 import spock.lang.Title
 
-@Title("UserService")
+import static org.mockito.Mockito.*
+
+@Title("User Service")
 @Narrative("""
 As the authentication system
 I want to find or create a local user account on every OAuth login
@@ -88,7 +88,7 @@ class UserServiceSpec extends BaseIntegrationTest {
             def targetEmail = "photouser@example.com"
             def targetPictureUrl = "https://example.com/photo.jpg"
             def targetPhotoData = "base64encodedphoto"
-            Mockito.when(photoService.downloadAndConvertToBase64(targetPictureUrl)).thenReturn(targetPhotoData)
+            when(photoService.downloadAndConvertToBase64(targetPictureUrl)).thenReturn(targetPhotoData)
 
         when: "finding or creating user"
             def result = userService.findOrCreateUser(targetEmail, "Photo", "User", targetPictureUrl, Optional.empty())
@@ -96,9 +96,9 @@ class UserServiceSpec extends BaseIntegrationTest {
         then: "the profile photo is set from the downloaded image"
             result.userProfile != null
             result.userProfile.photo == targetPhotoData
-            
+
         and: "the photo service was called"
-            Mockito.verify(photoService).downloadAndConvertToBase64(targetPictureUrl) || true
+            verify(photoService).downloadAndConvertToBase64(targetPictureUrl) || true
     }
 
     def "findOrCreateUser should create user with null photo when picture URL is null"() {
@@ -111,9 +111,9 @@ class UserServiceSpec extends BaseIntegrationTest {
         then: "user is created with no profile photo"
             result.userProfile != null
             result.userProfile.photo == null
-            
+
         and: "the photo service was never called"
-            Mockito.verify(photoService, Mockito.never()).downloadAndConvertToBase64(Mockito.any()) || true
+            verify(photoService, never()).downloadAndConvertToBase64(any()) || true
     }
 
     def "findOrCreateUser should not download photo when picture URL is empty"() {
@@ -126,8 +126,8 @@ class UserServiceSpec extends BaseIntegrationTest {
         then: "user is created with no profile photo"
             result.userProfile != null
             result.userProfile.photo == null
-            
+
         and: "the photo service was never called"
-            Mockito.verify(photoService, Mockito.never()).downloadAndConvertToBase64(Mockito.any()) || true
+            verify(photoService, never()).downloadAndConvertToBase64(any()) || true
     }
 }

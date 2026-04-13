@@ -9,15 +9,18 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
 import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders
 import spock.lang.Narrative
 import spock.lang.Title
 
+import static org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON_VALUE
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@Title("GlobalExceptionHandler")
+@Title("Global Exception Handler")
 @Narrative("""
 As a frontend developer
 I want all API errors to return RFC 7807 ProblemDetail format
@@ -38,7 +41,7 @@ class GlobalExceptionHandlerSpec extends BaseIntegrationTest {
 
         then: "404 ProblemDetail is returned"
             response.andExpect(status().isNotFound())
-                    .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                    .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                     .andExpect(jsonPath('$.title').value("Object Not Found"))
                     .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/not-found"))
                     .andExpect(jsonPath('$.status').value(404))
@@ -53,7 +56,7 @@ class GlobalExceptionHandlerSpec extends BaseIntegrationTest {
 
         then: "400 ProblemDetail is returned"
             response.andExpect(status().isBadRequest())
-                    .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                    .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                     .andExpect(jsonPath('$.title').value("Bad Request"))
                     .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/validation-error"))
     }
@@ -75,7 +78,7 @@ class GlobalExceptionHandlerSpec extends BaseIntegrationTest {
 
         then: "400 ProblemDetail with field errors is returned"
             response.andExpect(status().isBadRequest())
-                    .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                    .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                     .andExpect(jsonPath('$.title').value("Constraint Violation"))
                     .andExpect(jsonPath('$.errors').exists())
     }
@@ -91,20 +94,20 @@ class GlobalExceptionHandlerSpec extends BaseIntegrationTest {
 
     def "should return 400 ProblemDetail for duplicate category name"() {
         given: "an existing category"
-            mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/shopping/categories")
+            mockMvc.perform(post("/api/shopping/categories")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(JsonOutput.toJson([name: "Duplicate"]))
                     .with(user("user")))
 
         when: "creating a duplicate category"
-            def response = mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/shopping/categories")
+            def response = mockMvc.perform(post("/api/shopping/categories")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(JsonOutput.toJson([name: "Duplicate"]))
                     .with(user("user")))
 
         then: "400 ProblemDetail is returned"
             response.andExpect(status().isBadRequest())
-                    .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                    .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                     .andExpect(jsonPath('$.title').value("Validation Error"))
                     .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/validation-error"))
     }

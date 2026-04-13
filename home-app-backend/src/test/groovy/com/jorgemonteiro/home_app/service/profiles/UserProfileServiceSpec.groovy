@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
 import spock.lang.Title
 
-@Title("UserProfileService")
+@Title("User Profile Service")
 @Narrative("""
 As a user
 I want to retrieve and update my profile information

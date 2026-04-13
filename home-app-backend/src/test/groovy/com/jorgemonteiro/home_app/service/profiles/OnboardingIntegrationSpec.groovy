@@ -3,6 +3,8 @@ package com.jorgemonteiro.home_app.service.profiles
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.jorgemonteiro.home_app.HomeApplication
+import com.jorgemonteiro.home_app.model.entities.profiles.User
+import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import org.springframework.beans.factory.annotation.Autowired
@@ -50,7 +52,7 @@ class OnboardingIntegrationSpec extends BaseIntegrationTest {
 
     def setupSpec() {
         wireMockServer.start()
-        WireMock.configureFor("localhost", 8090)
+        configureFor("localhost", 8090)
     }
 
     def cleanupSpec() {
@@ -66,15 +68,15 @@ class OnboardingIntegrationSpec extends BaseIntegrationTest {
         given: "a young user (10 years old)"
             def email = "first@example.com"
             def birthdate = LocalDate.now().minusYears(10)
-            
+
         and: "Google People API returns the young birthdate"
             stubGoogleBirthday("token-1", birthdate)
 
         when: "the onboarding process is triggered via the service layer"
             // Directly test the CustomOAuth2UserService logic by bypassing the super.loadUser call
-            // Since super.loadUser is hard to mock, we'll test the downstream UserService logic 
+            // Since super.loadUser is hard to mock, we'll test the downstream UserService logic
             // which is what actually handles the bootstrap and classification.
-            
+
             customOAuth2UserService.userService.findOrCreateUser(email, "First", "User", null, Optional.of(birthdate))
 
         then: "the user is created and classified as an Adult (Bootstrap Rule)"
@@ -144,11 +146,11 @@ class OnboardingIntegrationSpec extends BaseIntegrationTest {
     }
 
     private void saveTestUser(String email, String group, LocalDate birthdate = null) {
-        def userEntity = new com.jorgemonteiro.home_app.model.entities.profiles.User(
+        def userEntity = new User(
                 email: email, firstName: "Test", lastName: "User", enabled: true
         )
         userRepository.save(userEntity)
-        def profileEntity = new com.jorgemonteiro.home_app.model.entities.profiles.UserProfile(
+        def profileEntity = new UserProfile(
                 user: userEntity, ageGroupName: group, birthdate: birthdate
         )
         userEntity.setUserProfile(profileEntity)

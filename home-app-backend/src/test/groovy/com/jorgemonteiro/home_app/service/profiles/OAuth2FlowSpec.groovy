@@ -16,6 +16,8 @@ import java.util.Optional
 import spock.lang.Narrative
 import spock.lang.Title
 
+import static org.mockito.Mockito.when
+
 @Title("OAuth2 Flow")
 @Narrative("""
 As the application
@@ -57,7 +59,7 @@ class OAuth2FlowSpec extends BaseIntegrationTest {
             def userRequest = Mock(OAuth2UserRequest)
 
         and: "a mocked photo download"
-            Mockito.when(photoService.downloadAndConvertToBase64(targetPicture)).thenReturn(targetPhotoData)
+            when(photoService.downloadAndConvertToBase64(targetPicture)).thenReturn(targetPhotoData)
 
         and: "a test version of the service that uses the real UserService"
             def service = new CustomOAuth2UserService(userService, null) {

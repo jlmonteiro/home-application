@@ -195,7 +195,7 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
         then: "coupon is updated"
             result.name == "New"
             result.barcodeType == "QR"
-            result.used == true
+            result.used
     }
 
     def "deleteCoupon should throw ObjectNotFoundException for non-existent ID"() {

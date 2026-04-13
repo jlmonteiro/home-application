@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
 import spock.lang.Title
 
-@Title("SettingsService")
+@Title("Settings Service")
 @Narrative("""
 As an adult household member
 I want to manage family roles and age group configuration
