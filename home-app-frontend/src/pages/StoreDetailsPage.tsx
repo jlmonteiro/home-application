@@ -347,8 +347,13 @@ export function StoreDetailsPage() {
                       <Group justify="space-between" wrap="nowrap">
                         <Text fw={700} lineClamp={1}>{coupon.name}</Text>
                         <Group gap={4}>
-                          {isExpired && <Badge color="red" variant="filled">EXPIRED</Badge>}
-                          <Badge color={coupon.used ? 'gray' : 'green'}>{coupon.used ? 'USED' : 'ACTIVE'}</Badge>
+                          {coupon.used ? (
+                            <Badge color="gray">USED</Badge>
+                          ) : isExpired ? (
+                            <Badge color="red" variant="filled">EXPIRED</Badge>
+                          ) : (
+                            <Badge color="green">ACTIVE</Badge>
+                          )}
                         </Group>
                       </Group>
                       
