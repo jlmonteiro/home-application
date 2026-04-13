@@ -644,5 +644,10 @@ export async function fetchSuggestedPrice(itemId: number, storeId?: number): Pro
 // --- Auth ---
 
 export async function logout(): Promise<void> {
-  await apiFetch('/logout', { method: 'POST' })
+  const token = getCsrfToken()
+  await fetch('/logout', {
+    method: 'POST',
+    headers: token ? { 'X-XSRF-TOKEN': token } : {},
+    redirect: 'manual',
+  })
 }
