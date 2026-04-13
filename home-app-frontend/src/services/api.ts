@@ -212,19 +212,20 @@ export interface UserPreference {
 // --- Auth & Profile ---
 
 export async function fetchCurrentUser(): Promise<UserProfile | null> {
-  const response = await apiFetch(`${API_BASE}/user/me`, {
-    headers: {
-      Accept: 'application/hal+json',
-    },
+  const response = await fetch(`${API_BASE}/user/me`, {
+    headers: { Accept: 'application/hal+json' },
+    redirect: 'manual',
   })
 
-  if (response.status === 401) {
+  // 0 = opaque redirect (manual mode), 401 = unauthenticated
+  if (response.status === 401 || response.status === 0 || response.type === 'opaqueredirect') {
     return null
   }
 
-  if (!response.ok) {
-    throw new Error('Failed to fetch user profile')
-  }
+  if (!response.ok) return null
+
+  const contentType = response.headers.get('content-type') || ''
+  if (!contentType.includes('json')) return null
 
   return response.json()
 }
