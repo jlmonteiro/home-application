@@ -45,14 +45,13 @@ Any relevant links, SDD references, or constraints.
 ```
 
 **Labels to use:**
-| Label | When |
-|-------|------|
-| `feature` | New functionality |
-| `bug` | Something broken |
-| `chore` | Tooling, deps, CI |
-| `docs` | Documentation only |
-| `frontend` | React/UI work |
-| `backend` | Spring Boot/Java work |
+
+- `feature` — New functionality
+- `bug` — Something broken
+- `chore` — Tooling, deps, CI
+- `docs` — Documentation only
+- `frontend` — React/UI work
+- `backend` — Spring Boot/Java work
 
 ---
 

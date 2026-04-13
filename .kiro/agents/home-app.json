@@ -5,5 +5,19 @@
   "resources": [
     "file://docs/project-context.md",
     "skill://.ai/skills/**/SKILL.md"
-  ]
+  ],
+  "mcpServers": {
+    "github": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e",
+        "GITHUB_PERSONAL_ACCESS_TOKEN",
+        "ghcr.io/github/github-mcp-server"
+      ],
+      "env": {}
+    }
+  }
 }
