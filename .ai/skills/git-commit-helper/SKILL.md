@@ -60,6 +60,17 @@ If the commit introduces a breaking change, add footer:
 BREAKING CHANGE: <description of what breaks and migration path>
 ```
 
+## Workflow
+
+Before generating a commit message, always run:
+
+```bash
+git status --short
+git diff --cached --stat
+```
+
+If there are unstaged or untracked files (`M`, `??` in `git status`), stage them automatically with `git add` before committing — do NOT ask for confirmation unless the files look unrelated to the staged changes.
+
 ## Examples
 
 **Good:**
