@@ -329,78 +329,101 @@ export function StoreDetailsPage() {
             </Group>
 
             <SimpleGrid cols={{ base: 1, sm: 2, md: 3 }} spacing="lg">
-              {coupons.map(coupon => (
-                <Paper key={coupon.id} withBorder p="md" radius="md" shadow="xs" style={{ opacity: coupon.used ? 0.6 : 1 }}>
-                  <Stack gap="xs">
-                    <Group justify="space-between" wrap="nowrap">
-                      <Text fw={700} lineClamp={1}>{coupon.name}</Text>
-                      <Badge color={coupon.used ? 'gray' : 'green'}>{coupon.used ? 'USED' : 'ACTIVE'}</Badge>
-                    </Group>
-                    
-                    {coupon.value && (
-                      <Text fw={800} size="xl" c="indigo">
-                        {formatEuro(coupon.value)}
-                      </Text>
-                    )}
-                    
-                    <Text size="sm" c="dimmed" lineClamp={2}>{coupon.description}</Text>
-                    
-                    {coupon.dueDate && (
-                      <Group gap={4} wrap="nowrap">
-                        <IconCalendar size={14} color="gray" />
-                        <Text size="xs" c="dimmed">Expires: {new Date(coupon.dueDate).toLocaleDateString()}</Text>
+              {coupons.map(coupon => {
+                const isExpired = coupon.dueDate && new Date(coupon.dueDate) < new Date(new Date().setHours(0, 0, 0, 0))
+                return (
+                  <Paper 
+                    key={coupon.id} 
+                    withBorder 
+                    p="md" 
+                    radius="md" 
+                    shadow="xs" 
+                    style={{ 
+                      opacity: (coupon.used || isExpired) ? 0.6 : 1,
+                      backgroundColor: isExpired ? 'var(--mantine-color-red-0)' : undefined 
+                    }}
+                  >
+                    <Stack gap="xs">
+                      <Group justify="space-between" wrap="nowrap">
+                        <Text fw={700} lineClamp={1}>{coupon.name}</Text>
+                        <Group gap={4}>
+                          {isExpired && <Badge color="red" variant="filled">EXPIRED</Badge>}
+                          <Badge color={coupon.used ? 'gray' : 'green'}>{coupon.used ? 'USED' : 'ACTIVE'}</Badge>
+                        </Group>
                       </Group>
-                    )}
+                      
+                      {coupon.value && (
+                        <Text fw={800} size="xl" c={isExpired ? 'dimmed' : 'indigo'}>
+                          {formatEuro(coupon.value)}
+                        </Text>
+                      )}
+                      
+                      <Text size="sm" c="dimmed" lineClamp={2}>{coupon.description}</Text>
+                      
+                      {coupon.dueDate && (
+                        <Group gap={4} wrap="nowrap">
+                          <IconCalendar size={14} color={isExpired ? 'red' : 'gray'} />
+                          <Text size="xs" c={isExpired ? 'red' : 'dimmed'} fw={isExpired ? 600 : 400}>
+                            Expires: {new Date(coupon.dueDate).toLocaleDateString()}
+                          </Text>
+                        </Group>
+                      )}
 
-                    {coupon.code && (
-                      <>
-                        <Divider my="xs" variant="dashed" />
-                        <Center>
-                          <Box 
-                            bg="white" 
-                            p="xs" 
-                            style={{ borderRadius: rem(4), border: '1px solid var(--mantine-color-gray-2)', cursor: 'pointer' }}
-                            onClick={() => setFullscreenData({ name: coupon.name, number: coupon.code!, barcodeType: coupon.barcodeType! })}
-                          >
-                            {coupon.barcodeType === 'QR' ? (
-                              <QRCodeSVG value={coupon.code} size={80} />
-                            ) : (
-                              <Barcode value={coupon.code} width={1} height={40} fontSize={10} />
-                            )}
-                          </Box>
-                        </Center>
-                      </>
-                    )}
+                      {coupon.code && (
+                        <>
+                          <Divider my="xs" variant="dashed" />
+                          <Center>
+                            <Box 
+                              bg="white" 
+                              p="xs" 
+                              style={{ 
+                                borderRadius: rem(4), 
+                                border: '1px solid var(--mantine-color-gray-2)', 
+                                cursor: 'pointer',
+                                filter: isExpired ? 'grayscale(1)' : undefined
+                              }}
+                              onClick={() => setFullscreenData({ name: coupon.name, number: coupon.code!, barcodeType: coupon.barcodeType! })}
+                            >
+                              {coupon.barcodeType === 'QR' ? (
+                                <QRCodeSVG value={coupon.code} size={80} />
+                              ) : (
+                                <Barcode value={coupon.code} width={1} height={40} fontSize={10} />
+                              )}
+                            </Box>
+                          </Center>
+                        </>
+                      )}
 
-                    <Group justify="space-between" mt="md">
-                      <Button 
-                        variant="light" 
-                        size="xs" 
-                        color={coupon.used ? 'blue' : 'green'}
-                        leftSection={coupon.used ? <IconClock size={14} /> : <IconCheck size={14} />}
-                        onClick={() => toggleCouponMutation.mutate({ id: coupon.id, used: !coupon.used })}
-                      >
-                        {coupon.used ? 'Mark Active' : 'Mark Used'}
-                      </Button>
-                      <Group gap={4}>
-                        <ActionIcon variant="subtle" color="indigo" onClick={() => handleEditCoupon(coupon)}>
-                          <IconEdit size={16} />
-                        </ActionIcon>
-                        {coupon.code && (
-                          <ActionIcon variant="subtle" color="blue" onClick={() => setFullscreenData({ name: coupon.name, number: coupon.code!, barcodeType: coupon.barcodeType! })}>
-                            <IconMaximize size={16} />
+                      <Group justify="space-between" mt="md">
+                        <Button 
+                          variant="light" 
+                          size="xs" 
+                          color={coupon.used ? 'blue' : 'green'}
+                          leftSection={coupon.used ? <IconClock size={14} /> : <IconCheck size={14} />}
+                          onClick={() => toggleCouponMutation.mutate({ id: coupon.id, used: !coupon.used })}
+                        >
+                          {coupon.used ? 'Mark Active' : 'Mark Used'}
+                        </Button>
+                        <Group gap={4}>
+                          <ActionIcon variant="subtle" color="indigo" onClick={() => handleEditCoupon(coupon)}>
+                            <IconEdit size={16} />
                           </ActionIcon>
-                        )}
-                        <ActionIcon variant="subtle" color="red" onClick={() => {
-                          if (window.confirm('Delete this coupon?')) removeCouponMutation.mutate(coupon.id)
-                        }}>
-                          <IconTrash size={16} />
-                        </ActionIcon>
+                          {coupon.code && (
+                            <ActionIcon variant="subtle" color="blue" onClick={() => setFullscreenData({ name: coupon.name, number: coupon.code!, barcodeType: coupon.barcodeType! })}>
+                              <IconMaximize size={16} />
+                            </ActionIcon>
+                          )}
+                          <ActionIcon variant="subtle" color="red" onClick={() => {
+                            if (window.confirm('Delete this coupon?')) removeCouponMutation.mutate(coupon.id)
+                          }}>
+                            <IconTrash size={16} />
+                          </ActionIcon>
+                        </Group>
                       </Group>
-                    </Group>
-                  </Stack>
-                </Paper>
-              ))}
+                    </Stack>
+                  </Paper>
+                )
+              })}
               {coupons.length === 0 && (
                 <Text ta="center" py="xl" c="dimmed">No coupons found for this store.</Text>
               )}

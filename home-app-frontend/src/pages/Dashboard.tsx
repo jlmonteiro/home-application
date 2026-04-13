@@ -158,33 +158,45 @@ export function Dashboard() {
 
               {!couponsLoading && expiringCoupons.length > 0 && (
                 <Stack gap="sm">
-                  {expiringCoupons.map((coupon) => (
-                    <Paper 
-                      key={coupon.id} 
-                      withBorder 
-                      p="sm" 
-                      radius="sm"
-                      style={{ transition: 'background-color 100ms ease' }}
-                    >
-                      <Group justify="space-between" wrap="nowrap">
-                        <Group gap="sm" wrap="nowrap">
-                          <ThemeIcon variant="light" color="teal" radius="sm">
-                            <IconTicket size={16} />
-                          </ThemeIcon>
-                          <Box style={{ overflow: 'hidden' }}>
-                            <Text fw={600} size="sm" truncate>{coupon.name}</Text>
-                            <Group gap={4} wrap="nowrap">
-                              <IconBuildingStore size={12} color="var(--mantine-color-dimmed)" />
-                              <Text size="xs" c="dimmed" truncate>{coupon.storeName}</Text>
-                            </Group>
-                          </Box>
+                  {expiringCoupons.map((coupon) => {
+                    const isExpired = coupon.dueDate && new Date(coupon.dueDate) < new Date(new Date().setHours(0, 0, 0, 0))
+                    return (
+                      <Paper 
+                        key={coupon.id} 
+                        withBorder 
+                        p="sm" 
+                        radius="sm"
+                        style={{ 
+                          transition: 'background-color 100ms ease',
+                          opacity: isExpired ? 0.7 : 1,
+                          backgroundColor: isExpired ? 'var(--mantine-color-red-0)' : undefined
+                        }}
+                      >
+                        <Group justify="space-between" wrap="nowrap">
+                          <Group gap="sm" wrap="nowrap">
+                            <ThemeIcon variant="light" color={isExpired ? 'red' : 'teal'} radius="sm">
+                              <IconTicket size={16} />
+                            </ThemeIcon>
+                            <Box style={{ overflow: 'hidden' }}>
+                              <Text fw={600} size="sm" truncate>{coupon.name}</Text>
+                              <Group gap={4} wrap="nowrap">
+                                <IconBuildingStore size={12} color="var(--mantine-color-dimmed)" />
+                                <Text size="xs" c="dimmed" truncate>{coupon.storeName}</Text>
+                              </Group>
+                            </Box>
+                          </Group>
+                          <Badge 
+                            color="red" 
+                            variant={isExpired ? 'filled' : 'light'} 
+                            size="sm" 
+                            leftSection={<IconCalendarClock size={12} />}
+                          >
+                            {isExpired ? 'EXPIRED' : (coupon.dueDate ? new Date(coupon.dueDate).toLocaleDateString() : 'No date')}
+                          </Badge>
                         </Group>
-                        <Badge color="red" variant="light" size="sm" leftSection={<IconCalendarClock size={12} />}>
-                          {coupon.dueDate ? new Date(coupon.dueDate).toLocaleDateString() : 'No date'}
-                        </Badge>
-                      </Group>
-                    </Paper>
-                  ))}
+                      </Paper>
+                    )
+                  })}
                 </Stack>
               )}
             </Paper>
