@@ -4,10 +4,9 @@ import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListItemR
 import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListItemResourceAssembler;
 import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListResource;
 import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListResourceAssembler;
-import com.jorgemonteiro.home_app.model.adapter.shopping.ShoppingAdapter;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListItemDTO;
-import com.jorgemonteiro.home_app.service.shopping.ShoppingService;
+import com.jorgemonteiro.home_app.service.shopping.ShoppingListService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.hateoas.CollectionModel;
@@ -18,80 +17,75 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * REST controller for managing shopping lists and items.
+ * REST controller for managing shopping lists and list items.
  */
 @RestController
 @RequestMapping("/api/shopping/lists")
 @RequiredArgsConstructor
 public class ShoppingListController {
 
-    private final ShoppingService shoppingService;
-    private final ShoppingAdapter shoppingAdapter;
+    private final ShoppingListService listService;
     private final ShoppingListResourceAssembler listAssembler;
     private final ShoppingListItemResourceAssembler itemAssembler;
 
     @GetMapping
     public CollectionModel<ShoppingListResource> getAllLists() {
-        List<ShoppingListDTO> lists = shoppingService.findAllLists();
-        return listAssembler.toCollectionModel(lists);
+        return listAssembler.toCollectionModel(listService.findAllLists());
     }
 
     @GetMapping("/{id}")
     public ShoppingListResource getList(@PathVariable Long id) {
-        ShoppingListDTO dto = shoppingService.getList(id);
-        return listAssembler.toModel(dto);
+        return listAssembler.toModel(listService.getList(id));
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ShoppingListResource createList(@Valid @RequestBody ShoppingListDTO dto, @AuthenticationPrincipal OAuth2User principal) {
-        String email = principal.getAttribute("email");
-        ShoppingListDTO created = shoppingService.createList(dto, email);
-        return listAssembler.toModel(created);
+    public ShoppingListResource createList(
+            @Valid @RequestBody ShoppingListDTO dto,
+            @AuthenticationPrincipal OAuth2User principal) {
+        return listAssembler.toModel(listService.createList(dto, principal.getAttribute("email")));
     }
 
     @PutMapping("/{id}")
     public ShoppingListResource updateList(@PathVariable Long id, @Valid @RequestBody ShoppingListDTO dto) {
-        ShoppingListDTO updated = shoppingService.updateList(id, dto);
-        return listAssembler.toModel(updated);
+        return listAssembler.toModel(listService.updateList(id, dto));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteList(@PathVariable Long id) {
-        shoppingService.deleteList(id);
+        listService.deleteList(id);
         return ResponseEntity.noContent().build();
     }
 
-    // --- Item Management ---
+    // --- List Items ---
 
     @PostMapping("/{id}/items")
     @ResponseStatus(HttpStatus.CREATED)
-    public ShoppingListItemResource addItemToList(@PathVariable Long id, @Valid @RequestBody ShoppingListItemDTO dto) {
-        ShoppingListItemDTO created = shoppingService.addItemToList(id, dto);
-        return itemAssembler.toModel(created);
+    public ShoppingListItemResource addItemToList(
+            @PathVariable Long id, @Valid @RequestBody ShoppingListItemDTO dto) {
+        return itemAssembler.toModel(listService.addItemToList(id, dto));
     }
 
     @PatchMapping("/items/{itemId}")
-    public ShoppingListItemResource updateListItem(@PathVariable Long itemId, @RequestBody ShoppingListItemDTO dto) {
-        ShoppingListItemDTO updated = shoppingService.updateListItem(itemId, dto);
-        return itemAssembler.toModel(updated);
+    public ShoppingListItemResource updateListItem(
+            @PathVariable Long itemId, @RequestBody ShoppingListItemDTO dto) {
+        return itemAssembler.toModel(listService.updateListItem(itemId, dto));
     }
 
     @DeleteMapping("/items/{itemId}")
     public ResponseEntity<Void> removeListItem(@PathVariable Long itemId) {
-        shoppingService.removeListItem(itemId);
+        listService.removeListItem(itemId);
         return ResponseEntity.noContent().build();
     }
 
-    // --- Suggestions ---
+    // --- Price Suggestions ---
 
     @GetMapping("/suggest-price")
-    public ResponseEntity<BigDecimal> suggestPrice(@RequestParam Long itemId, @RequestParam(required = false) Long storeId) {
-        BigDecimal suggestion = shoppingService.suggestPrice(itemId, storeId);
-        return ResponseEntity.ok(suggestion);
+    public ResponseEntity<BigDecimal> suggestPrice(
+            @RequestParam Long itemId,
+            @RequestParam(required = false) Long storeId) {
+        return ResponseEntity.ok(listService.suggestPrice(itemId, storeId));
     }
 }

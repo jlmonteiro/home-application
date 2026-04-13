@@ -1,5 +1,5 @@
 [versions]
-java = "25"
+java = "26"
 springBoot = "4.0.5"
 springDependencyManagement = "1.1.7"
 springCloud = "2025.1.1"

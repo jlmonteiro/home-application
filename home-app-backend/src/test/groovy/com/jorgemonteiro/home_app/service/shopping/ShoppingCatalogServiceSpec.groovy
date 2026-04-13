@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
 import spock.lang.Title
 
-@Title("ShoppingService")
+@Title("ShoppingCatalogService")
 @Narrative("""
 As a household member
 I want to manage shopping categories and items
@@ -24,10 +24,10 @@ So that I can organize my shopping needs
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-class ShoppingServiceSpec extends BaseIntegrationTest {
+class ShoppingCatalogServiceSpec extends BaseIntegrationTest {
 
     @Autowired
-    ShoppingService shoppingService
+    ShoppingCatalogService shoppingCatalogService
 
     @Autowired
     ShoppingCategoryRepository categoryRepository
@@ -40,7 +40,7 @@ class ShoppingServiceSpec extends BaseIntegrationTest {
             def dto = new ShoppingCategoryDTO(name: "Groceries", description: "Food and drinks")
 
         when: "creating the category"
-            def result = shoppingService.createCategory(dto)
+            def result = shoppingCatalogService.createCategory(dto)
 
         then: "category is saved and returned with an ID"
             result.id != null
@@ -50,11 +50,11 @@ class ShoppingServiceSpec extends BaseIntegrationTest {
 
     def "createCategory should throw ValidationException when name already exists"() {
         given: "an existing category"
-            shoppingService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
+            shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
             def duplicateDto = new ShoppingCategoryDTO(name: "Groceries")
 
         when: "creating a duplicate category"
-            shoppingService.createCategory(duplicateDto)
+            shoppingCatalogService.createCategory(duplicateDto)
 
         then: "ValidationException is thrown"
             thrown(ValidationException)
@@ -62,11 +62,11 @@ class ShoppingServiceSpec extends BaseIntegrationTest {
 
     def "updateCategory should update existing category successfully"() {
         given: "an existing category"
-            def created = shoppingService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
+            def created = shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
             def updateDto = new ShoppingCategoryDTO(name: "Food", description: "Updated")
 
         when: "updating the category"
-            def result = shoppingService.updateCategory(created.id, updateDto)
+            def result = shoppingCatalogService.updateCategory(created.id, updateDto)
 
         then: "category is updated"
             result.name == "Food"
@@ -76,12 +76,12 @@ class ShoppingServiceSpec extends BaseIntegrationTest {
 
     def "deleteCategory should remove category and its items"() {
         given: "a category with an item"
-            def category = shoppingService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
-            categoryRepository.flush() // Ensure it's in DB
-            shoppingService.createItem(new ShoppingItemDTO(name: "Milk", categoryId: category.id))
+            def category = shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
+            categoryRepository.flush()
+            shoppingCatalogService.createItem(new ShoppingItemDTO(name: "Milk", categoryId: category.id))
 
         when: "deleting the category"
-            shoppingService.deleteCategory(category.id)
+            shoppingCatalogService.deleteCategory(category.id)
 
         then: "category and item are removed"
             !categoryRepository.existsById(category.id)
@@ -90,11 +90,11 @@ class ShoppingServiceSpec extends BaseIntegrationTest {
 
     def "createItem should save a new item in a category successfully"() {
         given: "an existing category and a new item DTO"
-            def category = shoppingService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
+            def category = shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
             def dto = new ShoppingItemDTO(name: "Milk", categoryId: category.id)
 
         when: "creating the item"
-            def result = shoppingService.createItem(dto)
+            def result = shoppingCatalogService.createItem(dto)
 
         then: "item is saved and returned with correct category info"
             result.id != null
@@ -105,12 +105,12 @@ class ShoppingServiceSpec extends BaseIntegrationTest {
 
     def "createItem should throw ValidationException when item already exists in the same category"() {
         given: "a category and an existing item"
-            def category = shoppingService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
-            shoppingService.createItem(new ShoppingItemDTO(name: "Milk", categoryId: category.id))
+            def category = shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
+            shoppingCatalogService.createItem(new ShoppingItemDTO(name: "Milk", categoryId: category.id))
             def duplicateDto = new ShoppingItemDTO(name: "Milk", categoryId: category.id)
 
         when: "creating a duplicate item"
-            shoppingService.createItem(duplicateDto)
+            shoppingCatalogService.createItem(duplicateDto)
 
         then: "ValidationException is thrown"
             thrown(ValidationException)
@@ -118,11 +118,11 @@ class ShoppingServiceSpec extends BaseIntegrationTest {
 
     def "findAllCategories should return paginated categories"() {
         given: "multiple categories"
-            shoppingService.createCategory(new ShoppingCategoryDTO(name: "A"))
-            shoppingService.createCategory(new ShoppingCategoryDTO(name: "B"))
+            shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "A"))
+            shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "B"))
 
         when: "finding all categories"
-            def result = shoppingService.findAllCategories(PageRequest.of(0, 10))
+            def result = shoppingCatalogService.findAllCategories(PageRequest.of(0, 10))
 
         then: "correct page of categories is returned"
             result.totalElements >= 2

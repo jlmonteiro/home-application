@@ -2,21 +2,20 @@ package com.jorgemonteiro.home_app.model.adapter.shopping;
 
 import com.jorgemonteiro.home_app.model.dtos.shopping.*;
 import com.jorgemonteiro.home_app.model.entities.shopping.*;
-import com.jorgemonteiro.home_app.repository.shopping.ShoppingItemPriceHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.stream.Collectors;
 
 /**
  * Adapter for converting between shopping entities and DTOs.
+ * Pure data transformer — no I/O or repository calls.
  */
 @Component
 @RequiredArgsConstructor
 public class ShoppingAdapter {
-
-    private final ShoppingItemPriceHistoryRepository priceHistoryRepository;
 
     /**
      * Converts a {@link ShoppingCategory} entity to a {@link ShoppingCategoryDTO}.
@@ -191,6 +190,13 @@ public class ShoppingAdapter {
     // --- Shopping List Methods ---
 
     public ShoppingListDTO toListDTO(ShoppingList entity) {
+        return toListDTO(entity, java.util.Collections.emptyMap());
+    }
+
+    /**
+     * @param previousPrices map keyed by "itemId:storeId" (storeId may be "null") → previous price
+     */
+    public ShoppingListDTO toListDTO(ShoppingList entity, java.util.Map<String, BigDecimal> previousPrices) {
         if (entity == null) return null;
         ShoppingListDTO dto = new ShoppingListDTO();
         dto.setId(entity.getId());
@@ -200,16 +206,19 @@ public class ShoppingAdapter {
         dto.setCreatedAt(entity.getCreatedAt());
         dto.setCompletedAt(entity.getCompletedAt());
         dto.setVersion(entity.getVersion());
-        
+
         if (entity.getCreatedBy() != null) {
             dto.setCreatedBy(entity.getCreatedBy().getEmail());
             dto.setCreatorName(entity.getCreatedBy().getFirstName() + " " + entity.getCreatedBy().getLastName());
         }
-        
+
         if (entity.getItems() != null) {
-            dto.setItems(entity.getItems().stream().map(this::toListItemDTO).collect(Collectors.toList()));
+            dto.setItems(entity.getItems().stream().map(item -> {
+                String key = item.getItem().getId() + ":" + (item.getStore() != null ? item.getStore().getId() : "null");
+                return toListItemDTO(item, previousPrices.get(key));
+            }).collect(Collectors.toList()));
         }
-        
+
         return dto;
     }
 
@@ -238,6 +247,10 @@ public class ShoppingAdapter {
     }
 
     public ShoppingListItemDTO toListItemDTO(ShoppingListItem entity) {
+        return toListItemDTO(entity, null);
+    }
+
+    public ShoppingListItemDTO toListItemDTO(ShoppingListItem entity, BigDecimal previousPrice) {
         if (entity == null) return null;
         ShoppingListItemDTO dto = new ShoppingListItemDTO();
         dto.setId(entity.getId());
@@ -247,7 +260,8 @@ public class ShoppingAdapter {
         dto.setBought(entity.isBought());
         dto.setUnavailable(entity.isUnavailable());
         dto.setVersion(entity.getVersion());
-        
+        dto.setPreviousPrice(previousPrice);
+
         if (entity.getItem() != null) {
             dto.setItemId(entity.getItem().getId());
             dto.setItemName(entity.getItem().getName());
@@ -256,25 +270,13 @@ public class ShoppingAdapter {
                 dto.setCategoryName(entity.getItem().getCategory().getName());
                 dto.setCategoryIcon(entity.getItem().getCategory().getIcon());
             }
-
-            // Find previous price for comparison
-            priceHistoryRepository.findLatestPrice(entity.getItem().getId(), entity.getStore() != null ? entity.getStore().getId() : null)
-                    .ifPresent(latest -> {
-                        // If current price is the same as latest history, we need the one BEFORE latest
-                        if (entity.getPrice() != null && latest.getPrice().compareTo(entity.getPrice()) == 0) {
-                            priceHistoryRepository.findLatestPriceExcluding(entity.getItem().getId(), entity.getStore() != null ? entity.getStore().getId() : null, latest.getId())
-                                    .ifPresent(prev -> dto.setPreviousPrice(prev.getPrice()));
-                        } else {
-                            dto.setPreviousPrice(latest.getPrice());
-                        }
-                    });
         }
 
         if (entity.getStore() != null) {
             dto.setStoreId(entity.getStore().getId());
             dto.setStoreName(entity.getStore().getName());
         }
-        
+
         return dto;
     }
 
