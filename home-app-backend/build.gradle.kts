@@ -41,6 +41,10 @@ dependencies {
 	testRuntimeOnly(libs.junit.platform.launcher)
 }
 
+tasks.withType<JavaCompile> {
+	options.isFork = true
+}
+
 tasks.withType<Test> {
 	useJUnitPlatform()
 	finalizedBy(tasks.jacocoTestReport)

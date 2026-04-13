@@ -28,7 +28,8 @@ spring:
           google-people-api:
             url: https://people.googleapis.com/v1
 
-  liquibase:
+  cache:
+    type: simple
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled: true
     

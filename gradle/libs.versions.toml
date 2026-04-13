@@ -1,9 +1,9 @@
 [versions]
-java = "26"
+java = "21"
 springBoot = "4.0.5"
 springDependencyManagement = "1.1.7"
 springCloud = "2025.1.1"
-lombok = "1.18.38"
+lombok = "1.18.44"
 postgresql = "42.7.3"
 micrometer = "1.12.0"
 testcontainers = "1.19.3"
