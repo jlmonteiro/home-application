@@ -1,0 +1,9 @@
+{
+  "name": "home-app",
+  "description": "Home App project agent",
+  "tools": ["fs_read", "fs_write", "execute_bash", "grep", "glob", "code", "use_aws"],
+  "resources": [
+    "file://docs/project-context.md",
+    "skill://.ai/skills/**/SKILL.md"
+  ]
+}
