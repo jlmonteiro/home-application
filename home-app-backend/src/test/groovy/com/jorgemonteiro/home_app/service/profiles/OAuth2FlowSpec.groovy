@@ -11,6 +11,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Transactional
+
+import java.util.Optional
 import spock.lang.Narrative
 import spock.lang.Title
 
@@ -58,7 +60,7 @@ class OAuth2FlowSpec extends BaseIntegrationTest {
             Mockito.when(photoService.downloadAndConvertToBase64(targetPicture)).thenReturn(targetPhotoData)
 
         and: "a test version of the service that uses the real UserService"
-            def service = new CustomOAuth2UserService(userService) {
+            def service = new CustomOAuth2UserService(userService, null) {
                 @Override
                 OAuth2User loadUser(OAuth2UserRequest request) {
                     // Simulate production behavior which calls userService.findOrCreateUser
@@ -66,7 +68,8 @@ class OAuth2FlowSpec extends BaseIntegrationTest {
                         oauth2User.getAttribute("email"),
                         oauth2User.getAttribute("given_name"),
                         oauth2User.getAttribute("family_name"),
-                        oauth2User.getAttribute("picture")
+                        oauth2User.getAttribute("picture"),
+                        Optional.empty()
                     )
                     return oauth2User
                 }
@@ -121,14 +124,15 @@ class OAuth2FlowSpec extends BaseIntegrationTest {
 
             def userRequest = Mock(OAuth2UserRequest)
 
-            def service = new CustomOAuth2UserService(userService) {
+            def service = new CustomOAuth2UserService(userService, null) {
                 @Override
                 OAuth2User loadUser(OAuth2UserRequest request) {
                     userService.findOrCreateUser(
                         oauth2User.getAttribute("email"),
                         oauth2User.getAttribute("given_name"),
                         oauth2User.getAttribute("family_name"),
-                        oauth2User.getAttribute("picture")
+                        oauth2User.getAttribute("picture"),
+                        Optional.empty()
                     )
                     return oauth2User
                 }

@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.OAuth2AccessToken
 import org.springframework.security.oauth2.core.user.DefaultOAuth2User
 import org.springframework.security.oauth2.core.user.OAuth2User
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
 import spock.lang.Shared
 import spock.lang.Title
@@ -35,6 +36,7 @@ so that the household hierarchy is correctly established.
     "spring.main.allow-bean-definition-overriding=true"
 ])
 @ActiveProfiles("test")
+@Transactional
 class OnboardingIntegrationSpec extends BaseIntegrationTest {
 
     @Shared

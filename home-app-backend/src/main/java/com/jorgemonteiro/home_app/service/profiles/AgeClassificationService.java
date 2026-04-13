@@ -20,13 +20,11 @@ public class AgeClassificationService {
     private final AgeGroupConfigRepository ageGroupConfigRepository;
 
     /**
-     * Calculates the age group name based on the provided birthdate and the current configuration.
-     * Results are cached under {@value #CACHE_NAME} and evicted when age group settings change.
+     * Calculates the age group name based on the provided birthdate and the cached configuration.
      *
      * @param birthdate the user's birthdate
      * @return the name of the age group (e.g., "Adult", "Teenager", "Child")
      */
-    @Cacheable(CACHE_NAME)
     public String classify(LocalDate birthdate) {
         if (birthdate == null) return "Adult";
         int age = Period.between(birthdate, LocalDate.now()).getYears();

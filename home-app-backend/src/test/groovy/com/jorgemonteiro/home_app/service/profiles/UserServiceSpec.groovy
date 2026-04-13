@@ -9,6 +9,8 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.transaction.annotation.Transactional
+
+import java.util.Optional
 import spock.lang.Narrative
 import spock.lang.Title
 
@@ -38,7 +40,7 @@ class UserServiceSpec extends BaseIntegrationTest {
             def targetEmail = "existing@example.com"
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(targetEmail, "Updated", "Name", null)
+            def result = userService.findOrCreateUser(targetEmail, "Updated", "Name", null, Optional.empty())
 
         then: "existing user is returned without creating a new one"
             result != null
@@ -56,7 +58,7 @@ class UserServiceSpec extends BaseIntegrationTest {
             def targetLastName = "User"
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(targetEmail, targetFirstName, targetLastName, null)
+            def result = userService.findOrCreateUser(targetEmail, targetFirstName, targetLastName, null, Optional.empty())
 
         then: "a new user is created and returned"
             result != null
@@ -74,7 +76,7 @@ class UserServiceSpec extends BaseIntegrationTest {
             def targetEmail = "profiletest@example.com"
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(targetEmail, "Profile", "Test", null)
+            def result = userService.findOrCreateUser(targetEmail, "Profile", "Test", null, Optional.empty())
 
         then: "a user profile is created for the new user"
             result.userProfile != null
@@ -89,7 +91,7 @@ class UserServiceSpec extends BaseIntegrationTest {
             Mockito.when(photoService.downloadAndConvertToBase64(targetPictureUrl)).thenReturn(targetPhotoData)
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(targetEmail, "Photo", "User", targetPictureUrl)
+            def result = userService.findOrCreateUser(targetEmail, "Photo", "User", targetPictureUrl, Optional.empty())
 
         then: "the profile photo is set from the downloaded image"
             result.userProfile != null
@@ -104,7 +106,7 @@ class UserServiceSpec extends BaseIntegrationTest {
             def targetEmail = "nophoto@example.com"
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(targetEmail, "No", "Photo", null)
+            def result = userService.findOrCreateUser(targetEmail, "No", "Photo", null, Optional.empty())
 
         then: "user is created with no profile photo"
             result.userProfile != null
@@ -119,7 +121,7 @@ class UserServiceSpec extends BaseIntegrationTest {
             def targetEmail = "emptyphoto@example.com"
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(targetEmail, "Empty", "Photo", "")
+            def result = userService.findOrCreateUser(targetEmail, "Empty", "Photo", "", Optional.empty())
 
         then: "user is created with no profile photo"
             result.userProfile != null

@@ -137,7 +137,7 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
 
         then: "400 ProblemDetail is returned with specific error messages"
             response.andExpect(status().isBadRequest())
-                    .andExpect(jsonPath('$.type').value("VALIDATION_ERROR"))
+                    .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/validation-error"))
                     .andExpect(jsonPath('$.errors.facebook').value("Facebook must be a valid Facebook URL"))
                     .andExpect(jsonPath('$.errors.mobilePhone').value("Mobile phone must be a valid phone number"))
     }
