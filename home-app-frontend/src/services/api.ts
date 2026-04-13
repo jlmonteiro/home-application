@@ -1,3 +1,4 @@
+import { notifications } from '@mantine/notifications'
 import type { UserProfile } from '../types/user'
 
 const API_BASE = '/api'
@@ -9,6 +10,51 @@ export interface ProblemDetail {
   detail: string
   instance?: string
   errors?: Record<string, string>
+}
+
+function getCsrfToken(): string | null {
+  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
+  return match ? decodeURIComponent(match[1]) : null
+}
+
+/**
+ * Wrapper around fetch that:
+ * - Attaches the CSRF token on mutating requests
+ * - Parses RFC 7807 ProblemDetail errors
+ * - Shows a Mantine toast notification on failure
+ */
+async function apiFetch(url: string, options: RequestInit = {}): Promise<Response> {
+  const method = (options.method || 'GET').toUpperCase()
+  const headers = new Headers(options.headers)
+
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    const token = getCsrfToken()
+    if (token) headers.set('X-XSRF-TOKEN', token)
+  }
+
+  const response = await apiFetch(url, { ...options, headers })
+
+  if (!response.ok && response.status !== 401) {
+    let message = `Request failed (${response.status})`
+    let detail: ProblemDetail | null = null
+    try {
+      detail = await response.clone().json()
+      if (detail?.detail) message = detail.detail
+      if (detail?.errors) {
+        const fieldErrors = Object.values(detail.errors).join('; ')
+        message = fieldErrors || message
+      }
+    } catch { /* not JSON */ }
+
+    notifications.show({
+      title: detail?.title || 'Error',
+      message,
+      color: 'red',
+      autoClose: 5000,
+    })
+  }
+
+  return response
 }
 
 export interface AgeGroupConfig {
@@ -166,7 +212,7 @@ export interface UserPreference {
 // --- Auth & Profile ---
 
 export async function fetchCurrentUser(): Promise<UserProfile | null> {
-  const response = await fetch(`${API_BASE}/user/me`, {
+  const response = await apiFetch(`${API_BASE}/user/me`, {
     headers: {
       Accept: 'application/hal+json',
     },
@@ -186,7 +232,7 @@ export async function fetchCurrentUser(): Promise<UserProfile | null> {
 export async function updateUserProfile(
   profile: Partial<UserProfile>,
 ): Promise<UserProfile> {
-  const response = await fetch(`${API_BASE}/user/me`, {
+  const response = await apiFetch(`${API_BASE}/user/me`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
@@ -207,13 +253,13 @@ export async function updateUserProfile(
 }
 
 export async function fetchUserPreferences(): Promise<UserPreference> {
-  const response = await fetch(`${API_BASE}/user/preferences`)
+  const response = await apiFetch(`${API_BASE}/user/preferences`)
   if (!response.ok) throw new Error('Failed to fetch user preferences')
   return response.json()
 }
 
 export async function updateUserPreferences(preferences: Partial<UserPreference>): Promise<UserPreference> {
-  const response = await fetch(`${API_BASE}/user/preferences`, {
+  const response = await apiFetch(`${API_BASE}/user/preferences`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(preferences),
@@ -225,13 +271,13 @@ export async function updateUserPreferences(preferences: Partial<UserPreference>
 // --- Settings ---
 
 export async function fetchAgeGroups(): Promise<AgeGroupConfig[]> {
-  const response = await fetch(`${API_BASE}/settings/age-groups`)
+  const response = await apiFetch(`${API_BASE}/settings/age-groups`)
   if (!response.ok) throw new Error('Failed to fetch age groups')
   return response.json()
 }
 
 export async function updateAgeGroups(configs: AgeGroupConfig[]): Promise<void> {
-  const response = await fetch(`${API_BASE}/settings/age-groups`, {
+  const response = await apiFetch(`${API_BASE}/settings/age-groups`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(configs),
@@ -243,13 +289,13 @@ export async function updateAgeGroups(configs: AgeGroupConfig[]): Promise<void> 
 }
 
 export async function fetchFamilyRoles(): Promise<FamilyRole[]> {
-  const response = await fetch(`${API_BASE}/settings/roles`)
+  const response = await apiFetch(`${API_BASE}/settings/roles`)
   if (!response.ok) throw new Error('Failed to fetch family roles')
   return response.json()
 }
 
 export async function createFamilyRole(role: Partial<FamilyRole>): Promise<FamilyRole> {
-  const response = await fetch(`${API_BASE}/settings/roles`, {
+  const response = await apiFetch(`${API_BASE}/settings/roles`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(role),
@@ -259,7 +305,7 @@ export async function createFamilyRole(role: Partial<FamilyRole>): Promise<Famil
 }
 
 export async function updateFamilyRole(id: number, role: Partial<FamilyRole>): Promise<FamilyRole> {
-  const response = await fetch(`${API_BASE}/settings/roles/${id}`, {
+  const response = await apiFetch(`${API_BASE}/settings/roles/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(role),
@@ -269,7 +315,7 @@ export async function updateFamilyRole(id: number, role: Partial<FamilyRole>): P
 }
 
 export async function deleteFamilyRole(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE}/settings/roles/${id}`, {
+  const response = await apiFetch(`${API_BASE}/settings/roles/${id}`, {
     method: 'DELETE',
   })
   if (!response.ok) {
@@ -281,13 +327,13 @@ export async function deleteFamilyRole(id: number): Promise<void> {
 // --- Shopping Categories & Items API ---
 
 export async function fetchCategories(page = 0, size = 20): Promise<PagedResponse<ShoppingCategory>> {
-  const response = await fetch(`${API_BASE}/shopping/categories?page=${page}&size=${size}`)
+  const response = await apiFetch(`${API_BASE}/shopping/categories?page=${page}&size=${size}`)
   if (!response.ok) throw new Error('Failed to fetch categories')
   return response.json()
 }
 
 export async function createCategory(category: Partial<ShoppingCategory>): Promise<ShoppingCategory> {
-  const response = await fetch(`${API_BASE}/shopping/categories`, {
+  const response = await apiFetch(`${API_BASE}/shopping/categories`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(category),
@@ -302,7 +348,7 @@ export async function createCategory(category: Partial<ShoppingCategory>): Promi
 }
 
 export async function updateCategory(id: number, category: Partial<ShoppingCategory>): Promise<ShoppingCategory> {
-  const response = await fetch(`${API_BASE}/shopping/categories/${id}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/categories/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(category),
@@ -317,26 +363,26 @@ export async function updateCategory(id: number, category: Partial<ShoppingCateg
 }
 
 export async function deleteCategory(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE}/shopping/categories/${id}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/categories/${id}`, {
     method: 'DELETE',
   })
   if (!response.ok) throw new Error('Failed to delete category')
 }
 
 export async function fetchItems(page = 0, size = 20): Promise<PagedResponse<ShoppingItem>> {
-  const response = await fetch(`${API_BASE}/shopping/items?page=${page}&size=${size}`)
+  const response = await apiFetch(`${API_BASE}/shopping/items?page=${page}&size=${size}`)
   if (!response.ok) throw new Error('Failed to fetch items')
   return response.json()
 }
 
 export async function fetchItemsByCategory(categoryId: number, page = 0, size = 20): Promise<PagedResponse<ShoppingItem>> {
-  const response = await fetch(`${API_BASE}/shopping/categories/${categoryId}/items?page=${page}&size=${size}`)
+  const response = await apiFetch(`${API_BASE}/shopping/categories/${categoryId}/items?page=${page}&size=${size}`)
   if (!response.ok) throw new Error('Failed to fetch items by category')
   return response.json()
 }
 
 export async function createItem(item: Partial<ShoppingItem>): Promise<ShoppingItem> {
-  const response = await fetch(`${API_BASE}/shopping/items`, {
+  const response = await apiFetch(`${API_BASE}/shopping/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(item),
@@ -351,7 +397,7 @@ export async function createItem(item: Partial<ShoppingItem>): Promise<ShoppingI
 }
 
 export async function updateItem(id: number, item: Partial<ShoppingItem>): Promise<ShoppingItem> {
-  const response = await fetch(`${API_BASE}/shopping/items/${id}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/items/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(item),
@@ -366,14 +412,14 @@ export async function updateItem(id: number, item: Partial<ShoppingItem>): Promi
 }
 
 export async function deleteItem(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE}/shopping/items/${id}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/items/${id}`, {
     method: 'DELETE',
   })
   if (!response.ok) throw new Error('Failed to delete item')
 }
 
 export async function fetchItemPriceHistory(id: number): Promise<ShoppingItemPriceHistory[]> {
-  const response = await fetch(`${API_BASE}/shopping/items/${id}/price-history`)
+  const response = await apiFetch(`${API_BASE}/shopping/items/${id}/price-history`)
   if (!response.ok) throw new Error('Failed to fetch price history')
   return response.json()
 }
@@ -381,19 +427,19 @@ export async function fetchItemPriceHistory(id: number): Promise<ShoppingItemPri
 // --- Shopping Stores API ---
 
 export async function fetchStores(page = 0, size = 20): Promise<PagedResponse<ShoppingStore>> {
-  const response = await fetch(`${API_BASE}/shopping/stores?page=${page}&size=${size}`)
+  const response = await apiFetch(`${API_BASE}/shopping/stores?page=${page}&size=${size}`)
   if (!response.ok) throw new Error('Failed to fetch stores')
   return response.json()
 }
 
 export async function fetchStore(id: number): Promise<ShoppingStore> {
-  const response = await fetch(`${API_BASE}/shopping/stores/${id}`)
+  const response = await apiFetch(`${API_BASE}/shopping/stores/${id}`)
   if (!response.ok) throw new Error('Failed to fetch store')
   return response.json()
 }
 
 export async function createStore(store: Partial<ShoppingStore>): Promise<ShoppingStore> {
-  const response = await fetch(`${API_BASE}/shopping/stores`, {
+  const response = await apiFetch(`${API_BASE}/shopping/stores`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(store),
@@ -408,7 +454,7 @@ export async function createStore(store: Partial<ShoppingStore>): Promise<Shoppi
 }
 
 export async function updateStore(id: number, store: Partial<ShoppingStore>): Promise<ShoppingStore> {
-  const response = await fetch(`${API_BASE}/shopping/stores/${id}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/stores/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(store),
@@ -423,7 +469,7 @@ export async function updateStore(id: number, store: Partial<ShoppingStore>): Pr
 }
 
 export async function deleteStore(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE}/shopping/stores/${id}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/stores/${id}`, {
     method: 'DELETE',
   })
   if (!response.ok) throw new Error('Failed to delete store')
@@ -432,14 +478,14 @@ export async function deleteStore(id: number): Promise<void> {
 // --- Loyalty Cards API ---
 
 export async function fetchLoyaltyCards(storeId: number): Promise<LoyaltyCard[]> {
-  const response = await fetch(`${API_BASE}/shopping/stores/${storeId}/loyalty-cards`)
+  const response = await apiFetch(`${API_BASE}/shopping/stores/${storeId}/loyalty-cards`)
   if (!response.ok) throw new Error('Failed to fetch loyalty cards')
   const data = await response.json()
   return data._embedded?.loyaltyCards || []
 }
 
 export async function createLoyaltyCard(storeId: number, card: Partial<LoyaltyCard>): Promise<LoyaltyCard> {
-  const response = await fetch(`${API_BASE}/shopping/stores/${storeId}/loyalty-cards`, {
+  const response = await apiFetch(`${API_BASE}/shopping/stores/${storeId}/loyalty-cards`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(card),
@@ -454,7 +500,7 @@ export async function createLoyaltyCard(storeId: number, card: Partial<LoyaltyCa
 }
 
 export async function deleteLoyaltyCard(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE}/shopping/loyalty-cards/${id}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/loyalty-cards/${id}`, {
     method: 'DELETE',
   })
   if (!response.ok) throw new Error('Failed to delete loyalty card')
@@ -463,20 +509,20 @@ export async function deleteLoyaltyCard(id: number): Promise<void> {
 // --- Coupons API ---
 
 export async function fetchCoupons(storeId: number, page = 0, size = 20): Promise<PagedResponse<Coupon>> {
-  const response = await fetch(`${API_BASE}/shopping/stores/${storeId}/coupons?page=${page}&size=${size}`)
+  const response = await apiFetch(`${API_BASE}/shopping/stores/${storeId}/coupons?page=${page}&size=${size}`)
   if (!response.ok) throw new Error('Failed to fetch coupons')
   return response.json()
 }
 
 export async function fetchExpiringCoupons(): Promise<Coupon[]> {
-  const response = await fetch(`${API_BASE}/shopping/coupons/expiring`)
+  const response = await apiFetch(`${API_BASE}/shopping/coupons/expiring`)
   if (!response.ok) throw new Error('Failed to fetch expiring coupons')
   const data = await response.json()
   return data._embedded?.coupons || []
 }
 
 export async function createCoupon(storeId: number, coupon: Partial<Coupon>): Promise<Coupon> {
-  const response = await fetch(`${API_BASE}/shopping/stores/${storeId}/coupons`, {
+  const response = await apiFetch(`${API_BASE}/shopping/stores/${storeId}/coupons`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(coupon),
@@ -491,7 +537,7 @@ export async function createCoupon(storeId: number, coupon: Partial<Coupon>): Pr
 }
 
 export async function updateCoupon(id: number, coupon: Partial<Coupon>): Promise<Coupon> {
-  const response = await fetch(`${API_BASE}/shopping/coupons/${id}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/coupons/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(coupon),
@@ -504,7 +550,7 @@ export async function updateCoupon(id: number, coupon: Partial<Coupon>): Promise
 }
 
 export async function deleteCoupon(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE}/shopping/coupons/${id}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/coupons/${id}`, {
     method: 'DELETE',
   })
   if (!response.ok) throw new Error('Failed to delete coupon')
@@ -513,20 +559,20 @@ export async function deleteCoupon(id: number): Promise<void> {
 // --- Shopping Lists API ---
 
 export async function fetchLists(): Promise<ShoppingList[]> {
-  const response = await fetch(`${API_BASE}/shopping/lists`)
+  const response = await apiFetch(`${API_BASE}/shopping/lists`)
   if (!response.ok) throw new Error('Failed to fetch shopping lists')
   const data = await response.json()
   return data._embedded?.lists || []
 }
 
 export async function fetchList(id: number): Promise<ShoppingList> {
-  const response = await fetch(`${API_BASE}/shopping/lists/${id}`)
+  const response = await apiFetch(`${API_BASE}/shopping/lists/${id}`)
   if (!response.ok) throw new Error('Failed to fetch shopping list')
   return response.json()
 }
 
 export async function createList(list: Partial<ShoppingList>): Promise<ShoppingList> {
-  const response = await fetch(`${API_BASE}/shopping/lists`, {
+  const response = await apiFetch(`${API_BASE}/shopping/lists`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(list),
@@ -539,7 +585,7 @@ export async function createList(list: Partial<ShoppingList>): Promise<ShoppingL
 }
 
 export async function updateList(id: number, list: Partial<ShoppingList>): Promise<ShoppingList> {
-  const response = await fetch(`${API_BASE}/shopping/lists/${id}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/lists/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(list),
@@ -552,14 +598,14 @@ export async function updateList(id: number, list: Partial<ShoppingList>): Promi
 }
 
 export async function deleteList(id: number): Promise<void> {
-  const response = await fetch(`${API_BASE}/shopping/lists/${id}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/lists/${id}`, {
     method: 'DELETE',
   })
   if (!response.ok) throw new Error('Failed to delete shopping list')
 }
 
 export async function addItemToList(listId: number, item: Partial<ShoppingListItem>): Promise<ShoppingListItem> {
-  const response = await fetch(`${API_BASE}/shopping/lists/${listId}/items`, {
+  const response = await apiFetch(`${API_BASE}/shopping/lists/${listId}/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(item),
@@ -569,7 +615,7 @@ export async function addItemToList(listId: number, item: Partial<ShoppingListIt
 }
 
 export async function updateListItem(itemId: number, item: Partial<ShoppingListItem>): Promise<ShoppingListItem> {
-  const response = await fetch(`${API_BASE}/shopping/lists/items/${itemId}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/lists/items/${itemId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(item),
@@ -579,7 +625,7 @@ export async function updateListItem(itemId: number, item: Partial<ShoppingListI
 }
 
 export async function removeListItem(itemId: number): Promise<void> {
-  const response = await fetch(`${API_BASE}/shopping/lists/items/${itemId}`, {
+  const response = await apiFetch(`${API_BASE}/shopping/lists/items/${itemId}`, {
     method: 'DELETE',
   })
   if (!response.ok) throw new Error('Failed to remove item from list')
@@ -589,7 +635,7 @@ export async function fetchSuggestedPrice(itemId: number, storeId?: number): Pro
   const url = storeId 
     ? `${API_BASE}/shopping/lists/suggest-price?itemId=${itemId}&storeId=${storeId}`
     : `${API_BASE}/shopping/lists/suggest-price?itemId=${itemId}`
-  const response = await fetch(url)
+  const response = await apiFetch(url)
   if (!response.ok) throw new Error('Failed to fetch suggested price')
   return response.json()
 }

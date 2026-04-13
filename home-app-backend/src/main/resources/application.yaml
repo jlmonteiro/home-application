@@ -30,6 +30,8 @@ spring:
 
   cache:
     type: simple
+
+  liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled: true
     
