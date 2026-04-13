@@ -1,6 +1,7 @@
-import { Title, Text, Paper, Stack, Group, Badge, ActionIcon, List, ThemeIcon, rem, Loader, Button, Box } from '@mantine/core'
+import { Title, Text, Paper, Stack, Group, Badge, ActionIcon, List, ThemeIcon, rem, Loader, Button, Box, Modal, Center } from '@mantine/core'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import { 
   IconShoppingCart, 
   IconChevronRight, 
@@ -8,10 +9,14 @@ import {
   IconBasket, 
   IconTicket,
   IconCalendarClock,
-  IconBuildingStore
+  IconBuildingStore,
+  IconMaximize
 } from '@tabler/icons-react'
+import { QRCodeSVG } from 'qrcode.react'
+import Barcode from 'react-barcode'
 import { useAuth } from '../context/AuthContext'
 import { fetchLists, fetchUserPreferences, fetchExpiringCoupons } from '../services/api'
+import type { Coupon } from '../services/api'
 
 export function Dashboard() {
   const { user } = useAuth()
@@ -32,6 +37,8 @@ export function Dashboard() {
     queryFn: fetchExpiringCoupons,
     enabled: preferences?.showCouponsWidget ?? true,
   })
+
+  const [fullscreenCoupon, setFullscreenCoupon] = useState<Coupon | null>(null)
 
   const pendingLists = lists?.filter(l => l.status === 'PENDING') || []
   const expiringCoupons = coupons || []
@@ -185,14 +192,21 @@ export function Dashboard() {
                               </Group>
                             </Box>
                           </Group>
-                          <Badge 
-                            color="red" 
-                            variant={isExpired ? 'filled' : 'light'} 
-                            size="sm" 
-                            leftSection={<IconCalendarClock size={12} />}
-                          >
-                            {isExpired ? 'EXPIRED' : (coupon.dueDate ? new Date(coupon.dueDate).toLocaleDateString() : 'No date')}
-                          </Badge>
+                          <Group gap="xs" wrap="nowrap">
+                            {coupon.code && (
+                              <ActionIcon variant="subtle" color="blue" size="sm" onClick={() => setFullscreenCoupon(coupon)}>
+                                <IconMaximize size={14} />
+                              </ActionIcon>
+                            )}
+                            <Badge 
+                              color="red" 
+                              variant={isExpired ? 'filled' : 'light'} 
+                              size="sm" 
+                              leftSection={<IconCalendarClock size={12} />}
+                            >
+                              {isExpired ? 'EXPIRED' : (coupon.dueDate ? new Date(coupon.dueDate).toLocaleDateString() : 'No date')}
+                            </Badge>
+                          </Group>
                         </Group>
                       </Paper>
                     )
@@ -217,6 +231,37 @@ export function Dashboard() {
           </Paper>
         </Stack>
       </Group>
+
+      {/* Fullscreen Coupon Code View */}
+      <Modal
+        opened={!!fullscreenCoupon}
+        onClose={() => setFullscreenCoupon(null)}
+        title={fullscreenCoupon?.name}
+        fullScreen
+        zIndex={3000}
+      >
+        <Center h="100%" pb={rem(100)}>
+          <Stack align="center" gap="xl" w="100%">
+            {fullscreenCoupon?.code && (
+              <Box bg="white" p="xl" style={{ borderRadius: rem(12), boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}>
+                {fullscreenCoupon.barcodeType === 'QR' ? (
+                  <QRCodeSVG value={fullscreenCoupon.code} size={280} />
+                ) : (
+                  <Box style={{ transform: 'scale(1.5)', transformOrigin: 'center' }} py="xl">
+                    <Barcode value={fullscreenCoupon.code} width={2} height={100} fontSize={16} />
+                  </Box>
+                )}
+              </Box>
+            )}
+            <Text size="xl" fw={700} ff="monospace" style={{ letterSpacing: rem(2) }}>
+              {fullscreenCoupon?.code}
+            </Text>
+            <Button size="lg" variant="light" onClick={() => setFullscreenCoupon(null)}>
+              Close
+            </Button>
+          </Stack>
+        </Center>
+      </Modal>
     </Stack>
   )
 }
