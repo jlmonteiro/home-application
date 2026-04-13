@@ -2,7 +2,7 @@ package com.jorgemonteiro.home_app.controller.shopping
 
 import com.jorgemonteiro.home_app.HomeApplication
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingStoreDTO
-import com.jorgemonteiro.home_app.service.shopping.ShoppingService
+import com.jorgemonteiro.home_app.service.shopping.ShoppingStoreService
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import groovy.json.JsonOutput
 import org.springframework.beans.factory.annotation.Autowired
@@ -29,7 +29,7 @@ class CouponApiSpec extends BaseIntegrationTest {
     MockMvc mockMvc
 
     @Autowired
-    ShoppingService shoppingService
+    ShoppingStoreService shoppingService
 
     def "POST /api/shopping/stores/{id}/coupons should succeed when dueDate is sent as YYYY-MM-DD"() {
         given: "a store exists"
