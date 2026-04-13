@@ -7,7 +7,6 @@ import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingItemDTO
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListDTO
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListItemDTO
 import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingListStatus
-import com.jorgemonteiro.home_app.repository.profiles.UserRepository
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingItemPriceHistoryRepository
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingListRepository
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
@@ -37,16 +36,10 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
     ShoppingCatalogService catalogService
 
     @Autowired
-    ShoppingStoreService storeService
-
-    @Autowired
     ShoppingListRepository listRepository
 
     @Autowired
     ShoppingItemPriceHistoryRepository priceHistoryRepository
-
-    @Autowired
-    UserRepository userRepository
 
     // --- List CRUD ---
 
@@ -74,7 +67,7 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
     }
 
     @Sql("/scripts/sql/user-profile-test-data.sql")
-    def "getList should return list with items"() {
+    def "getList should return list by ID"() {
         given: "a list exists"
             def list = listService.createList(new ShoppingListDTO(name: "Test"), "existing@example.com")
 
@@ -87,7 +80,7 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
 
     def "getList should throw ObjectNotFoundException for non-existent ID"() {
         when: "getting a non-existent list"
-            listService.getList(999L)
+            listService.getList(999999L)
 
         then: "ObjectNotFoundException is thrown"
             thrown(ObjectNotFoundException)
@@ -109,10 +102,10 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
     @Sql("/scripts/sql/user-profile-test-data.sql")
     def "updateList should set completedAt when status changes to COMPLETED"() {
         given: "an existing list"
-            def list = listService.createList(new ShoppingListDTO(name: "Test"), "existing@example.com")
+            def list = listService.createList(new ShoppingListDTO(name: "Completable"), "existing@example.com")
 
         when: "marking as completed"
-            def result = listService.updateList(list.id, new ShoppingListDTO(status: ShoppingListStatus.COMPLETED))
+            def result = listService.updateList(list.id, new ShoppingListDTO(name: "Completable", status: ShoppingListStatus.COMPLETED))
 
         then: "status and completedAt are set"
             result.status == ShoppingListStatus.COMPLETED
@@ -122,7 +115,7 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
     @Sql("/scripts/sql/user-profile-test-data.sql")
     def "deleteList should remove list"() {
         given: "an existing list"
-            def list = listService.createList(new ShoppingListDTO(name: "Test"), "existing@example.com")
+            def list = listService.createList(new ShoppingListDTO(name: "Deletable"), "existing@example.com")
 
         when: "deleting the list"
             listService.deleteList(list.id)
@@ -137,11 +130,11 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
     def "addItemToList should add item and record price history"() {
         given: "a list, category, and item"
             def list = listService.createList(new ShoppingListDTO(name: "Test"), "existing@example.com")
-            def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "Dairy"))
+            def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "ListTestCat-${UUID.randomUUID()}"))
             def item = catalogService.createItem(new ShoppingItemDTO(name: "Milk", categoryId: category.id))
 
-        and: "a list item DTO with price"
-            def dto = new ShoppingListItemDTO(itemId: item.id, quantity: 2.0, price: 1.99)
+        and: "a list item DTO with price and unit"
+            def dto = new ShoppingListItemDTO(itemId: item.id, quantity: 2.0, unit: "pcs", price: 1.99)
 
         when: "adding item to list"
             def result = listService.addItemToList(list.id, dto)
@@ -175,9 +168,9 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
     def "updateListItem should update quantity and mark as bought"() {
         given: "a list with an item"
             def list = listService.createList(new ShoppingListDTO(name: "Test"), "existing@example.com")
-            def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "Dairy"))
-            def item = catalogService.createItem(new ShoppingItemDTO(name: "Milk", categoryId: category.id))
-            def listItem = listService.addItemToList(list.id, new ShoppingListItemDTO(itemId: item.id, quantity: 1.0))
+            def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "UpdItemCat-${UUID.randomUUID()}"))
+            def item = catalogService.createItem(new ShoppingItemDTO(name: "Bread", categoryId: category.id))
+            def listItem = listService.addItemToList(list.id, new ShoppingListItemDTO(itemId: item.id, quantity: 1.0, unit: "pcs"))
 
         when: "updating the list item"
             def result = listService.updateListItem(listItem.id, new ShoppingListItemDTO(quantity: 3.0, bought: true))
@@ -191,9 +184,9 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
     def "removeListItem should delete the item"() {
         given: "a list with an item"
             def list = listService.createList(new ShoppingListDTO(name: "Test"), "existing@example.com")
-            def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "Dairy"))
-            def item = catalogService.createItem(new ShoppingItemDTO(name: "Milk", categoryId: category.id))
-            def listItem = listService.addItemToList(list.id, new ShoppingListItemDTO(itemId: item.id, quantity: 1.0))
+            def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "RemItemCat-${UUID.randomUUID()}"))
+            def item = catalogService.createItem(new ShoppingItemDTO(name: "Butter", categoryId: category.id))
+            def listItem = listService.addItemToList(list.id, new ShoppingListItemDTO(itemId: item.id, quantity: 1.0, unit: "pcs"))
 
         when: "removing the item"
             listService.removeListItem(listItem.id)
@@ -208,9 +201,9 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
     def "suggestPrice should return latest price for item"() {
         given: "a list item with a recorded price"
             def list = listService.createList(new ShoppingListDTO(name: "Test"), "existing@example.com")
-            def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "Dairy"))
-            def item = catalogService.createItem(new ShoppingItemDTO(name: "Milk", categoryId: category.id))
-            listService.addItemToList(list.id, new ShoppingListItemDTO(itemId: item.id, quantity: 1.0, price: 2.49))
+            def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "PriceCat-${UUID.randomUUID()}"))
+            def item = catalogService.createItem(new ShoppingItemDTO(name: "Eggs", categoryId: category.id))
+            listService.addItemToList(list.id, new ShoppingListItemDTO(itemId: item.id, quantity: 1.0, unit: "pcs", price: 2.49))
 
         when: "suggesting a price"
             def result = listService.suggestPrice(item.id, null)
@@ -221,7 +214,7 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
 
     def "suggestPrice should return null when no history exists"() {
         when: "suggesting price for item with no history"
-            def result = listService.suggestPrice(999L, null)
+            def result = listService.suggestPrice(999999L, null)
 
         then: "null is returned"
             result == null
