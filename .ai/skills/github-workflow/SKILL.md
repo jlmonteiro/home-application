@@ -4,7 +4,7 @@ description: >
   Manages the full GitHub development workflow: creating issues, branches, commits,
   and pull requests following team conventions. Use when the user asks to create an
   issue, open a PR, create a branch, or manage GitHub work items.
-  Requires the GitHub MCP server to be configured.
+  Uses the GitHub CLI (`gh`).
 ---
 
 # GitHub Workflow Guide
@@ -72,11 +72,6 @@ Examples:
 2. One branch per issue
 3. Delete branch after PR is merged
 
-```bash
-git checkout main && git pull
-git checkout -b feat/<issue-number>-<description>
-```
-
 ---
 
 ## Pull Requests
@@ -122,14 +117,49 @@ Closes #<issue-number>
 Create Issue → Create Branch → Commit (Conventional) → Open PR → Review → Squash Merge
 ```
 
-## Using GitHub MCP Tools
+---
 
-When the user asks to create an issue, branch, or PR, use the GitHub MCP tools directly:
+## Using the GitHub CLI
 
-- **Create issue:** use `create_issue` with title, body, and labels
-- **Create branch:** use `create_branch` from `main`
-- **Create PR:** use `create_pull_request` with title, body, base `main`, and `Closes #N` in body
-- **List issues:** use `list_issues` to find open work
-- **Get issue:** use `get_issue` to read details before starting work
+Use `gh` commands via bash to interact with GitHub. The repo is `jlmonteiro/home-application`.
 
-Always confirm the issue number and branch name with the user before creating GitHub resources.
+### Create an issue
+```bash
+gh issue create \
+  --repo jlmonteiro/home-application \
+  --title "[feat] Short description" \
+  --body "## Context\n...\n\n## Acceptance Criteria\n- [ ] AC-1\n\n## Notes\n..." \
+  --label "feature,backend"
+```
+
+### List open issues
+```bash
+gh issue list --repo jlmonteiro/home-application
+```
+
+### View an issue
+```bash
+gh issue view <number> --repo jlmonteiro/home-application
+```
+
+### Create a branch
+```bash
+git checkout main && git pull
+git checkout -b feat/<issue-number>-<short-description>
+```
+
+### Create a pull request
+```bash
+gh pr create \
+  --repo jlmonteiro/home-application \
+  --title "feat(scope): description (#<issue>)" \
+  --body "## Summary\n...\n\n## Changes\n- ...\n\n## Related\nCloses #<issue>\n\n## Testing\n- [ ] Unit tests pass\n- [ ] Integration tests pass\n- [ ] Manually tested locally" \
+  --base main
+```
+
+### List open PRs
+```bash
+gh pr list --repo jlmonteiro/home-application
+```
+
+Always confirm the issue number and branch name with the user before running commands.

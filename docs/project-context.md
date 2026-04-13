@@ -97,3 +97,14 @@ When implementing a feature:
 ./gradlew :home-app-backend:jacocoTestReport
 docker compose up -d postgres
 ```
+
+## Project Agent
+
+The project uses a Kiro agent defined in `.kiro/agents/home-app.json`.
+
+- **Name:** `home-app`
+- **Tools:** `fs_read`, `fs_write`, `execute_bash`, `grep`, `glob`, `code`, `use_aws`
+- **Resources:**
+  - `docs/project-context.md` — this file, loaded as project context
+  - `.ai/skills/**/SKILL.md` — all skill definitions
+- **MCP Servers:** none (GitHub interactions use the `gh` CLI via `execute_bash`)
