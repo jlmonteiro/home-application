@@ -129,7 +129,7 @@ public class UserProfileController {
     @PutMapping("/me")
     public ResponseEntity<UserProfileResource> putUserProfile(
             @AuthenticationPrincipal OAuth2User principal,
-            @RequestBody @Valid UserProfileDTO userProfileDTO) {
+            @RequestBody UserProfileDTO userProfileDTO) {
 
         String email = principal.getAttribute("email");
         if (email == null || email.isBlank()) {
