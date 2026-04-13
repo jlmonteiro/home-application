@@ -12,6 +12,8 @@ import com.jorgemonteiro.home_app.repository.profiles.FamilyRoleRepository;
 import com.jorgemonteiro.home_app.repository.profiles.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -92,6 +94,10 @@ public class SettingsService {
         return new FamilyRoleDTO(role.getId(), role.getName(), role.isImmutable());
     }
 
+    @Caching(evict = {
+        @CacheEvict(value = AgeClassificationService.CACHE_NAME, allEntries = true),
+        @CacheEvict(value = AgeClassificationService.CACHE_NAME + "List", allEntries = true)
+    })
     public void updateAgeGroups(List<AgeGroupConfigDTO> dtos) {
         validateAgeRanges(dtos);
 

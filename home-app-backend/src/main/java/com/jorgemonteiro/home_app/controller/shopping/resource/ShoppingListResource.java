@@ -31,7 +31,7 @@ public class ShoppingListResource extends RepresentationModel<ShoppingListResour
         this.id = dto.getId();
         this.name = dto.getName();
         this.description = dto.getDescription();
-        this.status = dto.getStatus();
+        this.status = dto.getStatus() != null ? dto.getStatus().name() : null;
         this.createdBy = dto.getCreatedBy();
         this.creatorName = dto.getCreatorName();
         this.createdAt = dto.getCreatedAt();

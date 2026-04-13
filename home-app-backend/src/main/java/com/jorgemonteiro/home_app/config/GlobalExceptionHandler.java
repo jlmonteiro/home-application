@@ -5,9 +5,11 @@ import com.jorgemonteiro.home_app.exception.HomeAppException;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.exception.ValidationException;
 import jakarta.validation.ConstraintViolationException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,9 +22,20 @@ import java.util.Map;
 /**
  * Centralises HTTP error mapping for all application exceptions.
  * Uses RFC 7807 {@link ProblemDetail} for standardized error responses.
+ * Error type URIs are built from the configurable {@code app.error-base-url} property.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    private final String errorBaseUrl;
+
+    public GlobalExceptionHandler(@Value("${app.error-base-url}") String errorBaseUrl) {
+        this.errorBaseUrl = errorBaseUrl;
+    }
+
+    private URI errorType(AppErrorType type) {
+        return URI.create(errorBaseUrl + "/" + type.name().toLowerCase().replace('_', '-'));
+    }
 
     /**
      * Handles validation errors from {@code @Valid} and returns HTTP 400 with field details.
@@ -34,7 +47,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleMethodValidationExceptions(MethodArgumentNotValidException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed for one or more fields");
         problemDetail.setTitle("Constraint Violation");
-        problemDetail.setType(URI.create(AppErrorType.VALIDATION_ERROR.name()));
+        problemDetail.setType(errorType(AppErrorType.VALIDATION_ERROR));
 
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getAllErrors().forEach((error) -> {
@@ -57,7 +70,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleConstraintViolationException(ConstraintViolationException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Validation failed for one or more fields");
         problemDetail.setTitle("Constraint Violation");
-        problemDetail.setType(URI.create(AppErrorType.VALIDATION_ERROR.name()));
+        problemDetail.setType(errorType(AppErrorType.VALIDATION_ERROR));
 
         Map<String, String> errors = new HashMap<>();
         ex.getConstraintViolations().forEach(violation -> {
@@ -80,7 +93,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleValidationException(ValidationException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problemDetail.setTitle("Validation Error");
-        problemDetail.setType(URI.create(AppErrorType.VALIDATION_ERROR.name()));
+        problemDetail.setType(errorType(AppErrorType.VALIDATION_ERROR));
         return problemDetail;
     }
 
@@ -94,7 +107,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleObjectNotFound(ObjectNotFoundException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setTitle("Object Not Found");
-        problemDetail.setType(URI.create(AppErrorType.NOT_FOUND.name()));
+        problemDetail.setType(errorType(AppErrorType.NOT_FOUND));
         return problemDetail;
     }
 
@@ -108,7 +121,7 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleDatabaseUnreachable(DataAccessResourceFailureException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, "The database is currently unreachable. Please try again later.");
         problemDetail.setTitle("Service Unavailable");
-        problemDetail.setType(URI.create(AppErrorType.SERVICE_UNAVAILABLE.name()));
+        problemDetail.setType(errorType(AppErrorType.SERVICE_UNAVAILABLE));
         return problemDetail;
     }
 
@@ -122,7 +135,35 @@ public class GlobalExceptionHandler {
     public ProblemDetail handleHomeAppException(HomeAppException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         problemDetail.setTitle("Internal Server Error");
-        problemDetail.setType(URI.create(AppErrorType.INTERNAL_SERVER_ERROR.name()));
+        problemDetail.setType(errorType(AppErrorType.INTERNAL_SERVER_ERROR));
+        return problemDetail;
+    }
+
+    /**
+     * Handles malformed or unreadable JSON request bodies and returns HTTP 400.
+     *
+     * @param ex the parsing exception
+     * @return {@link ProblemDetail} for 400 response
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleUnreadableMessage(HttpMessageNotReadableException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Malformed or unreadable request body");
+        problemDetail.setTitle("Bad Request");
+        problemDetail.setType(errorType(AppErrorType.VALIDATION_ERROR));
+        return problemDetail;
+    }
+
+    /**
+     * Catch-all handler for any unexpected exception, ensuring RFC 7807 format is always returned.
+     *
+     * @param ex the unexpected exception
+     * @return {@link ProblemDetail} for 500 response
+     */
+    @ExceptionHandler(Exception.class)
+    public ProblemDetail handleUnexpected(Exception ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
+        problemDetail.setTitle("Internal Server Error");
+        problemDetail.setType(errorType(AppErrorType.INTERNAL_SERVER_ERROR));
         return problemDetail;
     }
 }

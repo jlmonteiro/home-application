@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.dtos.shopping;
 
+import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingListStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -23,7 +24,7 @@ public class ShoppingListDTO {
 
     private String description;
 
-    private String status;
+    private ShoppingListStatus status;
 
     private String createdBy;
 

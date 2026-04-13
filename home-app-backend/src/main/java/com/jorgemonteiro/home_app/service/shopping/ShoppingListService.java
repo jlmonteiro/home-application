@@ -139,9 +139,9 @@ public class ShoppingListService {
     /**
      * Marks a list as COMPLETED (with timestamp) when the status transitions to COMPLETED.
      */
-    private void applyStatusChange(ShoppingList list, String newStatus) {
+    private void applyStatusChange(ShoppingList list, ShoppingListStatus newStatus) {
         list.setStatus(newStatus);
-        if ("COMPLETED".equals(newStatus) && list.getCompletedAt() == null) {
+        if (ShoppingListStatus.COMPLETED == newStatus && list.getCompletedAt() == null) {
             list.setCompletedAt(LocalDateTime.now());
         }
     }

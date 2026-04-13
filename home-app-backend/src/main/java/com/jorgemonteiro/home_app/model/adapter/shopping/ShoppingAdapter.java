@@ -8,7 +8,6 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.stream.Collectors;
-
 /**
  * Adapter for converting between shopping entities and DTOs.
  * Pure data transformer — no I/O or repository calls.
@@ -228,7 +227,7 @@ public class ShoppingAdapter {
         entity.setId(dto.getId());
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
-        entity.setStatus(dto.getStatus() != null ? dto.getStatus() : "PENDING");
+        entity.setStatus(dto.getStatus() != null ? dto.getStatus() : ShoppingListStatus.PENDING);
         entity.setVersion(dto.getVersion());
         return entity;
     }
