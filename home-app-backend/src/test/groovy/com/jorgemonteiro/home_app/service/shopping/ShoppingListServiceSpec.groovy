@@ -191,8 +191,11 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
         when: "removing the item"
             listService.removeListItem(listItem.id)
 
-        then: "item is removed"
-            listService.getList(list.id).items.isEmpty()
+        and: "trying to remove it again"
+            listService.removeListItem(listItem.id)
+
+        then: "it no longer exists"
+            thrown(ObjectNotFoundException)
     }
 
     // --- Price Suggestions ---
