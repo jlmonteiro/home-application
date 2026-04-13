@@ -644,14 +644,5 @@ export async function fetchSuggestedPrice(itemId: number, storeId?: number): Pro
 // --- Auth ---
 
 export async function logout(): Promise<void> {
-  const response = await fetch('/logout', {
-    method: 'GET',
-    headers: {
-      'X-Requested-With': 'XMLHttpRequest',
-    },
-  })
-
-  if (!response.ok && response.status !== 401) {
-    throw new Error('Logout failed')
-  }
+  await apiFetch('/logout', { method: 'POST' })
 }
