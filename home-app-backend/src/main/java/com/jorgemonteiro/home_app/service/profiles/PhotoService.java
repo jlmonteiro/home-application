@@ -60,7 +60,7 @@ public class PhotoService {
             return Base64.getEncoder().encodeToString(imageBytes);
         } catch (PhotoDownloadException e) {
             throw e;
-        } catch (RestClientException e) {
+        } catch (RestClientException | IllegalArgumentException e) {
             throw new PhotoDownloadException("Failed to download photo from: " + imageUrl, e);
         }
     }
