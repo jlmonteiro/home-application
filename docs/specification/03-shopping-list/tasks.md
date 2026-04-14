@@ -60,16 +60,16 @@ Implement a comprehensive shopping assistant module that allows household member
 **Dependencies:** US-2
 
 #### Acceptance Criteria
-- [ ] AC-3.1: Create shared shopping lists with a "Completed" status.
-- [ ] AC-3.2: Add items to lists with quantity, unit (L, kg, etc.), and optional price.
-- [ ] AC-3.3: System suggests the last price paid at the selected store (or global last price).
-- [ ] AC-3.4: Lists show the user who created them.
+- [x] AC-3.1: Create shared shopping lists with a "Completed" status.
+- [x] AC-3.2: Add items to lists with quantity, unit (L, kg, etc.), and optional price.
+- [x] AC-3.3: System suggests the last price paid at the selected store (or global last price).
+- [x] AC-3.4: Lists show the user who created them.
 
 #### Tasks
-- [ ] T-3.1: Create Liquibase migration for `shopping_lists` and `shopping_list_items` tables.
-- [ ] T-3.2: Implement Price Suggestion logic in `ShoppingService`.
-- [ ] T-3.3: Build "Create/Edit List" UI with searchable item selection and store mapping.
-- [ ] T-3.4: Implement real-time list sharing via TanStack Query invalidation.
+- [x] T-3.1: Create Liquibase migration for `shopping_lists` and `shopping_list_items` tables.
+- [x] T-3.2: Implement Price Suggestion logic in `ShoppingService`.
+- [x] T-3.3: Build "Create/Edit List" UI with searchable item selection and store mapping.
+- [x] T-3.4: Implement real-time list sharing via TanStack Query invalidation.
 
 ---
 
