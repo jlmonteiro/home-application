@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
+import { MantineProvider } from '@mantine/core'
 import { AuthProvider } from '../../context/AuthContext'
 import { Dashboard } from '../../pages/dashboard/Dashboard'
 
@@ -25,11 +26,13 @@ const renderDashboard = () => {
 
   return render(
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <MemoryRouter initialEntries={['/']}>
-          <Dashboard />
-        </MemoryRouter>
-      </AuthProvider>
+      <MantineProvider>
+        <AuthProvider>
+          <MemoryRouter initialEntries={['/']}>
+            <Dashboard />
+          </MemoryRouter>
+        </AuthProvider>
+      </MantineProvider>
     </QueryClientProvider>,
   )
 }

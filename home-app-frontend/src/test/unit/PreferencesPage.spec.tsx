@@ -4,6 +4,7 @@ import { http, HttpResponse } from 'msw'
 import { setupServer } from 'msw/node'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
+import { MantineProvider } from '@mantine/core'
 import { PreferencesPage } from '../../pages/settings/PreferencesPage'
 
 const server = setupServer()
@@ -21,9 +22,11 @@ const renderPage = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={['/preferences']}>
-        <PreferencesPage />
-      </MemoryRouter>
+      <MantineProvider>
+        <MemoryRouter initialEntries={['/preferences']}>
+          <PreferencesPage />
+        </MemoryRouter>
+      </MantineProvider>
     </QueryClientProvider>,
   )
 }

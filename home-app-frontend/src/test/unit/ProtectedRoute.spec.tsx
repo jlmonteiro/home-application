@@ -20,7 +20,7 @@ vi.mock('react-router-dom', async () => {
   }
 })
 
-describe('Given the ProtectedRoute component', () => {
+describe('Route Protection', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
@@ -35,7 +35,7 @@ describe('Given the ProtectedRoute component', () => {
     )
 
   describe('When the authentication state is loading', () => {
-    it('Then it should display the loading overlay', () => {
+    it('should display the loading overlay and hide content', () => {
       vi.mocked(useAuth).mockReturnValue({
         user: null,
         isLoading: true,
@@ -45,14 +45,13 @@ describe('Given the ProtectedRoute component', () => {
 
       renderProtected(<div data-testid="protected-content">Secret Content</div>)
 
-      // Mantine's LoadingOverlay usually has data-visible or specific classes
-      // We can also check that the content is NOT there
+      expect(screen.getByTestId('auth-loading-overlay')).toBeInTheDocument()
       expect(screen.queryByTestId('protected-content')).not.toBeInTheDocument()
     })
   })
 
   describe('When the user is not authenticated', () => {
-    it('Then it should redirect to the login page', () => {
+    it('should redirect to the login page', () => {
       vi.mocked(useAuth).mockReturnValue({
         user: null,
         isLoading: false,
@@ -71,7 +70,7 @@ describe('Given the ProtectedRoute component', () => {
   })
 
   describe('When there is an authentication error', () => {
-    it('Then it should redirect to the login page', () => {
+    it('should redirect to the login page', () => {
       vi.mocked(useAuth).mockReturnValue({
         user: null,
         isLoading: false,
@@ -86,7 +85,7 @@ describe('Given the ProtectedRoute component', () => {
   })
 
   describe('When the user is authenticated', () => {
-    it('Then it should render the protected children', () => {
+    it('should render the protected children', () => {
       vi.mocked(useAuth).mockReturnValue({
         user: { id: 1, firstName: 'John' } as unknown as UserProfile,
         isLoading: false,
