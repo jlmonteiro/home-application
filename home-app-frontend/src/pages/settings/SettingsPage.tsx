@@ -25,6 +25,7 @@ import {
   createFamilyRole,
   updateFamilyRole,
   deleteFamilyRole,
+  type ApiError,
 } from '../../services/api'
 import { notifications } from '@mantine/notifications'
 import { IconCheck, IconDeviceFloppy, IconPlus, IconTrash, IconPencil } from '@tabler/icons-react'
@@ -49,10 +50,11 @@ export function SettingsPage() {
   const [localAgeGroups, setLocalAgeGroups] = useState<AgeGroupConfig[]>([])
 
   useEffect(() => {
-    if (ageGroups) {
+    if (ageGroups && localAgeGroups.length === 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Populating local state from fetched data for editing
       setLocalAgeGroups(ageGroups)
     }
-  }, [ageGroups])
+  }, [ageGroups, localAgeGroups.length])
 
   // -- Mutations --
   const ageMutation = useMutation({
@@ -67,7 +69,7 @@ export function SettingsPage() {
         icon: <IconCheck size={18} />,
       })
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       notifications.show({
         title: 'Update Failed',
         message: error.message || 'Could not update settings.',
@@ -87,7 +89,7 @@ export function SettingsPage() {
       })
       handleCloseModal()
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       notifications.show({ title: 'Error', message: error.message, color: 'red' })
     },
   })
@@ -104,7 +106,7 @@ export function SettingsPage() {
       })
       handleCloseModal()
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       notifications.show({ title: 'Error', message: error.message, color: 'red' })
     },
   })
@@ -115,7 +117,7 @@ export function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['family-roles'] })
       notifications.show({ title: 'Role Deleted', message: 'Family role removed.', color: 'green' })
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       notifications.show({
         title: 'Delete Failed',
         message: error.message || 'Check if any user is still assigned to this role.',

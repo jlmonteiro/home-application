@@ -44,7 +44,6 @@ import {
   IconCircleX,
   IconAlertCircle,
   IconBuildingStore,
-
   IconChevronRight,
   IconTrendingUp,
   IconTrendingDown,
@@ -311,7 +310,7 @@ export function ShoppingListDetailsPage() {
         if (price) addItemForm.setFieldValue('price', price)
       })
     }
-  }, [addItemForm.values.itemId, addItemForm.values.storeId])
+  }, [addItemForm])
 
   const masterItems = masterItemsData?._embedded?.items || []
   const filteredMasterItems = masterItems.filter((item) =>
@@ -356,16 +355,18 @@ export function ShoppingListDetailsPage() {
       const key = item.store?.id || 'any'
       if (!storesMap.has(key)) {
         storesMap.set(key, {
-          id: item.store?.id,
+          id: item.store?.id ?? null,
           name: item.store?.name || 'Any Store',
           items: [],
           cost: 0,
           isDone: false,
         })
       }
-      const store = storesMap.get(key)!
-      store.items.push(item)
-      store.cost += (item.price || 0) * item.quantity
+      const store = storesMap.get(key)
+      if (store) {
+        store.items.push(item)
+        store.cost += (item.price || 0) * item.quantity
+      }
     })
 
     // 2. For each store, group by Category
@@ -393,7 +394,10 @@ export function ShoppingListDetailsPage() {
         if (!categoriesMap.has(catName)) {
           categoriesMap.set(catName, { icon: catIcon, items: [], isDone: false })
         }
-        categoriesMap.get(catName)!.items.push(item)
+        const category = categoriesMap.get(catName)
+        if (category) {
+          category.items.push(item)
+        }
       })
 
       // Check if categories are done
@@ -493,7 +497,8 @@ export function ShoppingListDetailsPage() {
             }}
             onClick={() => {
               if (item.itemPhoto) {
-                setPreviewImage({ url: getPhotoSrc(item.itemPhoto)!, title: item.itemName })
+                const src = getPhotoSrc(item.itemPhoto)
+                if (src) setPreviewImage({ url: src, title: item.itemName })
               }
             }}
           >

@@ -25,7 +25,7 @@ export class ShoppingListsPage {
     await this.newListButton.click()
     const modal = this.page.getByRole('dialog', { name: /Create New Shopping List/i })
     await modal.waitFor({ state: 'visible' })
-    
+
     await this.listNameInput.fill(name)
     if (description) {
       await this.listDescriptionInput.fill(description)
@@ -37,7 +37,9 @@ export class ShoppingListsPage {
 
   async viewList(name: string) {
     // Find the card containing the list name and click its "View Items" link
-    const card = this.page.locator('.mantine-Paper-root').filter({ has: this.page.getByText(name, { exact: true }) })
+    const card = this.page
+      .locator('.mantine-Paper-root')
+      .filter({ has: this.page.getByText(name, { exact: true }) })
     await card.getByRole('link', { name: /View Items/i }).click()
   }
 }

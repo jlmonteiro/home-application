@@ -90,7 +90,7 @@ export function PreferencesPage() {
                 <Paper withBorder p="md" radius="md" bg="gray.0">
                   <Group justify="space-between">
                     <Group gap="md">
-                      <ThemeIcon variant="white" color="indigo" withBorder>
+                      <ThemeIcon variant="subtle" color="indigo">
                         <IconShoppingCart size={18} />
                       </ThemeIcon>
                       <div>
@@ -114,7 +114,7 @@ export function PreferencesPage() {
                 <Paper withBorder p="md" radius="md" bg="gray.0">
                   <Group justify="space-between">
                     <Group gap="md">
-                      <ThemeIcon variant="subtle" color="teal" withBorder>
+                      <ThemeIcon variant="subtle" color="teal">
                         <IconTicket size={18} />
                       </ThemeIcon>
                       <div>
@@ -138,7 +138,7 @@ export function PreferencesPage() {
                 <Paper withBorder p="md" radius="md" bg="gray.0" style={{ opacity: 0.6 }}>
                   <Group justify="space-between">
                     <Group gap="md">
-                      <ThemeIcon variant="white" color="gray" withBorder>
+                      <ThemeIcon variant="subtle" color="gray">
                         <IconSettings size={18} />
                       </ThemeIcon>
                       <div>

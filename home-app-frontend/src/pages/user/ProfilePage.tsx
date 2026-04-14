@@ -29,7 +29,7 @@ import {
 } from '@tabler/icons-react'
 import { useAuth } from '../../context/AuthContext'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { updateUserProfile, fetchFamilyRoles } from '../../services/api'
+import { updateUserProfile, fetchFamilyRoles, type ApiError } from '../../services/api'
 import { notifications } from '@mantine/notifications'
 import type { UserProfile } from '../../types/user'
 import dayjs from 'dayjs'
@@ -85,7 +85,7 @@ export function ProfilePage() {
         icon: <IconCheck size={18} />,
       })
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       if (error.status === 400 && error.data?.errors) {
         form.setErrors(error.data.errors)
         notifications.show({

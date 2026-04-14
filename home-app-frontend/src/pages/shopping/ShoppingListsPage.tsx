@@ -52,7 +52,7 @@ export function ShoppingListsPage() {
   })
 
   const createMutation = useMutation({
-    mutationFn: (values: any) =>
+    mutationFn: (values: typeof form.values) =>
       createList({
         name: values.name,
         description: values.description,

@@ -21,7 +21,7 @@ export class ShoppingListDetailsPage {
     this.markCompletedButton = page.getByRole('button', { name: /Mark Completed/i })
   }
 
-  async addItem(name: string, quantity: number = 1) {
+  async addItem(name: string, quantity = 1) {
     await this.addItemButton.click()
     const modal = this.page.getByRole('dialog', { name: /Add Item to List/i })
     await modal.waitFor({ state: 'visible' })
@@ -31,13 +31,17 @@ export class ShoppingListDetailsPage {
     await this.page.getByRole('option', { name, exact: true }).click()
     await this.quantityInput.fill(quantity.toString())
     await this.submitAddItemButton.click()
-    
+
     await modal.waitFor({ state: 'hidden' })
   }
 
   async toggleItemBought(itemName: string) {
     // Find the text and then the checkbox in the same visual row
-    const row = this.page.locator('div').filter({ has: this.page.getByText(itemName, { exact: true }) }).filter({ has: this.page.getByRole('checkbox') }).first()
+    const row = this.page
+      .locator('div')
+      .filter({ has: this.page.getByText(itemName, { exact: true }) })
+      .filter({ has: this.page.getByRole('checkbox') })
+      .first()
     await row.getByRole('checkbox').click()
   }
 

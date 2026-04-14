@@ -33,8 +33,15 @@ import {
   IconExternalLink,
   IconArrowRight,
   IconTicket,
+  type TablerIcon,
 } from '@tabler/icons-react'
-import { fetchStores, createStore, updateStore, deleteStore } from '../../services/api'
+import {
+  fetchStores,
+  createStore,
+  updateStore,
+  deleteStore,
+  type ApiError,
+} from '../../services/api'
 import type { ShoppingStore } from '../../services/api'
 
 /**
@@ -85,7 +92,7 @@ export function StoresPage() {
       close()
       form.reset()
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       notifications.show({
         title: 'Error',
         message: error.data?.detail || 'Failed to create store',
@@ -108,7 +115,7 @@ export function StoresPage() {
       setEditingStore(null)
       form.reset()
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       notifications.show({
         title: 'Error',
         message: error.data?.detail || 'Failed to update store',
@@ -165,14 +172,17 @@ export function StoresPage() {
 
   // Live preview Section
   const SelectedIcon = useMemo(() => {
-    return (TablerIcons as any)[form.values.icon] || IconQuestionMark
+    return (
+      (TablerIcons as unknown as Record<string, TablerIcon>)[form.values.icon] || IconQuestionMark
+    )
   }, [form.values.icon])
 
   const rows = stores
     .filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
     .map((store) => {
       const IconComponent =
-        (TablerIcons as any)[store.icon || 'IconBuildingStore'] || IconQuestionMark
+        (TablerIcons as unknown as Record<string, TablerIcon>)[store.icon || 'IconBuildingStore'] ||
+        IconQuestionMark
       return (
         <Table.Tr key={store.id}>
           <Table.Td>

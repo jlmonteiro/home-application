@@ -28,6 +28,7 @@ import {
   IconSearch,
   IconQuestionMark,
   IconExternalLink,
+  type TablerIcon,
 } from '@tabler/icons-react'
 import {
   fetchCategories,
@@ -155,8 +156,9 @@ export function ShoppingCategoriesPage() {
     .filter((cat) => cat.name.toLowerCase().includes(search.toLowerCase()))
     .map((category) => {
       const IconComponent =
-        ((TablerIcons as unknown as Record<string, React.FC>)[category.icon || ''] as React.FC) ||
-        IconQuestionMark
+        ((TablerIcons as unknown as Record<string, TablerIcon>)[
+          category.icon || ''
+        ] as TablerIcon) || IconQuestionMark
       return (
         <Table.Tr key={category.id}>
           <Table.Td>
@@ -172,7 +174,11 @@ export function ShoppingCategoriesPage() {
                   justifyContent: 'center',
                 }}
               >
-                <IconComponent size={18} stroke={1.5} color="var(--mantine-color-indigo-filled)" />
+                <IconComponent
+                  style={{ width: rem(18), height: rem(18) }}
+                  stroke={1.5}
+                  color="var(--mantine-color-indigo-filled)"
+                />
               </Box>
               <Text fw={500}>{category.name}</Text>
             </Group>
@@ -201,7 +207,7 @@ export function ShoppingCategoriesPage() {
   // Live preview of the typed icon name
   const SelectedIcon = useMemo(() => {
     return (
-      ((TablerIcons as unknown as Record<string, React.FC>)[form.values.icon] as React.FC) ||
+      ((TablerIcons as unknown as Record<string, TablerIcon>)[form.values.icon] as TablerIcon) ||
       IconQuestionMark
     )
   }, [form.values.icon])
@@ -216,7 +222,7 @@ export function ShoppingCategoriesPage() {
           </Text>
         </div>
         <Button
-          leftSection={<IconPlus size={18} />}
+          leftSection={<IconPlus style={{ width: rem(18), height: rem(18) }} />}
           onClick={() => {
             setEditingCategory(null)
             form.reset()
@@ -289,13 +295,18 @@ export function ShoppingCategoriesPage() {
               <TextInput
                 label="Category Icon"
                 placeholder="e.g. IconApple, IconBasket"
-                leftSection={<SelectedIcon style={{ width: rem(18), height: rem(18) }} stroke={1.5} />}
+                leftSection={
+                  <SelectedIcon style={{ width: rem(18), height: rem(18) }} stroke={1.5} />
+                }
                 {...form.getInputProps('icon')}
               />
               <Text size="xs" c="dimmed">
                 Find icon names at{' '}
                 <Anchor href="https://tabler.io/icons" target="_blank" size="xs">
-                  tabler.io/icons <IconExternalLink size={10} style={{ verticalAlign: 'middle' }} />
+                  tabler.io/icons{' '}
+                  <IconExternalLink
+                    style={{ width: rem(10), height: rem(10), verticalAlign: 'middle' }}
+                  />
                 </Anchor>
                 . Remember to include 'Icon' prefix (e.g., IconFish).
               </Text>

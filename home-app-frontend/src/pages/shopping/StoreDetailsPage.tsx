@@ -75,6 +75,15 @@ const formatEuro = (value: string | undefined | null) => {
   return `€${value}`
 }
 
+interface CouponFormValues {
+  name: string
+  description: string
+  value: string
+  dueDate: string
+  code: string
+  barcodeType: 'QR' | 'CODE_128'
+}
+
 export function StoreDetailsPage() {
   const { id } = useParams<{ id: string }>()
   const storeId = parseInt(id || '0')
@@ -119,14 +128,14 @@ export function StoreDetailsPage() {
     },
   })
 
-  const couponForm = useForm({
+  const couponForm = useForm<CouponFormValues>({
     initialValues: {
       name: '',
       description: '',
       value: '',
       dueDate: '',
       code: '',
-      barcodeType: 'CODE_128' as 'QR' | 'CODE_128',
+      barcodeType: 'CODE_128',
     },
     validate: {
       name: (v) => (!v ? 'Name is required' : null),
@@ -166,18 +175,7 @@ export function StoreDetailsPage() {
     },
   })
   const addCouponMutation = useMutation({
-    mutationFn: (values: typeof couponForm.values) =>
-      createCoupon(storeId, {
-        name: values.name,
-        description: values.description || undefined,
-        value: values.value
-          ? values.value.startsWith('€')
-            ? values.value
-            : `€${values.value}`
-          : undefined,
-        dueDate: values.dueDate || undefined,
-        barcode: values.code ? { code: values.code, type: values.barcodeType } : undefined,
-      }),
+    mutationFn: (coupon: Partial<Coupon>) => createCoupon(storeId, coupon),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coupons', storeId] })
       notifications.show({ title: 'Success', message: 'Coupon added', color: 'green' })
@@ -240,16 +238,12 @@ export function StoreDetailsPage() {
     openCoupon()
   }
 
-  const handleCouponSubmit = (values: typeof couponForm.values) => {
+  const handleCouponSubmit = (values: CouponFormValues) => {
     const payload: Partial<Coupon> = {
       name: values.name,
-      description: values.description,
-      value: values.value
-        ? values.value.startsWith('€')
-          ? values.value
-          : `€${values.value}`
-        : values.value,
-      dueDate: values.dueDate,
+      description: values.description || undefined,
+      value: formatEuro(values.value) || undefined,
+      dueDate: values.dueDate || undefined,
       barcode: values.code ? { code: values.code, type: values.barcodeType } : undefined,
     }
 
@@ -489,7 +483,8 @@ export function StoreDetailsPage() {
                                 setFullscreenData({
                                   name: coupon.name,
                                   number: coupon.barcode?.code || '',
-                                  barcodeType: (coupon.barcode?.type as 'QR' | 'CODE_128') || 'CODE_128',
+                                  barcodeType:
+                                    (coupon.barcode?.type as 'QR' | 'CODE_128') || 'CODE_128',
                                 })
                               }
                             >
@@ -537,8 +532,9 @@ export function StoreDetailsPage() {
                               onClick={() =>
                                 setFullscreenData({
                                   name: coupon.name,
-                                  number: coupon.barcode.code,
-                                  barcodeType: (coupon.barcode?.type as 'QR' | 'CODE_128') || 'CODE_128',
+                                  number: coupon.barcode?.code || '',
+                                  barcodeType:
+                                    (coupon.barcode?.type as 'QR' | 'CODE_128') || 'CODE_128',
                                 })
                               }
                             >
@@ -579,14 +575,7 @@ export function StoreDetailsPage() {
         radius="md"
         zIndex={2000}
       >
-        <form
-          onSubmit={cardForm.onSubmit((v) =>
-            addCardMutation.mutate({
-              name: v.name,
-              barcode: { code: v.number, type: v.barcodeType },
-            }),
-          )}
-        >
+        <form onSubmit={cardForm.onSubmit((v) => addCardMutation.mutate(v))}>
           <Stack gap="md">
             <TextInput
               required

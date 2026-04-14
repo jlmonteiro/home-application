@@ -49,7 +49,7 @@ export function Layout() {
   const location = useLocation()
   const [opened, { toggle }] = useDisclosure(true)
   const [shoppingOpened, { toggle: toggleShopping }] = useDisclosure(true)
-  // @ts-ignore
+  // @ts-expect-error: setColorScheme is not in the type definition but available in runtime for Mantine v7+
   const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
 

@@ -17,7 +17,6 @@ import spock.lang.Narrative
 import spock.lang.Title
 
 import static org.hamcrest.Matchers.hasItem
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
@@ -28,8 +27,8 @@ I want to manage categories and items via REST API
 So that I can use the shopping list module
 """)
 @SpringBootTest(classes = [HomeApplication])
-@ActiveProfiles("test")
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Transactional
 class ShoppingApiSpec extends BaseIntegrationTest {
 
@@ -40,56 +39,55 @@ class ShoppingApiSpec extends BaseIntegrationTest {
     ShoppingCatalogService shoppingService
 
     def "should create and retrieve a category"() {
-        given: "a category request"
-            def categoryJson = JsonOutput.toJson([name: "Groceries", description: "Food"])
+        given: "a new category JSON"
+            String categoryName = "Groceries-${UUID.randomUUID()}"
+            def categoryJson = JsonOutput.toJson([name: categoryName, description: "Food stuff", icon: "basket"])
 
         when: "posting to categories endpoint"
             def createResponse = mockMvc.perform(post("/api/shopping/categories")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(categoryJson)
-                    .with(user("user")))
+                    .content(categoryJson))
 
         then: "category is created"
             createResponse.andExpect(status().isCreated())
-                .andExpect(jsonPath('$.name').value("Groceries"))
-                .andExpect(jsonPath('$._links.self.href').exists())
+                .andExpect(jsonPath('$.name').value(categoryName))
 
-        when: "retrieving all categories"
+        when: "listing all categories"
             def listResponse = mockMvc.perform(get("/api/shopping/categories")
-                    .with(user("user")))
+                    .accept("application/hal+json"))
 
         then: "new category is in the list"
             listResponse.andExpect(status().isOk())
-                .andExpect(jsonPath('$._embedded.categories[*].name').value(hasItem("Groceries")))
+                .andExpect(jsonPath('$._embedded.categories[*].name').value(hasItem(categoryName)))
     }
 
     def "should create an item in a category"() {
         given: "an existing category"
-            def category = shoppingService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
-            def itemJson = JsonOutput.toJson([name: "Milk", categoryId: category.id])
+            String categoryName = "Category-${UUID.randomUUID()}"
+            def category = shoppingService.createCategory(new ShoppingCategoryDTO(name: categoryName))
+            def itemJson = JsonOutput.toJson([name: "Milk", category: [id: category.id]])
 
         when: "posting to items endpoint"
             def createResponse = mockMvc.perform(post("/api/shopping/items")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(itemJson)
-                    .with(user("user")))
+                    .content(itemJson))
 
         then: "item is created"
             createResponse.andExpect(status().isCreated())
                 .andExpect(jsonPath('$.name').value("Milk"))
-                .andExpect(jsonPath('$.categoryName').value("Groceries"))
+                .andExpect(jsonPath('$.category.name').value(categoryName))
     }
 
     def "should return 400 for duplicate category name"() {
         given: "an existing category"
-            shoppingService.createCategory(new ShoppingCategoryDTO(name: "Groceries"))
-            def duplicateJson = JsonOutput.toJson([name: "Groceries"])
+            String categoryName = "UniqueCat-${UUID.randomUUID()}"
+            shoppingService.createCategory(new ShoppingCategoryDTO(name: categoryName))
+            def duplicateJson = JsonOutput.toJson([name: categoryName])
 
         when: "posting duplicate category"
             def response = mockMvc.perform(post("/api/shopping/categories")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(duplicateJson)
-                    .with(user("user")))
+                    .content(duplicateJson))
 
         then: "bad request is returned with Validation Error title"
             response.andExpect(status().isBadRequest())

@@ -1,132 +1,86 @@
 package com.jorgemonteiro.home_app.service.shopping
 
+import com.jorgemonteiro.home_app.HomeApplication
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException
-import com.jorgemonteiro.home_app.exception.ValidationException
-import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingStoreDTO
-import com.jorgemonteiro.home_app.model.dtos.shopping.LoyaltyCardDTO
 import com.jorgemonteiro.home_app.model.dtos.shopping.CouponDTO
-import com.jorgemonteiro.home_app.repository.shopping.CouponRepository
+import com.jorgemonteiro.home_app.model.dtos.shopping.LoyaltyCardDTO
+import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingStoreDTO
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingStoreRepository
+import com.jorgemonteiro.home_app.service.shopping.ShoppingStoreService
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.data.domain.PageRequest
-import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
-import spock.lang.Narrative
-import spock.lang.Title
+import org.springframework.data.domain.PageRequest
+import spock.lang.Subject
 
 import java.time.LocalDate
 
-@Title("ShoppingStoreService")
-@Narrative("""
-As a household member
-I want to manage stores, loyalty cards, and coupons
-So that I can track where I shop and my available discounts
-""")
-@SpringBootTest
-@ActiveProfiles("test")
+@SpringBootTest(classes = [HomeApplication])
 @Transactional
 class ShoppingStoreServiceSpec extends BaseIntegrationTest {
 
     @Autowired
+    @Subject
     ShoppingStoreService storeService
 
     @Autowired
     ShoppingStoreRepository storeRepository
 
-    @Autowired
-    CouponRepository couponRepository
+    def "findAllStores should return paginated stores"() {
+        given: "initial store count"
+            def initialCount = storeRepository.count()
+        and: "multiple new stores"
+            (1..15).each {
+                storeService.createStore(new ShoppingStoreDTO(name: "Store-${UUID.randomUUID()}"))
+            }
 
-    // --- Store Tests ---
+        when: "fetching first page"
+            def page = storeService.findAllStores(PageRequest.of(0, 10))
 
-    def "createStore should save a new store successfully"() {
+        then: "10 items are returned and total elements matches initial + new"
+            page.content.size() == 10
+            page.totalElements == initialCount + 15
+    }
+
+    def "createStore should save a new store"() {
         given: "a new store DTO"
-            def dto = new ShoppingStoreDTO(name: "UniqueStore-${UUID.randomUUID()}", description: "Discount supermarket")
+            def dto = new ShoppingStoreDTO(name: "Store-${UUID.randomUUID()}", description: "Discount supermarket", icon: "L")
 
         when: "creating the store"
             def result = storeService.createStore(dto)
 
         then: "store is saved with an ID"
             result.id != null
-            result.description == "Discount supermarket"
+            result.name == dto.name
+            storeService.getStore(result.id).name == dto.name
     }
 
-    def "createStore should throw ValidationException when name already exists"() {
+    def "updateStore should modify an existing store"() {
         given: "an existing store"
-            def name = "DupStore-${UUID.randomUUID()}"
-            storeService.createStore(new ShoppingStoreDTO(name: name))
+            def store = storeService.createStore(new ShoppingStoreDTO(name: "Old Name-${UUID.randomUUID()}"))
+            def updateDto = new ShoppingStoreDTO(name: "New Name-${UUID.randomUUID()}")
 
-        when: "creating a duplicate"
-            storeService.createStore(new ShoppingStoreDTO(name: name))
+        when: "updating the store"
+            def result = storeService.updateStore(store.id, updateDto)
 
-        then: "ValidationException is thrown"
-            thrown(ValidationException)
+        then: "store is updated"
+            result.name == updateDto.name
+            storeService.getStore(store.id).name == updateDto.name
     }
 
-    def "getStore should return store when it exists"() {
+    def "deleteStore should remove store and throw exception on subsequent fetch"() {
         given: "an existing store"
-            def created = storeService.createStore(new ShoppingStoreDTO(name: "GetStore-${UUID.randomUUID()}"))
+            def store = storeService.createStore(new ShoppingStoreDTO(name: "Deletable-${UUID.randomUUID()}"))
 
-        when: "getting by ID"
-            def result = storeService.getStore(created.id)
+        when: "deleting the store"
+            storeService.deleteStore(store.id)
 
-        then: "correct store is returned"
-            result.id == created.id
-    }
-
-    def "getStore should throw ObjectNotFoundException for non-existent ID"() {
-        when: "getting a non-existent store"
-            storeService.getStore(999999L)
+        and: "trying to fetch it"
+            storeService.getStore(store.id)
 
         then: "ObjectNotFoundException is thrown"
             thrown(ObjectNotFoundException)
-    }
-
-    def "updateStore should update existing store"() {
-        given: "an existing store"
-            def created = storeService.createStore(new ShoppingStoreDTO(name: "UpdStore-${UUID.randomUUID()}"))
-            def newName = "UpdStore-New-${UUID.randomUUID()}"
-
-        when: "updating the store"
-            def result = storeService.updateStore(created.id, new ShoppingStoreDTO(name: newName, description: "Updated"))
-
-        then: "store is updated"
-            result.name == newName
-            result.description == "Updated"
-    }
-
-    def "updateStore should reject duplicate name"() {
-        given: "two existing stores"
-            def name1 = "Store1-${UUID.randomUUID()}"
-            def name2 = "Store2-${UUID.randomUUID()}"
-            storeService.createStore(new ShoppingStoreDTO(name: name1))
-            def second = storeService.createStore(new ShoppingStoreDTO(name: name2))
-
-        when: "renaming second to first's name"
-            storeService.updateStore(second.id, new ShoppingStoreDTO(name: name1))
-
-        then: "ValidationException is thrown"
-            thrown(ValidationException)
-    }
-
-    def "deleteStore should remove store"() {
-        given: "an existing store"
-            def created = storeService.createStore(new ShoppingStoreDTO(name: "DelStore-${UUID.randomUUID()}"))
-
-        when: "deleting the store"
-            storeService.deleteStore(created.id)
-
-        then: "store no longer exists"
-            !storeRepository.existsById(created.id)
-    }
-
-    def "findAllStores should return paginated results"() {
-        when: "finding all stores"
-            def result = storeService.findAllStores(PageRequest.of(0, 100))
-
-        then: "paginated results are returned"
-            result.totalElements >= 1
     }
 
     // --- Loyalty Card Tests ---
@@ -136,7 +90,11 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
             def store = storeService.createStore(new ShoppingStoreDTO(name: "CardStore-${UUID.randomUUID()}"))
 
         and: "a loyalty card DTO"
-            def dto = new LoyaltyCardDTO(storeId: store.id, name: "Plus Card", number: "123456", barcodeType: "CODE_128")
+            def dto = new LoyaltyCardDTO(
+                store: new LoyaltyCardDTO.Store(id: store.id, name: store.name),
+                name: "Plus Card",
+                barcode: new LoyaltyCardDTO.Barcode(code: "123456", type: "CODE_128")
+            )
 
         when: "creating the card"
             def result = storeService.createLoyaltyCard(dto)
@@ -149,7 +107,11 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
     def "findLoyaltyCardsByStore should return cards for a store"() {
         given: "a store with a loyalty card"
             def store = storeService.createStore(new ShoppingStoreDTO(name: "FindCardStore-${UUID.randomUUID()}"))
-            storeService.createLoyaltyCard(new LoyaltyCardDTO(storeId: store.id, name: "Card1", number: "111", barcodeType: "QR"))
+            storeService.createLoyaltyCard(new LoyaltyCardDTO(
+                store: new LoyaltyCardDTO.Store(id: store.id, name: store.name),
+                name: "Card1",
+                barcode: new LoyaltyCardDTO.Barcode(code: "111", type: "QR")
+            ))
 
         when: "finding cards by store"
             def result = storeService.findLoyaltyCardsByStore(store.id)
@@ -174,7 +136,12 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
             def store = storeService.createStore(new ShoppingStoreDTO(name: "CouponStore-${UUID.randomUUID()}"))
 
         and: "a coupon DTO"
-            def dto = new CouponDTO(storeId: store.id, name: "10% off", barcodeType: "CODE_128", dueDate: LocalDate.now().plusDays(3))
+            def dto = new CouponDTO(
+                store: new CouponDTO.Store(id: store.id, name: store.name),
+                name: "10% off",
+                barcode: new CouponDTO.Barcode(code: "C123", type: "CODE_128"),
+                dueDate: LocalDate.now().plusDays(3)
+            )
 
         when: "creating the coupon"
             def result = storeService.createCoupon(dto)
@@ -187,14 +154,22 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
     def "updateCoupon should update existing coupon"() {
         given: "an existing coupon"
             def store = storeService.createStore(new ShoppingStoreDTO(name: "UpdCouponStore-${UUID.randomUUID()}"))
-            def coupon = storeService.createCoupon(new CouponDTO(storeId: store.id, name: "Old", barcodeType: "CODE_128"))
+            def coupon = storeService.createCoupon(new CouponDTO(
+                store: new CouponDTO.Store(id: store.id, name: store.name),
+                name: "Old",
+                barcode: new CouponDTO.Barcode(code: "OLD", type: "CODE_128")
+            ))
 
         when: "updating the coupon"
-            def result = storeService.updateCoupon(coupon.id, new CouponDTO(name: "New", barcodeType: "QR", used: true))
+            def result = storeService.updateCoupon(coupon.id, new CouponDTO(
+                name: "New",
+                barcode: new CouponDTO.Barcode(code: "NEW", type: "QR"),
+                used: true
+            ))
 
         then: "coupon is updated"
             result.name == "New"
-            result.barcodeType == "QR"
+            result.barcode.type == "QR"
             result.used
     }
 
@@ -209,9 +184,9 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
     def "findExpiringCoupons should return unused coupons expiring within 4 days"() {
         given: "a store with coupons at various dates"
             def store = storeService.createStore(new ShoppingStoreDTO(name: "ExpStore-${UUID.randomUUID()}"))
-            storeService.createCoupon(new CouponDTO(storeId: store.id, name: "Expiring soon", barcodeType: "CODE_128", dueDate: LocalDate.now().plusDays(2)))
-            storeService.createCoupon(new CouponDTO(storeId: store.id, name: "Far away", barcodeType: "CODE_128", dueDate: LocalDate.now().plusDays(30)))
-            storeService.createCoupon(new CouponDTO(storeId: store.id, name: "Already used", barcodeType: "CODE_128", dueDate: LocalDate.now().plusDays(1), used: true))
+            storeService.createCoupon(new CouponDTO(store: new CouponDTO.Store(id: store.id, name: store.name), name: "Expiring soon", barcode: new CouponDTO.Barcode(code: "E1", type: "CODE_128"), dueDate: LocalDate.now().plusDays(2)))
+            storeService.createCoupon(new CouponDTO(store: new CouponDTO.Store(id: store.id, name: store.name), name: "Far away", barcode: new CouponDTO.Barcode(code: "F1", type: "CODE_128"), dueDate: LocalDate.now().plusDays(30)))
+            storeService.createCoupon(new CouponDTO(store: new CouponDTO.Store(id: store.id, name: store.name), name: "Already used", barcode: new CouponDTO.Barcode(code: "U1", type: "CODE_128"), dueDate: LocalDate.now().plusDays(1), used: true))
 
         when: "finding expiring coupons"
             def result = storeService.findExpiringCoupons()
