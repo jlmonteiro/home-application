@@ -34,8 +34,8 @@ import {
   IconArrowRight,
   IconTicket
 } from '@tabler/icons-react'
-import { fetchStores, createStore, updateStore, deleteStore } from '../services/api'
-import type { ShoppingStore } from '../services/api'
+import { fetchStores, createStore, updateStore, deleteStore } from '../../services/api'
+import type { ShoppingStore } from '../../services/api'
 
 /**
  * Helper to determine the correct image source for store logos.

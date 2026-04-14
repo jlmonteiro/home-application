@@ -14,8 +14,8 @@ import {
 } from '@tabler/icons-react'
 import { QRCodeSVG } from 'qrcode.react'
 import Barcode from 'react-barcode'
-import { useAuth } from '../context/AuthContext'
-import { fetchLists, fetchUserPreferences, fetchExpiringCoupons } from '../services/api'
+import { useAuth } from '../../context/AuthContext'
+import { fetchLists, fetchUserPreferences, fetchExpiringCoupons } from '../../services/api'
 import type { Coupon } from '../services/api'
 
 export function Dashboard() {

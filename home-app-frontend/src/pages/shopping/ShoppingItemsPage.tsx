@@ -41,8 +41,8 @@ import {
   deleteItem, 
   fetchCategories,
   fetchItemPriceHistory
-} from '../services/api'
-import type { ShoppingItem, ShoppingItemPriceHistory } from '../services/api'
+} from '../../services/api'
+import type { ShoppingItem, ShoppingItemPriceHistory } from '../../services/api'
 
 /**
  * Helper to determine the correct image source for item photos.

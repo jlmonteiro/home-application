@@ -28,9 +28,9 @@ import {
   IconCalendar,
   IconUser
 } from '@tabler/icons-react'
-import { fetchLists, createList, deleteList } from '../services/api'
-import type { ShoppingList } from '../services/api'
-import { MarkdownContent } from '../components/MarkdownContent'
+import { fetchLists, createList, deleteList } from '../../services/api'
+import type { ShoppingList } from '../../services/api'
+import { MarkdownContent } from '../../components/MarkdownContent'
 
 export function ShoppingListsPage() {
   const queryClient = useQueryClient()

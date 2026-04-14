@@ -63,9 +63,9 @@ import {
   createItem,
   fetchCategories,
   fetchItemPriceHistory
-} from '../services/api'
-import type { ShoppingList, ShoppingListItem, ShoppingStore, ShoppingItemPriceHistory } from '../services/api'
-import { MarkdownContent } from '../components/MarkdownContent'
+} from '../../services/api'
+import type { ShoppingList, ShoppingListItem, ShoppingStore, ShoppingItemPriceHistory } from '../../services/api'
+import { MarkdownContent } from '../../components/MarkdownContent'
 
 /**
  * Helper to determine the correct image source for item photos.

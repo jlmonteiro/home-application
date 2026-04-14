@@ -2,7 +2,7 @@ import { Title, Text, Paper, Stack, Switch, Group, Divider, Button, LoadingOverl
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { IconSettings, IconShoppingCart, IconLayoutDashboard, IconTicket } from '@tabler/icons-react'
-import { fetchUserPreferences, updateUserPreferences } from '../services/api'
+import { fetchUserPreferences, updateUserPreferences } from '../../services/api'
 
 export function PreferencesPage() {
   const queryClient = useQueryClient()

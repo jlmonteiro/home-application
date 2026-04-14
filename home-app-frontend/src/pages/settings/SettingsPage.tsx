@@ -25,7 +25,7 @@ import {
   createFamilyRole, 
   updateFamilyRole, 
   deleteFamilyRole 
-} from '../services/api'
+} from '../../services/api'
 import { notifications } from '@mantine/notifications'
 import { 
   IconCheck, 
@@ -36,7 +36,7 @@ import {
 } from '@tabler/icons-react'
 import { useState, useEffect } from 'react'
 import { useDisclosure } from '@mantine/hooks'
-import type { AgeGroupConfig, FamilyRole } from '../services/api'
+import type { AgeGroupConfig, FamilyRole } from '../../services/api'
 
 export function SettingsPage() {
   const queryClient = useQueryClient()

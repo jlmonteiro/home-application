@@ -27,11 +27,11 @@ import {
   IconCake,
   IconUsers,
 } from '@tabler/icons-react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../../context/AuthContext'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { updateUserProfile, fetchFamilyRoles } from '../services/api'
+import { updateUserProfile, fetchFamilyRoles } from '../../services/api'
 import { notifications } from '@mantine/notifications'
-import type { UserProfile } from '../types/user'
+import type { UserProfile } from '../../types/user'
 import dayjs from 'dayjs'
 
 const PHONE_REGEX = /^\+?[0-9\s\-()]{7,20}$/

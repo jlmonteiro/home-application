@@ -48,8 +48,8 @@ import {
   createCoupon,
   deleteCoupon,
   updateCoupon
-} from '../services/api'
-import type { LoyaltyCard, Coupon } from '../services/api'
+} from '../../services/api'
+import type { LoyaltyCard, Coupon } from '../../services/api'
 import { QRCodeSVG } from 'qrcode.react'
 import Barcode from 'react-barcode'
 import { useState } from 'react'
