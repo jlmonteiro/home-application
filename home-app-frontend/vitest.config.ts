@@ -12,6 +12,9 @@ export default mergeConfig(
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],
+        reportOnFailure: true,
+        reportsDirectory: './build/test-reports/unit',
+        exclude: ['src/test/**', '**/*.config.*'],
         thresholds: {
           lines: 80,
           functions: 80,
@@ -19,6 +22,8 @@ export default mergeConfig(
           statements: 80,
         },
       },
+      reporters: ['default', 'junit'],
+      outputFile: './build/test-reports/unit/results.xml',
       include: ['src/**/*.{test,spec}.{ts,tsx}'],
     },
   }),

@@ -41,6 +41,7 @@ tasks.register<NpmTask>("testUnit") {
     description = "Runs unit tests with coverage."
     dependsOn("npmInstall")
     args.set(listOf("run", "test:coverage"))
+    workingDir.set(file("."))
 }
 
 tasks.register<NpmTask>("testE2e") {
