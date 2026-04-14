@@ -23,7 +23,6 @@ import {
   Textarea,
   Accordion,
   Center,
-  Timeline,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
@@ -40,7 +39,6 @@ import {
   IconAlertCircle,
   IconBuildingStore,
   IconChevronRight,
-  IconHistory,
   IconBasket,
 } from '@tabler/icons-react'
 import {
@@ -60,6 +58,9 @@ import {
 import type { ShoppingList, ShoppingListItem, ShoppingStore } from '../../services/api'
 import { MarkdownContent } from '../../components/MarkdownContent'
 import { ListItemRow } from '../../components/shopping/ListItemRow'
+import { EditListModal } from '../../components/shopping/EditListModal'
+import { ImagePreviewModal } from '../../components/shopping/ImagePreviewModal'
+import { PriceHistoryModal } from '../../components/shopping/PriceHistoryModal'
 import { getPhotoSrc } from '../../utils/photo'
 
 export function ShoppingListDetailsPage() {
@@ -908,98 +909,33 @@ export function ShoppingListDetailsPage() {
       </Modal>
 
       {/* Edit List Modal */}
-      <Modal
+      <EditListModal
         opened={editListOpened}
         onClose={closeEditList}
-        title="Edit List Info"
-        radius="md"
-        zIndex={2000}
-      >
-        <form onSubmit={listForm.onSubmit((v) => updateListMutation.mutate(v))}>
-          <Stack gap="md">
-            <TextInput required label="List Name" {...listForm.getInputProps('name')} />
-            <Textarea
-              label="Description"
-              placeholder="Markdown supported"
-              minRows={6}
-              {...listForm.getInputProps('description')}
-            />
-            <Button type="submit" mt="md" loading={updateListMutation.isPending}>
-              Save Changes
-            </Button>
-          </Stack>
-        </form>
-      </Modal>
+        list={list}
+        onSubmit={(data) => updateListMutation.mutate(data)}
+        isPending={updateListMutation.isPending}
+      />
 
       {/* Image Preview Modal */}
-      <Modal
+      <ImagePreviewModal
         opened={!!previewImage}
         onClose={() => setPreviewImage(null)}
-        title={previewImage?.title}
-        size="lg"
-        radius="md"
-        zIndex={6000}
-      >
-        <Center pb="xl">
-          <Image
-            src={previewImage?.url}
-            alt={previewImage?.title}
-            radius="md"
-            style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain' }}
-          />
-        </Center>
-      </Modal>
+        url={previewImage?.url || null}
+        title={previewImage?.title || ''}
+      />
 
       {/* Price History Modal */}
-      <Modal
+      <PriceHistoryModal
         opened={historyOpened}
         onClose={() => {
           closeHistory()
           setSelectedHistoryItem(null)
         }}
-        title={`Price History: ${selectedHistoryItem?.name}`}
-        radius="md"
-        size="lg"
-        zIndex={2000}
-      >
-        <Box pos="relative" mih={200}>
-          <LoadingOverlay visible={historyLoading} />
-
-          {priceHistory && priceHistory.length > 0 ? (
-            <Timeline active={0} bulletSize={24} lineWidth={2}>
-              {priceHistory.map((entry) => (
-                <Timeline.Item
-                  key={entry.id}
-                  bullet={<IconBuildingStore size={14} />}
-                  title={
-                    <Group justify="space-between">
-                      <Text fw={700} size="lg">
-                        €{entry.price.toFixed(2)}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {new Date(entry.recordedAt).toLocaleDateString()}{' '}
-                        {new Date(entry.recordedAt).toLocaleTimeString()}
-                      </Text>
-                    </Group>
-                  }
-                >
-                  <Text size="sm" c="dimmed">
-                    Recorded at{' '}
-                    <Text span fw={500} c="dark">
-                      {entry.storeName || 'Any Store'}
-                    </Text>
-                  </Text>
-                </Timeline.Item>
-              ))}
-            </Timeline>
-          ) : (
-            <Stack align="center" py="xl">
-              <IconHistory size={48} color="var(--mantine-color-gray-3)" />
-              <Text c="dimmed">No price history available for this item yet.</Text>
-            </Stack>
-          )}
-        </Box>
-      </Modal>
+        itemName={selectedHistoryItem?.name || null}
+        history={priceHistory}
+        isLoading={historyLoading}
+      />
     </Stack>
   )
 }
