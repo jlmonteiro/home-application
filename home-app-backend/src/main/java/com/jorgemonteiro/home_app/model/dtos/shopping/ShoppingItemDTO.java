@@ -3,7 +3,9 @@ package com.jorgemonteiro.home_app.model.dtos.shopping;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.hateoas.server.core.Relation;
 
 /**
@@ -24,14 +26,19 @@ public class ShoppingItemDTO {
     /** Base64-encoded photo data or URL. */
     private String photo;
 
-    /** The ID of the category this item belongs to. */
-    @NotNull(message = "Category ID is required")
-    private Long categoryId;
-
-    /** The display name of the category. */
-    private String categoryName;
+    /** The category this item belongs to. */
+    @NotNull(message = "Category is required")
+    private Category category;
 
     /** Version number for optimistic locking. */
     private Long version;
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Category {
+        private Long id;
+        private String name;
+        private String icon;
+    }
 }

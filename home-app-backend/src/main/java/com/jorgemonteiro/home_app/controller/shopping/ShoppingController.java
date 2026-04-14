@@ -1,6 +1,9 @@
 package com.jorgemonteiro.home_app.controller.shopping;
 
-import com.jorgemonteiro.home_app.controller.shopping.resource.*;
+import com.jorgemonteiro.home_app.controller.shopping.resource.category.ShoppingCategoryResource;
+import com.jorgemonteiro.home_app.controller.shopping.resource.category.ShoppingCategoryResourceAssembler;
+import com.jorgemonteiro.home_app.controller.shopping.resource.item.ShoppingItemResource;
+import com.jorgemonteiro.home_app.controller.shopping.resource.item.ShoppingItemResourceAssembler;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingCategoryDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingItemDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingItemPriceHistoryDTO;
@@ -38,12 +41,11 @@ public class ShoppingController {
     // --- Categories ---
 
     @GetMapping("/categories")
-    public ResponseEntity<PagedShoppingCategoryResource> listCategories(
+    public ResponseEntity<PagedModel<ShoppingCategoryResource>> listCategories(
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         Page<ShoppingCategoryDTO> page = catalogService.findAllCategories(pageable);
         PagedModel<ShoppingCategoryResource> pagedModel = pagedCategoryAssembler.toModel(page, categoryAssembler);
-        return ResponseEntity.ok(new PagedShoppingCategoryResource(
-                pagedModel.getContent(), pagedModel.getMetadata(), pagedModel.getLinks()));
+        return ResponseEntity.ok(pagedModel);
     }
 
     @GetMapping("/categories/{id}")
@@ -72,22 +74,20 @@ public class ShoppingController {
     // --- Items ---
 
     @GetMapping("/items")
-    public ResponseEntity<PagedShoppingItemResource> listItems(
+    public ResponseEntity<PagedModel<ShoppingItemResource>> listItems(
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         Page<ShoppingItemDTO> page = catalogService.findAllItems(pageable);
         PagedModel<ShoppingItemResource> pagedModel = pagedItemAssembler.toModel(page, itemAssembler);
-        return ResponseEntity.ok(new PagedShoppingItemResource(
-                pagedModel.getContent(), pagedModel.getMetadata(), pagedModel.getLinks()));
+        return ResponseEntity.ok(pagedModel);
     }
 
     @GetMapping("/categories/{id}/items")
-    public ResponseEntity<PagedShoppingItemResource> listItemsByCategory(
+    public ResponseEntity<PagedModel<ShoppingItemResource>> listItemsByCategory(
             @PathVariable Long id,
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         Page<ShoppingItemDTO> page = catalogService.findItemsByCategory(id, pageable);
         PagedModel<ShoppingItemResource> pagedModel = pagedItemAssembler.toModel(page, itemAssembler);
-        return ResponseEntity.ok(new PagedShoppingItemResource(
-                pagedModel.getContent(), pagedModel.getMetadata(), pagedModel.getLinks()));
+        return ResponseEntity.ok(pagedModel);
     }
 
     @GetMapping("/items/{id}")

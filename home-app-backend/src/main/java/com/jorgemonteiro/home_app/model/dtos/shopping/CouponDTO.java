@@ -4,11 +4,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 /**
  * Data transfer object for reading and updating a coupon.
@@ -19,9 +20,7 @@ public class CouponDTO {
 
     private Long id;
 
-    private Long storeId;
-
-    private String storeName;
+    private Store store;
 
     @NotBlank(message = "Coupon name is required")
     @Size(max = 100, message = "Coupon name must not exceed 100 characters")
@@ -36,12 +35,25 @@ public class CouponDTO {
 
     private LocalDate dueDate;
 
-    private String code;
-
-    @Pattern(regexp = "^(QR|CODE_128)$", message = "Barcode type must be QR or CODE_128")
-    private String barcodeType;
+    private Barcode barcode;
 
     private boolean used;
 
     private Long version;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Store {
+        private Long id;
+        private String name;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Barcode {
+        private String code;
+        private String type;
+    }
 }

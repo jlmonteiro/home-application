@@ -1,4 +1,4 @@
-package com.jorgemonteiro.home_app.controller.shopping.resource;
+package com.jorgemonteiro.home_app.controller.shopping.resource.coupon;
 
 import com.jorgemonteiro.home_app.controller.shopping.StoreController;
 import com.jorgemonteiro.home_app.model.dtos.shopping.CouponDTO;
@@ -9,7 +9,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 /**
- * Assembler for creating {@link CouponResource}.
+ * Assembler for creating HATEOAS resources for coupons.
  */
 @Component
 public class CouponResourceAssembler extends RepresentationModelAssemblerSupport<CouponDTO, CouponResource> {

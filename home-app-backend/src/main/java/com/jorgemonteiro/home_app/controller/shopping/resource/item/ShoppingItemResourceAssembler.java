@@ -1,4 +1,4 @@
-package com.jorgemonteiro.home_app.controller.shopping.resource;
+package com.jorgemonteiro.home_app.controller.shopping.resource.item;
 
 import com.jorgemonteiro.home_app.controller.shopping.ShoppingController;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingItemDTO;
@@ -8,12 +8,8 @@ import org.springframework.stereotype.Component;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-/**
- * Assembler for creating {@link ShoppingItemResource} from {@link ShoppingItemDTO}.
- */
 @Component
 public class ShoppingItemResourceAssembler extends RepresentationModelAssemblerSupport<ShoppingItemDTO, ShoppingItemResource> {
-
     public ShoppingItemResourceAssembler() {
         super(ShoppingController.class, ShoppingItemResource.class);
     }

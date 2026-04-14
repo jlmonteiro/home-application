@@ -1,9 +1,9 @@
 package com.jorgemonteiro.home_app.controller.shopping;
 
-import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListItemResource;
-import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListItemResourceAssembler;
-import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListResource;
-import com.jorgemonteiro.home_app.controller.shopping.resource.ShoppingListResourceAssembler;
+import com.jorgemonteiro.home_app.controller.shopping.resource.list.ShoppingListItemResource;
+import com.jorgemonteiro.home_app.controller.shopping.resource.list.ShoppingListItemResourceAssembler;
+import com.jorgemonteiro.home_app.controller.shopping.resource.list.ShoppingListResource;
+import com.jorgemonteiro.home_app.controller.shopping.resource.list.ShoppingListResourceAssembler;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListItemDTO;
 import com.jorgemonteiro.home_app.service.shopping.ShoppingListService;

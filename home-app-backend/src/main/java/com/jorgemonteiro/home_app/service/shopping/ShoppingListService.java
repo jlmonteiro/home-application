@@ -90,7 +90,7 @@ public class ShoppingListService {
 
         ShoppingListItem entity = shoppingAdapter.toListItemEntity(dto);
         entity.setItem(item);
-        ofNullable(dto.getStoreId()).map(this::requireStore).ifPresent(entity::setStore);
+        ofNullable(dto.getStore()).map(s -> s.getId()).map(this::requireStore).ifPresent(entity::setStore);
 
         list.addItem(entity);
         ShoppingListItem saved = listItemRepository.save(entity);
@@ -108,7 +108,7 @@ public class ShoppingListService {
         ofNullable(dto.getPrice()).ifPresent(existing::setPrice);
         ofNullable(dto.getBought()).ifPresent(existing::setBought);
         ofNullable(dto.getUnavailable()).ifPresent(existing::setUnavailable);
-        ofNullable(dto.getStoreId()).map(this::requireStore).ifPresent(existing::setStore);
+        ofNullable(dto.getStore()).map(s -> s.getId()).map(this::requireStore).ifPresent(existing::setStore);
 
         ShoppingListItem saved = listItemRepository.save(existing);
 

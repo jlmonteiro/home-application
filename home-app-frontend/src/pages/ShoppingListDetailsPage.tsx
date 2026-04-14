@@ -121,11 +121,16 @@ export function ShoppingListDetailsPage() {
 
   // Mutations
   const addItemMutation = useMutation({
-    mutationFn: (values: any) => addItemToList(listId, {
-      ...values,
-      itemId: parseInt(values.itemId),
-      storeId: values.storeId ? parseInt(values.storeId) : null
-    }),
+    mutationFn: (values: any) => {
+      const selectedStore = values.storeId ? storesData?._embedded?.stores?.find((s: any) => s.id === parseInt(values.storeId)) : null
+      return addItemToList(listId, {
+        itemId: parseInt(values.itemId),
+        quantity: values.quantity,
+        unit: values.unit,
+        price: values.price,
+        store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null
+      })
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-list', listId] })
       notifications.show({ title: 'Success', message: 'Item added', color: 'green' })
@@ -252,7 +257,7 @@ export function ShoppingListDetailsPage() {
   const handleEditItem = (item: ShoppingListItem) => {
     setEditingItem(item)
     editItemForm.setValues({
-      storeId: item.storeId?.toString() || '',
+      storeId: item.store?.id?.toString() || '',
       quantity: item.quantity,
       unit: item.unit,
       price: item.price || 0,
@@ -313,11 +318,11 @@ export function ShoppingListDetailsPage() {
     }>()
 
     available.forEach(item => {
-      const key = item.storeId || 'any'
+      const key = item.store?.id || 'any'
       if (!storesMap.has(key)) {
         storesMap.set(key, { 
-          id: item.storeId, 
-          name: item.storeName || 'Any Store', 
+          id: item.store?.id, 
+          name: item.store?.name || 'Any Store', 
           items: [], 
           cost: 0, 
           isDone: false 
@@ -335,17 +340,17 @@ export function ShoppingListDetailsPage() {
       // Initial count to see which categories have > 1 item
       const counts: Record<string, number> = {}
       store.items.forEach(i => {
-        const name = i.categoryName || 'Others'
+        const name = i.category?.name || 'Others'
         counts[name] = (counts[name] || 0) + 1
       })
 
       store.items.forEach(item => {
-        const rawCatName = item.categoryName || 'Others'
+        const rawCatName = item.category?.name || 'Others'
         const isSingleton = counts[rawCatName] === 1
         const catName = isSingleton ? 'Others' : rawCatName
         
-        // If it's Others, use generic basket icon, otherwise use the specific icon
-        const catIcon = catName === 'Others' ? 'IconBasket' : (item.categoryIcon || 'IconBasket')
+        // If it's Others, use generic basket icon, otherwise use the category icon
+        const catIcon = catName === 'Others' ? 'IconBasket' : (item.category?.icon || 'IconBasket')
 
         if (!categoriesMap.has(catName)) {
           categoriesMap.set(catName, { icon: catIcon, items: [], isDone: false })
@@ -741,13 +746,18 @@ export function ShoppingListDetailsPage() {
 
       {/* Edit Item Modal */}
       <Modal opened={editItemOpened} onClose={closeEditItem} title={`Edit ${editingItem?.itemName}`} radius="md" zIndex={2000}>
-        <form onSubmit={editItemForm.onSubmit((v) => updateItemMutation.mutate({
-          id: editingItem!.id,
-          data: {
-            ...v,
-            storeId: v.storeId ? parseInt(v.storeId) : null
-          }
-        }))}>
+        <form onSubmit={editItemForm.onSubmit((v) => {
+          const selectedStore = v.storeId ? storesData?._embedded?.stores?.find(s => s.id === parseInt(v.storeId)) : null
+          updateItemMutation.mutate({
+            id: editingItem!.id,
+            data: {
+              quantity: v.quantity,
+              unit: v.unit,
+              price: v.price,
+              store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null
+            }
+          })
+        })}>
           <Stack gap="md">
             <Select 
               label="Change Store" 
@@ -788,10 +798,15 @@ export function ShoppingListDetailsPage() {
 
       {/* Create New Item Modal (Nested) */}
       <Modal opened={createItemOpened} onClose={closeCreateItem} title="Create New Master Item" radius="md" zIndex={4000}>
-        <form onSubmit={createItemForm.onSubmit((v) => createItemMutation.mutate({
-          ...v,
-          categoryId: parseInt(v.categoryId)
-        }))}>
+        <form onSubmit={createItemForm.onSubmit((v) => {
+          const selectedCategory = masterItemsData?._embedded?.items
+            ?.find(item => item.category.id === parseInt(v.categoryId))?.category
+          createItemMutation.mutate({
+            name: v.name,
+            photo: v.photo,
+            category: selectedCategory || { id: parseInt(v.categoryId), name: '', icon: '' }
+          })
+        })}>
           <Stack gap="md">
             <TextInput required label="Item Name" {...createItemForm.getInputProps('name')} />
             <Select 

@@ -1,6 +1,9 @@
 package com.jorgemonteiro.home_app.controller.shopping;
 
-import com.jorgemonteiro.home_app.controller.shopping.resource.*;
+import com.jorgemonteiro.home_app.controller.shopping.resource.HateoasResource;
+import com.jorgemonteiro.home_app.controller.shopping.resource.store.*;
+import com.jorgemonteiro.home_app.controller.shopping.resource.coupon.*;
+import com.jorgemonteiro.home_app.controller.shopping.resource.loyalty.*;
 import com.jorgemonteiro.home_app.model.dtos.shopping.CouponDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.LoyaltyCardDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingStoreDTO;
@@ -17,6 +20,8 @@ import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import static java.util.Optional.ofNullable;
 
 /**
  * REST controller for managing shopping stores, loyalty cards, and coupons.
@@ -39,12 +44,12 @@ public class StoreController {
     // --- Stores ---
 
     @GetMapping("/stores")
-    public ResponseEntity<PagedShoppingStoreResource> listStores(
+    public ResponseEntity<PagedModel<ShoppingStoreResource>> listStores(
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
         Page<ShoppingStoreDTO> page = storeService.findAllStores(pageable);
-        PagedModel<ShoppingStoreResource> pagedModel = pagedStoreAssembler.toModel(page, storeAssembler);
-        return ResponseEntity.ok(new PagedShoppingStoreResource(
-                pagedModel.getContent(), pagedModel.getMetadata(), pagedModel.getLinks()));
+        var resources = page.map(storeAssembler::toModel).toList();
+        var metadata = new PagedModel.PageMetadata(page.getSize(), page.getNumber(), page.getTotalElements(), page.getTotalPages());
+        return ResponseEntity.ok(PagedModel.of(resources, metadata));
     }
 
     @GetMapping("/stores/{id}")
@@ -80,7 +85,12 @@ public class StoreController {
     @PostMapping("/stores/{id}/loyalty-cards")
     public ResponseEntity<LoyaltyCardResource> createLoyaltyCard(
             @PathVariable Long id, @RequestBody @Valid LoyaltyCardDTO dto) {
-        dto.setStoreId(id);
+
+        ofNullable(dto.getStore())
+                .ifPresentOrElse(
+                    store -> store.setId(id),
+                    () -> dto.setStore(new LoyaltyCardDTO.Store(id, null))
+                );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(cardAssembler.toModel(storeService.createLoyaltyCard(dto)));
     }
@@ -94,13 +104,12 @@ public class StoreController {
     // --- Coupons ---
 
     @GetMapping("/stores/{id}/coupons")
-    public ResponseEntity<PagedCouponResource> listCoupons(
+    public ResponseEntity<PagedModel<CouponResource>> listCoupons(
             @PathVariable Long id,
             @PageableDefault(size = 20, sort = "dueDate", direction = Sort.Direction.ASC) Pageable pageable) {
         Page<CouponDTO> page = storeService.findCouponsByStore(id, pageable);
         PagedModel<CouponResource> pagedModel = pagedCouponAssembler.toModel(page, couponAssembler);
-        return ResponseEntity.ok(new PagedCouponResource(
-                pagedModel.getContent(), pagedModel.getMetadata(), pagedModel.getLinks()));
+        return ResponseEntity.ok(pagedModel);
     }
 
     @GetMapping("/coupons/expiring")
@@ -111,7 +120,11 @@ public class StoreController {
     @PostMapping("/stores/{id}/coupons")
     public ResponseEntity<CouponResource> createCoupon(
             @PathVariable Long id, @RequestBody @Valid CouponDTO dto) {
-        dto.setStoreId(id);
+        ofNullable(dto.getStore())
+                .ifPresentOrElse(
+                    store -> store.setId(id),
+                    () -> dto.setStore(new CouponDTO.Store(id, null))
+                );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(couponAssembler.toModel(storeService.createCoupon(dto)));
     }

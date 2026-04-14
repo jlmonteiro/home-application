@@ -87,9 +87,11 @@ export interface ShoppingItem {
   id: number
   name: string
   photo?: string
-  categoryId: number
-  categoryName: string
-  categoryIcon: string
+  category: {
+    id: number
+    name: string
+    icon?: string
+  }
   version: number
   _links?: {
     self: { href: string }
@@ -121,11 +123,15 @@ export interface ShoppingStore {
 
 export interface LoyaltyCard {
   id: number
-  storeId: number
-  storeName: string
+  store: {
+    id: number
+    name: string
+  }
   name: string
-  number: string
-  barcodeType: 'QR' | 'CODE_128'
+  barcode: {
+    code: string
+    type: 'QR' | 'CODE_128'
+  }
   version: number
   _links?: {
     self: { href: string }
@@ -135,15 +141,19 @@ export interface LoyaltyCard {
 
 export interface Coupon {
   id: number
-  storeId: number
-  storeName: string
+  store: {
+    id: number
+    name: string
+  }
   name: string
   description?: string
   value?: string
   photo?: string
   dueDate?: string
-  code?: string
-  barcodeType?: 'QR' | 'CODE_128'
+  barcode?: {
+    code: string
+    type: 'QR' | 'CODE_128'
+  }
   used: boolean
   version: number
   _links?: {
@@ -157,10 +167,14 @@ export interface ShoppingListItem {
   itemId: number
   itemName: string
   itemPhoto: string
-  categoryName: string
-  categoryIcon: string
-  storeId: number | null
-  storeName: string | null
+  category: {
+    name: string
+    icon?: string
+  }
+  store: {
+    id: number | null
+    name: string | null
+  }
   quantity: number
   unit: string
   price: number | null

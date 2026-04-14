@@ -214,17 +214,20 @@ export function StoreDetailsPage() {
       description: coupon.description || '',
       value: coupon.value?.replace('€', '') || '',
       dueDate: coupon.dueDate ? new Date(coupon.dueDate).toISOString().split('T')[0] : '',
-      code: coupon.code || '',
-      barcodeType: (coupon.barcodeType as any) || 'CODE_128',
+      code: coupon.barcode?.code || '',
+      barcodeType: (coupon.barcode?.type as any) || 'CODE_128',
     })
     openCoupon()
   }
 
   const handleCouponSubmit = (values: any) => {
-    // Ensure value starts with Euro if provided
     const payload = {
-      ...values,
-      value: values.value ? (values.value.startsWith('€') ? values.value : `€${values.value}`) : values.value
+      name: values.name,
+      description: values.description,
+      value: values.value ? (values.value.startsWith('€') ? values.value : `€${values.value}`) : values.value,
+      dueDate: values.dueDate,
+      photo: values.photo,
+      barcode: values.code ? { code: values.code, type: values.barcodeType } : undefined
     }
 
     if (editingCoupon) {
@@ -286,7 +289,7 @@ export function StoreDetailsPage() {
                     <Group justify="space-between" w="100%">
                       <Text fw={700} size="lg">{card.name}</Text>
                       <Group gap={4}>
-                        <ActionIcon variant="subtle" color="blue" onClick={() => setFullscreenData({ name: card.name, number: card.number, barcodeType: card.barcodeType })}>
+                        <ActionIcon variant="subtle" color="blue" onClick={() => setFullscreenData({ name: card.name, number: card.barcode.code, barcodeType: card.barcode.type })}>
                           <IconMaximize size={16} />
                         </ActionIcon>
                         <ActionIcon variant="subtle" color="red" onClick={() => {
@@ -301,15 +304,15 @@ export function StoreDetailsPage() {
                       bg="white" 
                       p="md" 
                       style={{ borderRadius: rem(8), border: '1px solid var(--mantine-color-gray-2)', cursor: 'pointer' }}
-                      onClick={() => setFullscreenData({ name: card.name, number: card.number, barcodeType: card.barcodeType })}
+                      onClick={() => setFullscreenData({ name: card.name, number: card.barcode.code, barcodeType: card.barcode.type })}
                     >
-                      {card.barcodeType === 'QR' ? (
-                        <QRCodeSVG value={card.number} size={150} />
+                      {card.barcode.type === 'QR' ? (
+                        <QRCodeSVG value={card.barcode.code} size={150} />
                       ) : (
-                        <Barcode value={card.number} width={1.5} height={60} fontSize={14} />
+                        <Barcode value={card.barcode.code} width={1.5} height={60} fontSize={14} />
                       )}
                     </Box>
-                    <Text fw={500} ff="monospace">{card.number}</Text>
+                    <Text fw={500} ff="monospace">{card.barcode.code}</Text>
                   </Stack>
                 </Paper>
               ))}
@@ -374,7 +377,7 @@ export function StoreDetailsPage() {
                         </Group>
                       )}
 
-                      {coupon.code && (
+                      {coupon.barcode?.code && (
                         <>
                           <Divider my="xs" variant="dashed" />
                           <Center>
@@ -387,12 +390,12 @@ export function StoreDetailsPage() {
                                 cursor: 'pointer',
                                 filter: isExpired ? 'grayscale(1)' : undefined
                               }}
-                              onClick={() => setFullscreenData({ name: coupon.name, number: coupon.code!, barcodeType: coupon.barcodeType! })}
+                              onClick={() => setFullscreenData({ name: coupon.name, number: coupon.barcode!.code, barcodeType: coupon.barcode!.type })}
                             >
-                              {coupon.barcodeType === 'QR' ? (
-                                <QRCodeSVG value={coupon.code} size={80} />
+                              {coupon.barcode.type === 'QR' ? (
+                                <QRCodeSVG value={coupon.barcode.code} size={80} />
                               ) : (
-                                <Barcode value={coupon.code} width={1} height={40} fontSize={10} />
+                                <Barcode value={coupon.barcode.code} width={1} height={40} fontSize={10} />
                               )}
                             </Box>
                           </Center>
@@ -439,7 +442,10 @@ export function StoreDetailsPage() {
 
       {/* Loyalty Card Modal */}
       <Modal opened={cardOpened} onClose={closeCard} title="Add Loyalty Card" radius="md" zIndex={2000}>
-        <form onSubmit={cardForm.onSubmit(v => addCardMutation.mutate(v))}>
+        <form onSubmit={cardForm.onSubmit(v => addCardMutation.mutate({
+          name: v.name,
+          barcode: { code: v.number, type: v.barcodeType }
+        }))}>
           <Stack gap="md">
             <TextInput required label="Card Name" placeholder="e.g. My Clubcard" {...cardForm.getInputProps('name')} />
             <TextInput required label="Card Number" placeholder="Scan or type number" {...cardForm.getInputProps('number')} />

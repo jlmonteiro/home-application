@@ -89,7 +89,7 @@ public class ShoppingStoreService {
     }
 
     public LoyaltyCardDTO createLoyaltyCard(@Valid LoyaltyCardDTO dto) {
-        ShoppingStore store = requireStore(dto.getStoreId());
+        ShoppingStore store = requireStore(dto.getStore().getId());
         LoyaltyCard entity = shoppingAdapter.toLoyaltyCardEntity(dto);
         store.addLoyaltyCard(entity);
         return shoppingAdapter.toLoyaltyCardDTO(loyaltyCardRepository.save(entity));
@@ -119,7 +119,7 @@ public class ShoppingStoreService {
     }
 
     public CouponDTO createCoupon(@Valid CouponDTO dto) {
-        ShoppingStore store = requireStore(dto.getStoreId());
+        ShoppingStore store = requireStore(dto.getStore().getId());
         Coupon entity = shoppingAdapter.toCouponEntity(dto);
         store.addCoupon(entity);
         return shoppingAdapter.toCouponDTO(couponRepository.save(entity));
@@ -132,8 +132,10 @@ public class ShoppingStoreService {
         existing.setValue(dto.getValue());
         existing.setPhoto(dto.getPhoto());
         existing.setDueDate(ofNullable(dto.getDueDate()).map(LocalDate::atStartOfDay).orElse(null));
-        existing.setCode(dto.getCode());
-        existing.setBarcodeType(dto.getBarcodeType());
+        if (dto.getBarcode() != null) {
+            existing.setCode(dto.getBarcode().getCode());
+            existing.setBarcodeType(dto.getBarcode().getType());
+        }
         existing.setUsed(dto.isUsed());
         return shoppingAdapter.toCouponDTO(couponRepository.save(existing));
     }

@@ -188,12 +188,12 @@ export function Dashboard() {
                               <Text fw={600} size="sm" truncate>{coupon.name}</Text>
                               <Group gap={4} wrap="nowrap">
                                 <IconBuildingStore size={12} color="var(--mantine-color-dimmed)" />
-                                <Text size="xs" c="dimmed" truncate>{coupon.storeName}</Text>
+                                <Text size="xs" c="dimmed" truncate>{coupon.store.name}</Text>
                               </Group>
                             </Box>
                           </Group>
                           <Group gap="xs" wrap="nowrap">
-                            {coupon.code && (
+                            {coupon.barcode?.code && (
                               <ActionIcon variant="subtle" color="blue" size="sm" onClick={() => setFullscreenCoupon(coupon)}>
                                 <IconMaximize size={14} />
                               </ActionIcon>
@@ -242,19 +242,19 @@ export function Dashboard() {
       >
         <Center h="100%" pb={rem(100)}>
           <Stack align="center" gap="xl" w="100%">
-            {fullscreenCoupon?.code && (
+            {fullscreenCoupon?.barcode?.code && (
               <Box bg="white" p="xl" style={{ borderRadius: rem(12), boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}>
-                {fullscreenCoupon.barcodeType === 'QR' ? (
-                  <QRCodeSVG value={fullscreenCoupon.code} size={280} />
+                {fullscreenCoupon.barcode.type === 'QR' ? (
+                  <QRCodeSVG value={fullscreenCoupon.barcode.code} size={280} />
                 ) : (
                   <Box style={{ transform: 'scale(1.5)', transformOrigin: 'center' }} py="xl">
-                    <Barcode value={fullscreenCoupon.code} width={2} height={100} fontSize={16} />
+                    <Barcode value={fullscreenCoupon.barcode.code} width={2} height={100} fontSize={16} />
                   </Box>
                 )}
               </Box>
             )}
             <Text size="xl" fw={700} ff="monospace" style={{ letterSpacing: rem(2) }}>
-              {fullscreenCoupon?.code}
+              {fullscreenCoupon?.barcode?.code}
             </Text>
             <Button size="lg" variant="light" onClick={() => setFullscreenCoupon(null)}>
               Close

@@ -1,8 +1,7 @@
 package com.jorgemonteiro.home_app.controller.profiles;
 
-import com.jorgemonteiro.home_app.controller.profiles.resource.PagedUserProfileResource;
-import com.jorgemonteiro.home_app.controller.profiles.resource.UserProfileResource;
-import com.jorgemonteiro.home_app.controller.profiles.resource.UserProfileResourceAssembler;
+import com.jorgemonteiro.home_app.controller.profiles.resource.user.UserProfileResource;
+import com.jorgemonteiro.home_app.controller.profiles.resource.user.UserProfileResourceAssembler;
 import com.jorgemonteiro.home_app.exception.AuthenticationException;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO;
@@ -69,21 +68,13 @@ public class UserProfileController {
      * @return 200 with a PagedUserProfileResource (hides PagedModel<EntityModel<T>>)
      */
     @GetMapping
-    public ResponseEntity<PagedUserProfileResource> list(
+    public ResponseEntity<PagedModel<UserProfileResource>> list(
             @PageableDefault(size = 10, sort = "email", direction = Sort.Direction.ASC) Pageable pageable) {
         
         Page<UserProfileDTO> page = userProfileService.findAll(pageable);
-        
-        // Assemble standard PagedModel using our custom resource assembler
         PagedModel<UserProfileResource> pagedModel = pagedResourcesAssembler.toModel(page, resourceAssembler);
         
-        // Wrap in our concrete type to keep the controller signature clean
-        PagedUserProfileResource resource = new PagedUserProfileResource(
-                pagedModel.getContent(), 
-                pagedModel.getMetadata(), 
-                pagedModel.getLinks());
-        
-        return ResponseEntity.ok(resource);
+        return ResponseEntity.ok(pagedModel);
     }
 
     /**

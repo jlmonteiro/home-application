@@ -32,11 +32,17 @@ export function PreferencesPage() {
   })
 
   const handleToggleShopping = (checked: boolean) => {
-    mutation.mutate({ showShoppingWidget: checked })
+    mutation.mutate({ 
+      showShoppingWidget: checked,
+      showCouponsWidget: preferences?.showCouponsWidget ?? true
+    })
   }
 
   const handleToggleCoupons = (checked: boolean) => {
-    mutation.mutate({ showCouponsWidget: checked })
+    mutation.mutate({ 
+      showShoppingWidget: preferences?.showShoppingWidget ?? true,
+      showCouponsWidget: checked 
+    })
   }
 
   return (

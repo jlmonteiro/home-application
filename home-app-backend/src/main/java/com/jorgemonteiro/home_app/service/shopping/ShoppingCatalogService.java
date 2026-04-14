@@ -91,8 +91,8 @@ public class ShoppingCatalogService {
     }
 
     public ShoppingItemDTO createItem(@Valid ShoppingItemDTO dto) {
-        ShoppingCategory category = requireCategory(dto.getCategoryId());
-        assertItemNameUniqueInCategory(dto.getName(), dto.getCategoryId());
+        ShoppingCategory category = requireCategory(dto.getCategory().getId());
+        assertItemNameUniqueInCategory(dto.getName(), dto.getCategory().getId());
         ShoppingItem entity = shoppingAdapter.toItemEntity(dto);
         category.addItem(entity);
         return shoppingAdapter.toItemDTO(itemRepository.save(entity));
@@ -100,11 +100,11 @@ public class ShoppingCatalogService {
 
     public ShoppingItemDTO updateItem(Long id, @Valid ShoppingItemDTO dto) {
         ShoppingItem existing = requireItem(id);
-        ShoppingCategory category = requireCategory(dto.getCategoryId());
+        ShoppingCategory category = requireCategory(dto.getCategory().getId());
         boolean nameOrCategoryChanged = !existing.getName().equals(dto.getName())
-                || !existing.getCategory().getId().equals(dto.getCategoryId());
+                || !existing.getCategory().getId().equals(dto.getCategory().getId());
         if (nameOrCategoryChanged) {
-            assertItemNameUniqueInCategory(dto.getName(), dto.getCategoryId());
+            assertItemNameUniqueInCategory(dto.getName(), dto.getCategory().getId());
         }
         existing.setName(dto.getName());
         existing.setPhoto(dto.getPhoto());

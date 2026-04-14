@@ -15,6 +15,9 @@ import {
   NavLink,
   Stack,
   Divider,
+  Breadcrumbs,
+  Anchor,
+  Paper,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { Outlet, Link, useLocation } from 'react-router-dom'
@@ -31,6 +34,13 @@ import {
   IconBrandLinkedin,
   IconShoppingCart,
   IconLayoutDashboard,
+  IconChevronRight,
+  IconList,
+  IconBuildingStore,
+  IconCategory,
+  IconPackages,
+  IconUserCircle,
+  IconAdjustments,
 } from '@tabler/icons-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -53,6 +63,44 @@ export function Layout() {
 
   const isActive = (path: string) => 
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
+
+  // Breadcrumb logic
+  const getBreadcrumbs = () => {
+    const path = location.pathname
+    const crumbs: { title: string; href: string; icon?: React.ReactNode }[] = [
+      { title: 'Home', href: '/', icon: <IconLayoutDashboard size={16} /> }
+    ]
+
+    if (path.startsWith('/shopping/')) {
+      crumbs.push({ title: 'Shopping', href: '/shopping/lists', icon: <IconShoppingCart size={16} /> })
+      
+      if (path.includes('/stores')) {
+        crumbs.push({ title: 'Stores', href: '/shopping/stores', icon: <IconBuildingStore size={16} /> })
+        if (path.match(/\/stores\/\d+$/)) {
+          crumbs.push({ title: 'Store Details', href: path })
+        }
+      } else if (path.includes('/lists')) {
+        crumbs.push({ title: 'Lists', href: '/shopping/lists', icon: <IconList size={16} /> })
+        if (path.match(/\/lists\/\d+$/)) {
+          crumbs.push({ title: 'List Details', href: path })
+        }
+      } else if (path.includes('/categories')) {
+        crumbs.push({ title: 'Categories', href: '/shopping/categories', icon: <IconCategory size={16} /> })
+      } else if (path.includes('/items')) {
+        crumbs.push({ title: 'Items', href: '/shopping/items', icon: <IconPackages size={16} /> })
+      }
+    } else if (path === '/profile') {
+      crumbs.push({ title: 'Profile', href: '/profile', icon: <IconUserCircle size={16} /> })
+    } else if (path === '/preferences') {
+      crumbs.push({ title: 'Preferences', href: '/preferences', icon: <IconAdjustments size={16} /> })
+    } else if (path === '/settings') {
+      crumbs.push({ title: 'Settings', href: '/settings', icon: <IconSettings size={16} /> })
+    }
+
+    return crumbs
+  }
+
+  const breadcrumbs = getBreadcrumbs()
 
   return (
     <AppShell
@@ -305,6 +353,42 @@ export function Layout() {
 
       <AppShell.Main pt={rem(70 + 24)}>
         <Container size="xl">
+          {location.pathname !== '/' && (
+            <Paper
+              p="sm"
+              radius="md"
+              mb="lg"
+              bg={computedColorScheme === 'dark' ? 'dark.5' : 'gray.0'}
+              style={{ border: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}` }}
+            >
+              <Breadcrumbs
+                separator={<IconChevronRight size={14} style={{ opacity: 0.4 }} />}
+                separatorMargin={8}
+              >
+                {breadcrumbs.map((crumb, index) => {
+                  const isLast = index === breadcrumbs.length - 1
+                  return (
+                    <Anchor
+                      key={crumb.href}
+                      component={Link}
+                      to={crumb.href}
+                      c={isLast ? 'dimmed' : computedColorScheme === 'dark' ? 'gray.3' : 'dark'}
+                      fw={isLast ? 600 : 500}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {crumb.icon}
+                      {crumb.title}
+                    </Anchor>
+                  )
+                })}
+              </Breadcrumbs>
+            </Paper>
+          )}
           <Outlet />
         </Container>
       </AppShell.Main>

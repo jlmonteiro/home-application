@@ -1,7 +1,9 @@
 package com.jorgemonteiro.home_app.model.dtos.shopping;
 
 import jakarta.validation.constraints.Positive;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.math.BigDecimal;
@@ -21,13 +23,9 @@ public class ShoppingListItemDTO {
 
     private String itemPhoto;
 
-    private String categoryName;
+    private Category category;
 
-    private String categoryIcon;
-
-    private Long storeId;
-
-    private String storeName;
+    private Store store;
 
     @Positive(message = "Quantity must be positive")
     private BigDecimal quantity;
@@ -43,4 +41,20 @@ public class ShoppingListItemDTO {
     private Boolean unavailable;
 
     private Long version;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Category {
+        private String name;
+        private String icon;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Store {
+        private Long id;
+        private String name;
+    }
 }

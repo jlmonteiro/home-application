@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 /**
  * Adapter for converting between shopping entities and DTOs.
@@ -61,8 +62,11 @@ public class ShoppingAdapter {
         dto.setPhoto(entity.getPhoto());
         dto.setVersion(entity.getVersion());
         if (entity.getCategory() != null) {
-            dto.setCategoryId(entity.getCategory().getId());
-            dto.setCategoryName(entity.getCategory().getName());
+            dto.setCategory(new ShoppingItemDTO.Category(
+                entity.getCategory().getId(),
+                entity.getCategory().getName(),
+                entity.getCategory().getIcon()
+            ));
         }
         return dto;
     }
@@ -96,7 +100,7 @@ public class ShoppingAdapter {
         dto.setVersion(entity.getVersion());
 
         if (entity.getCoupons() != null) {
-            java.time.LocalDateTime now = java.time.LocalDateTime.now();
+            LocalDateTime now = LocalDateTime.now();
             long count = entity.getCoupons().stream()
                     .filter(c -> !c.isUsed() && (c.getDueDate() == null || c.getDueDate().isAfter(now)))
                     .count();
@@ -127,12 +131,18 @@ public class ShoppingAdapter {
         LoyaltyCardDTO dto = new LoyaltyCardDTO();
         dto.setId(entity.getId());
         dto.setName(entity.getName());
-        dto.setNumber(entity.getNumber());
-        dto.setBarcodeType(entity.getBarcodeType());
         dto.setVersion(entity.getVersion());
         if (entity.getStore() != null) {
-            dto.setStoreId(entity.getStore().getId());
-            dto.setStoreName(entity.getStore().getName());
+            dto.setStore(new LoyaltyCardDTO.Store(
+                entity.getStore().getId(),
+                entity.getStore().getName()
+            ));
+        }
+        if (entity.getNumber() != null && entity.getBarcodeType() != null) {
+            dto.setBarcode(new LoyaltyCardDTO.Barcode(
+                entity.getNumber(),
+                entity.getBarcodeType()
+            ));
         }
         return dto;
     }
@@ -142,8 +152,10 @@ public class ShoppingAdapter {
         LoyaltyCard entity = new LoyaltyCard();
         entity.setId(dto.getId());
         entity.setName(dto.getName());
-        entity.setNumber(dto.getNumber());
-        entity.setBarcodeType(dto.getBarcodeType());
+        if (dto.getBarcode() != null) {
+            entity.setNumber(dto.getBarcode().getCode());
+            entity.setBarcodeType(dto.getBarcode().getType());
+        }
         entity.setVersion(dto.getVersion());
         return entity;
     }
@@ -159,13 +171,19 @@ public class ShoppingAdapter {
         dto.setValue(entity.getValue());
         dto.setPhoto(entity.getPhoto());
         dto.setDueDate(entity.getDueDate() != null ? entity.getDueDate().toLocalDate() : null);
-        dto.setCode(entity.getCode());
-        dto.setBarcodeType(entity.getBarcodeType());
         dto.setUsed(entity.isUsed());
         dto.setVersion(entity.getVersion());
         if (entity.getStore() != null) {
-            dto.setStoreId(entity.getStore().getId());
-            dto.setStoreName(entity.getStore().getName());
+            dto.setStore(new CouponDTO.Store(
+                entity.getStore().getId(),
+                entity.getStore().getName()
+            ));
+        }
+        if (entity.getCode() != null && entity.getBarcodeType() != null) {
+            dto.setBarcode(new CouponDTO.Barcode(
+                entity.getCode(),
+                entity.getBarcodeType()
+            ));
         }
         return dto;
     }
@@ -179,8 +197,10 @@ public class ShoppingAdapter {
         entity.setValue(dto.getValue());
         entity.setPhoto(dto.getPhoto());
         entity.setDueDate(dto.getDueDate() != null ? dto.getDueDate().atStartOfDay() : null);
-        entity.setCode(dto.getCode());
-        entity.setBarcodeType(dto.getBarcodeType());
+        if (dto.getBarcode() != null) {
+            entity.setCode(dto.getBarcode().getCode());
+            entity.setBarcodeType(dto.getBarcode().getType());
+        }
         entity.setUsed(dto.isUsed());
         entity.setVersion(dto.getVersion());
         return entity;
@@ -266,14 +286,18 @@ public class ShoppingAdapter {
             dto.setItemName(entity.getItem().getName());
             dto.setItemPhoto(entity.getItem().getPhoto());
             if (entity.getItem().getCategory() != null) {
-                dto.setCategoryName(entity.getItem().getCategory().getName());
-                dto.setCategoryIcon(entity.getItem().getCategory().getIcon());
+                dto.setCategory(new ShoppingListItemDTO.Category(
+                    entity.getItem().getCategory().getName(),
+                    entity.getItem().getCategory().getIcon()
+                ));
             }
         }
 
         if (entity.getStore() != null) {
-            dto.setStoreId(entity.getStore().getId());
-            dto.setStoreName(entity.getStore().getName());
+            dto.setStore(new ShoppingListItemDTO.Store(
+                entity.getStore().getId(),
+                entity.getStore().getName()
+            ));
         }
 
         return dto;

@@ -155,7 +155,7 @@ export function ShoppingItemsPage() {
     form.setValues({
       name: item.name,
       photo: item.photo || '',
-      categoryId: item.categoryId.toString(),
+      categoryId: item.category.id.toString(),
     })
     open()
   }
@@ -166,9 +166,12 @@ export function ShoppingItemsPage() {
   }
 
   const handleSubmit = (values: typeof form.values) => {
+    const selectedCategory = categoriesData?._embedded?.categories
+      ?.find(cat => cat.id === parseInt(values.categoryId))
     const payload = {
-      ...values,
-      categoryId: parseInt(values.categoryId),
+      name: values.name,
+      photo: values.photo,
+      category: selectedCategory || { id: parseInt(values.categoryId), name: '', icon: '' }
     }
     if (editingItem) {
       updateMutation.mutate({ id: editingItem.id, item: payload })
@@ -213,7 +216,7 @@ export function ShoppingItemsPage() {
           </Group>
         </Table.Td>
         <Table.Td>
-          <Text size="sm">{item.categoryName}</Text>
+          <Text size="sm">{item.category.name}</Text>
         </Table.Td>
         <Table.Td>
           <Group gap="xs" justify="flex-end">
