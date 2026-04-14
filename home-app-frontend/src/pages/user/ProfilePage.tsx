@@ -62,21 +62,13 @@ export function ProfilePage() {
 
     validate: {
       mobilePhone: (value) =>
-        value && !PHONE_REGEX.test(value)
-          ? 'Mobile phone must be a valid phone number'
-          : null,
+        value && !PHONE_REGEX.test(value) ? 'Mobile phone must be a valid phone number' : null,
       facebook: (value) =>
-        value && !FACEBOOK_REGEX.test(value)
-          ? 'Facebook must be a valid Facebook URL'
-          : null,
+        value && !FACEBOOK_REGEX.test(value) ? 'Facebook must be a valid Facebook URL' : null,
       instagram: (value) =>
-        value && !INSTAGRAM_REGEX.test(value)
-          ? 'Instagram must be a valid Instagram URL'
-          : null,
+        value && !INSTAGRAM_REGEX.test(value) ? 'Instagram must be a valid Instagram URL' : null,
       linkedin: (value) =>
-        value && !LINKEDIN_REGEX.test(value)
-          ? 'LinkedIn must be a valid LinkedIn URL'
-          : null,
+        value && !LINKEDIN_REGEX.test(value) ? 'LinkedIn must be a valid LinkedIn URL' : null,
       birthdate: (value) => (!value ? 'Birthdate is required' : null),
       familyRoleId: (value) => (!value ? 'Family role is required' : null),
     },
@@ -189,10 +181,7 @@ export function ProfilePage() {
                     {user.firstName?.[0]}
                     {user.lastName?.[0]}
                   </Avatar>
-                  <FileButton
-                    onChange={handlePhotoUpload}
-                    accept="image/png,image/jpeg,image/webp"
-                  >
+                  <FileButton onChange={handlePhotoUpload} accept="image/png,image/jpeg,image/webp">
                     {(props) => (
                       <Button
                         {...props}
@@ -242,7 +231,12 @@ export function ProfilePage() {
                       leftSection={<IconCake size={16} />}
                       required
                       value={form.values.birthdate ? dayjs(form.values.birthdate).toDate() : null}
-                      onChange={(date) => form.setFieldValue('birthdate', date ? dayjs(date).format('YYYY-MM-DD') : '')}
+                      onChange={(date) =>
+                        form.setFieldValue(
+                          'birthdate',
+                          date ? dayjs(date).format('YYYY-MM-DD') : '',
+                        )
+                      }
                       error={form.errors.birthdate}
                       maxDate={new Date()}
                     />
@@ -254,7 +248,9 @@ export function ProfilePage() {
                       required
                       {...form.getInputProps('familyRoleId')}
                       value={form.values.familyRoleId?.toString()}
-                      onChange={(val) => form.setFieldValue('familyRoleId', val ? parseInt(val) : undefined)}
+                      onChange={(val) =>
+                        form.setFieldValue('familyRoleId', val ? parseInt(val) : undefined)
+                      }
                     />
                   </SimpleGrid>
 
@@ -275,36 +271,25 @@ export function ProfilePage() {
                 <TextInput
                   label="Facebook"
                   placeholder="https://facebook.com/username"
-                  leftSection={
-                    <IconBrandFacebook size={16} color="var(--mantine-color-blue-6)" />
-                  }
+                  leftSection={<IconBrandFacebook size={16} color="var(--mantine-color-blue-6)" />}
                   {...form.getInputProps('facebook')}
                 />
                 <TextInput
                   label="Instagram"
                   placeholder="https://instagram.com/username"
-                  leftSection={
-                    <IconBrandInstagram size={16} color="var(--mantine-color-pink-6)" />
-                  }
+                  leftSection={<IconBrandInstagram size={16} color="var(--mantine-color-pink-6)" />}
                   {...form.getInputProps('instagram')}
                 />
                 <TextInput
                   label="LinkedIn"
                   placeholder="https://linkedin.com/in/username"
-                  leftSection={
-                    <IconBrandLinkedin size={16} color="var(--mantine-color-blue-7)" />
-                  }
+                  leftSection={<IconBrandLinkedin size={16} color="var(--mantine-color-blue-7)" />}
                   {...form.getInputProps('linkedin')}
                 />
               </SimpleGrid>
 
               <Group justify="flex-end" mt="xl">
-                <Button
-                  type="submit"
-                  loading={mutation.isPending}
-                  size="md"
-                  color="indigo"
-                >
+                <Button type="submit" loading={mutation.isPending} size="md" color="indigo">
                   Save Changes
                 </Button>
               </Group>

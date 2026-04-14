@@ -32,10 +32,10 @@ import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { useParams, Link } from 'react-router-dom'
-import { 
-  IconPlus, 
-  IconTrash, 
-  IconBasket, 
+import {
+  IconPlus,
+  IconTrash,
+  IconBasket,
   IconArrowLeft,
   IconCheck,
   IconCalculator,
@@ -44,27 +44,28 @@ import {
   IconCircleX,
   IconAlertCircle,
   IconBuildingStore,
-  IconArrowRight,
+
   IconChevronRight,
   IconTrendingUp,
   IconTrendingDown,
   IconMinus,
-  IconHistory
+  IconHistory,
 } from '@tabler/icons-react'
-import { 
-  fetchList, 
-  fetchItems, 
-  addItemToList, 
-  updateListItem, 
-  removeListItem, 
+import {
+  fetchList,
+  fetchItems,
+  addItemToList,
+  updateListItem,
+  removeListItem,
   fetchSuggestedPrice,
   updateList,
   fetchStores,
   createItem,
   fetchCategories,
-  fetchItemPriceHistory
+  fetchItemPriceHistory,
+  type ApiError,
 } from '../../services/api'
-import type { ShoppingList, ShoppingListItem, ShoppingStore, ShoppingItemPriceHistory } from '../../services/api'
+import type { ShoppingList, ShoppingListItem, ShoppingStore } from '../../services/api'
 import { MarkdownContent } from '../../components/MarkdownContent'
 
 /**
@@ -78,19 +79,22 @@ const getPhotoSrc = (photo: string | undefined | null) => {
 
 export function ShoppingListDetailsPage() {
   const { id } = useParams<{ id: string }>()
-  const listId = parseInt(id!)
+  const listId = parseInt(id || '0')
   const queryClient = useQueryClient()
-  
+
   const [itemSearch, setItemSearch] = useState('')
   const [addItemOpened, { open: openAddItem, close: closeAddItem }] = useDisclosure(false)
   const [createItemOpened, { open: openCreateItem, close: closeCreateItem }] = useDisclosure(false)
   const [editListOpened, { open: openEditList, close: closeEditList }] = useDisclosure(false)
   const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null)
   const [editItemOpened, { open: openEditItem, close: closeEditItem }] = useDisclosure(false)
-  const [previewImage, setPreviewImage] = useState<{ url: string, title: string } | null>(null)
-  
+  const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null)
+
   const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false)
-  const [selectedHistoryItem, setSelectedHistoryItem] = useState<{ id: number, name: string } | null>(null)
+  const [selectedHistoryItem, setSelectedHistoryItem] = useState<{
+    id: number
+    name: string
+  } | null>(null)
 
   // Queries
   const { data: list, isLoading: listLoading } = useQuery({
@@ -115,20 +119,23 @@ export function ShoppingListDetailsPage() {
 
   const { data: priceHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['price-history', selectedHistoryItem?.id],
-    queryFn: () => fetchItemPriceHistory(selectedHistoryItem!.id),
+    queryFn: () =>
+      selectedHistoryItem ? fetchItemPriceHistory(selectedHistoryItem.id) : Promise.resolve([]),
     enabled: !!selectedHistoryItem,
   })
 
   // Mutations
   const addItemMutation = useMutation({
-    mutationFn: (values: any) => {
-      const selectedStore = values.storeId ? storesData?._embedded?.stores?.find((s: any) => s.id === parseInt(values.storeId)) : null
+    mutationFn: (values: typeof addItemForm.values) => {
+      const selectedStore = values.storeId
+        ? storesData?._embedded?.stores?.find((s) => s.id === parseInt(values.storeId))
+        : null
       return addItemToList(listId, {
         itemId: parseInt(values.itemId),
         quantity: values.quantity,
         unit: values.unit,
         price: values.price,
-        store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null
+        store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null,
       })
     },
     onSuccess: () => {
@@ -137,7 +144,7 @@ export function ShoppingListDetailsPage() {
       closeAddItem()
       addItemForm.reset()
       setItemSearch('')
-    }
+    },
   })
 
   const createItemMutation = useMutation({
@@ -150,9 +157,13 @@ export function ShoppingListDetailsPage() {
       closeCreateItem()
       createItemForm.reset()
     },
-    onError: (error: any) => {
-      notifications.show({ title: 'Error', message: error.data?.detail || 'Failed to create item', color: 'red' })
-    }
+    onError: (error: ApiError) => {
+      notifications.show({
+        title: 'Error',
+        message: error.data?.detail || 'Failed to create item',
+        color: 'red',
+      })
+    },
   })
 
   const updateListMutation = useMutation({
@@ -161,25 +172,26 @@ export function ShoppingListDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ['shopping-list', listId] })
       notifications.show({ title: 'Success', message: 'List updated', color: 'green' })
       closeEditList()
-    }
+    },
   })
 
   const updateItemMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: Partial<ShoppingListItem> }) => updateListItem(id, data),
+    mutationFn: ({ id, data }: { id: number; data: Partial<ShoppingListItem> }) =>
+      updateListItem(id, data),
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: ['shopping-list', listId] })
       const previousList = queryClient.getQueryData(['shopping-list', listId])
-      
-      queryClient.setQueryData(['shopping-list', listId], (old: any) => {
+
+      queryClient.setQueryData(['shopping-list', listId], (old: ShoppingList | undefined) => {
         if (!old) return old
         return {
           ...old,
-          items: old.items?.map((item: ShoppingListItem) => 
-            item.id === id ? { ...item, ...data } : item
-          )
+          items: old.items?.map((item: ShoppingListItem) =>
+            item.id === id ? { ...item, ...data } : item,
+          ),
         }
       })
-      
+
       return { previousList }
     },
     onError: (_err, _vars, context) => {
@@ -194,7 +206,7 @@ export function ShoppingListDetailsPage() {
         closeEditItem()
         setEditingItem(null)
       }
-    }
+    },
   })
 
   const removeItemMutation = useMutation({
@@ -202,7 +214,7 @@ export function ShoppingListDetailsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-list', listId] })
       notifications.show({ title: 'Success', message: 'Item removed', color: 'green' })
-    }
+    },
   })
 
   // Forms
@@ -295,16 +307,15 @@ export function ShoppingListDetailsPage() {
   useEffect(() => {
     if (addItemForm.values.itemId) {
       const storeId = addItemForm.values.storeId ? parseInt(addItemForm.values.storeId) : undefined
-      fetchSuggestedPrice(parseInt(addItemForm.values.itemId), storeId)
-        .then(price => {
-          if (price) addItemForm.setFieldValue('price', price)
-        })
+      fetchSuggestedPrice(parseInt(addItemForm.values.itemId), storeId).then((price) => {
+        if (price) addItemForm.setFieldValue('price', price)
+      })
     }
   }, [addItemForm.values.itemId, addItemForm.values.storeId])
 
   const masterItems = masterItemsData?._embedded?.items || []
-  const filteredMasterItems = masterItems.filter(item => 
-    item.name.toLowerCase().includes(itemSearch.toLowerCase())
+  const filteredMasterItems = masterItems.filter((item) =>
+    item.name.toLowerCase().includes(itemSearch.toLowerCase()),
   )
 
   const storeOptions = (storesData?._embedded?.stores || []).map((store: ShoppingStore) => ({
@@ -326,27 +337,30 @@ export function ShoppingListDetailsPage() {
   const groupedItems = useMemo(() => {
     if (!list) return { stores: [], unavailable: [] }
 
-    const unavailable = list.items.filter(i => i.unavailable)
-    const available = list.items.filter(i => !i.unavailable)
+    const unavailable = list.items.filter((i) => i.unavailable)
+    const available = list.items.filter((i) => !i.unavailable)
 
     // 1. Group by Store
-    const storesMap = new Map<number | string, { 
-      id: number | null, 
-      name: string, 
-      items: ShoppingListItem[],
-      cost: number,
-      isDone: boolean
-    }>()
+    const storesMap = new Map<
+      number | string,
+      {
+        id: number | null
+        name: string
+        items: ShoppingListItem[]
+        cost: number
+        isDone: boolean
+      }
+    >()
 
-    available.forEach(item => {
+    available.forEach((item) => {
       const key = item.store?.id || 'any'
       if (!storesMap.has(key)) {
-        storesMap.set(key, { 
-          id: item.store?.id, 
-          name: item.store?.name || 'Any Store', 
-          items: [], 
-          cost: 0, 
-          isDone: false 
+        storesMap.set(key, {
+          id: item.store?.id,
+          name: item.store?.name || 'Any Store',
+          items: [],
+          cost: 0,
+          isDone: false,
         })
       }
       const store = storesMap.get(key)!
@@ -355,23 +369,26 @@ export function ShoppingListDetailsPage() {
     })
 
     // 2. For each store, group by Category
-    const result = Array.from(storesMap.values()).map(store => {
-      const categoriesMap = new Map<string, { icon: string, items: ShoppingListItem[], isDone: boolean }>()
-      
+    const result = Array.from(storesMap.values()).map((store) => {
+      const categoriesMap = new Map<
+        string,
+        { icon: string; items: ShoppingListItem[]; isDone: boolean }
+      >()
+
       // Initial count to see which categories have > 1 item
       const counts: Record<string, number> = {}
-      store.items.forEach(i => {
+      store.items.forEach((i) => {
         const name = i.category?.name || 'Others'
         counts[name] = (counts[name] || 0) + 1
       })
 
-      store.items.forEach(item => {
+      store.items.forEach((item) => {
         const rawCatName = item.category?.name || 'Others'
         const isSingleton = counts[rawCatName] === 1
         const catName = isSingleton ? 'Others' : rawCatName
-        
+
         // If it's Others, use generic basket icon, otherwise use the category icon
-        const catIcon = catName === 'Others' ? 'IconBasket' : (item.category?.icon || 'IconBasket')
+        const catIcon = catName === 'Others' ? 'IconBasket' : item.category?.icon || 'IconBasket'
 
         if (!categoriesMap.has(catName)) {
           categoriesMap.set(catName, { icon: catIcon, items: [], isDone: false })
@@ -381,71 +398,98 @@ export function ShoppingListDetailsPage() {
 
       // Check if categories are done
       const categories = Array.from(categoriesMap.entries()).map(([name, data]) => {
-        data.isDone = data.items.every(i => i.bought)
+        data.isDone = data.items.every((i) => i.bought)
         return { name, ...data }
       })
 
-      store.isDone = store.items.every(i => i.bought)
+      store.isDone = store.items.every((i) => i.bought)
       return { ...store, categories }
     })
 
     return { stores: result, unavailable }
   }, [list])
 
-  const totalEstimated = list?.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0) || 0
-  const activeItemsCount = list?.items.filter(i => !i.unavailable).length || 0
-  const boughtItemsCount = list?.items.filter(i => i.bought && !i.unavailable).length || 0
+  const totalEstimated =
+    list?.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0) || 0
+  const activeItemsCount = list?.items.filter((i) => !i.unavailable).length || 0
+  const boughtItemsCount = list?.items.filter((i) => i.bought && !i.unavailable).length || 0
 
   if (listLoading) return <LoadingOverlay visible />
   if (!list) return <Text>List not found</Text>
 
   const PriceTrendIcon = ({ item }: { item: ShoppingListItem }) => {
-    if (item.price === null || item.previousPrice === null) return null;
-    
+    if (item.price === null || item.previousPrice === null) return null
+
     if (item.price > item.previousPrice) {
       return (
-        <ActionIcon variant="subtle" color="red" size="sm" onClick={() => handleShowHistory(item)} title="Price Increased">
+        <ActionIcon
+          variant="subtle"
+          color="red"
+          size="sm"
+          onClick={() => handleShowHistory(item)}
+          title="Price Increased"
+        >
           <IconTrendingUp size={16} />
         </ActionIcon>
-      );
+      )
     }
-    
+
     if (item.price < item.previousPrice) {
       return (
-        <ActionIcon variant="subtle" color="green" size="sm" onClick={() => handleShowHistory(item)} title="Price Decreased">
+        <ActionIcon
+          variant="subtle"
+          color="green"
+          size="sm"
+          onClick={() => handleShowHistory(item)}
+          title="Price Decreased"
+        >
           <IconTrendingDown size={16} />
         </ActionIcon>
-      );
+      )
     }
-    
+
     return (
-      <ActionIcon variant="subtle" color="gray" size="sm" onClick={() => handleShowHistory(item)} title="Price Same">
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        size="sm"
+        onClick={() => handleShowHistory(item)}
+        title="Price Same"
+      >
         <IconMinus size={16} />
       </ActionIcon>
-    );
+    )
   }
 
   const ItemRow = ({ item }: { item: ShoppingListItem }) => (
-    <Group key={item.id} wrap="nowrap" gap="sm" style={{ opacity: item.bought ? 0.5 : 1, minHeight: 56 }}>
-      <Checkbox 
-        checked={item.bought} 
-        onChange={(e) => updateItemMutation.mutate({ id: item.id, data: { bought: e.currentTarget.checked } })}
+    <Group
+      key={item.id}
+      wrap="nowrap"
+      gap="sm"
+      style={{ opacity: item.bought ? 0.5 : 1, minHeight: 56 }}
+    >
+      <Checkbox
+        checked={item.bought}
+        onChange={(e) =>
+          updateItemMutation.mutate({ id: item.id, data: { bought: e.currentTarget.checked } })
+        }
         disabled={list.status === 'COMPLETED' || item.unavailable}
         size="lg"
         radius="md"
         styles={{ input: { cursor: 'pointer', minWidth: 24, minHeight: 24 } }}
       />
-      
+
       <Box style={{ flex: 1 }}>
         <Group gap="xs" wrap="nowrap">
-          <Box 
-            w={24} h={24} 
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
+          <Box
+            w={24}
+            h={24}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               flexShrink: 0,
-              cursor: item.itemPhoto ? 'pointer' : 'default' 
+              cursor: item.itemPhoto ? 'pointer' : 'default',
             }}
             onClick={() => {
               if (item.itemPhoto) {
@@ -456,24 +500,30 @@ export function ShoppingListDetailsPage() {
             {item.itemPhoto ? (
               <Image src={getPhotoSrc(item.itemPhoto)} fit="contain" h={24} w={24} />
             ) : (
-              <Avatar radius="sm" size={24}><IconBasket size={14} /></Avatar>
+              <Avatar radius="sm" size={24}>
+                <IconBasket size={14} />
+              </Avatar>
             )}
           </Box>
           <Stack gap={0} style={{ overflow: 'hidden' }}>
             <Group gap={4} wrap="nowrap">
-              <Text fw={500} size="sm" td={item.bought ? 'line-through' : 'none'} truncate>{item.itemName}</Text>
+              <Text fw={500} size="sm" td={item.bought ? 'line-through' : 'none'} truncate>
+                {item.itemName}
+              </Text>
               <PriceTrendIcon item={item} />
             </Group>
-            <Text size="xs" c="dimmed">{item.quantity} {item.unit} • €{(item.price || 0).toFixed(2)}</Text>
+            <Text size="xs" c="dimmed">
+              {item.quantity} {item.unit} • €{(item.price || 0).toFixed(2)}
+            </Text>
           </Stack>
         </Group>
       </Box>
 
       <Group gap={4} wrap="nowrap">
         {!item.bought && !item.unavailable && list.status === 'PENDING' && (
-          <ActionIcon 
-            variant="subtle" 
-            color="orange" 
+          <ActionIcon
+            variant="subtle"
+            color="orange"
             size="sm"
             onClick={() => updateItemMutation.mutate({ id: item.id, data: { unavailable: true } })}
             title="Mark as unavailable"
@@ -482,9 +532,9 @@ export function ShoppingListDetailsPage() {
           </ActionIcon>
         )}
         {item.unavailable && list.status === 'PENDING' && (
-          <ActionIcon 
-            variant="subtle" 
-            color="green" 
+          <ActionIcon
+            variant="subtle"
+            color="green"
             size="sm"
             onClick={() => updateItemMutation.mutate({ id: item.id, data: { unavailable: false } })}
             title="Mark as available"
@@ -495,9 +545,14 @@ export function ShoppingListDetailsPage() {
         <ActionIcon variant="subtle" color="blue" size="sm" onClick={() => handleEditItem(item)}>
           <IconEdit size={16} />
         </ActionIcon>
-        <ActionIcon variant="subtle" color="red" size="sm" onClick={() => {
-          if (window.confirm('Remove this item?')) removeItemMutation.mutate(item.id)
-        }}>
+        <ActionIcon
+          variant="subtle"
+          color="red"
+          size="sm"
+          onClick={() => {
+            if (window.confirm('Remove this item?')) removeItemMutation.mutate(item.id)
+          }}
+        >
           <IconTrash size={16} />
         </ActionIcon>
       </Group>
@@ -507,10 +562,10 @@ export function ShoppingListDetailsPage() {
   return (
     <Stack gap="lg">
       <Group justify="space-between">
-        <Button 
-          variant="subtle" 
-          leftSection={<IconArrowLeft size={16} />} 
-          component={Link} 
+        <Button
+          variant="subtle"
+          leftSection={<IconArrowLeft size={16} />}
+          component={Link}
           to="/shopping/lists"
         >
           Back to Lists
@@ -518,18 +573,15 @@ export function ShoppingListDetailsPage() {
         <Group>
           {list.status === 'PENDING' && (
             <>
-              <Button 
-                variant="light" 
-                leftSection={<IconEdit size={16} />} 
-                onClick={handleEditList}
-              >
+              <Button variant="light" leftSection={<IconEdit size={16} />} onClick={handleEditList}>
                 Edit Info
               </Button>
-              <Button 
-                color="green" 
+              <Button
+                color="green"
                 leftSection={<IconCheck size={16} />}
                 onClick={() => {
-                  if (window.confirm('Mark this list as completed?')) updateListMutation.mutate({ status: 'COMPLETED' })
+                  if (window.confirm('Mark this list as completed?'))
+                    updateListMutation.mutate({ status: 'COMPLETED' })
                 }}
               >
                 Mark Completed
@@ -548,7 +600,9 @@ export function ShoppingListDetailsPage() {
                 <Badge variant="light" color={list.status === 'COMPLETED' ? 'green' : 'blue'}>
                   {list.status}
                 </Badge>
-                <Text size="sm" c="dimmed">Created by {list.creatorName}</Text>
+                <Text size="sm" c="dimmed">
+                  Created by {list.creatorName}
+                </Text>
               </Group>
               {list.description && (
                 <Box mt="xs">
@@ -560,9 +614,13 @@ export function ShoppingListDetailsPage() {
               <Stack gap={4} align="flex-end">
                 <Group gap="xs">
                   <IconCalculator size={16} color="var(--mantine-color-indigo-6)" />
-                  <Text fw={700} size="xl">€{totalEstimated.toFixed(2)}</Text>
+                  <Text fw={700} size="xl">
+                    €{totalEstimated.toFixed(2)}
+                  </Text>
                 </Group>
-                <Text size="xs" c="dimmed">Estimated Total</Text>
+                <Text size="xs" c="dimmed">
+                  Estimated Total
+                </Text>
               </Stack>
             </Paper>
           </Group>
@@ -572,34 +630,53 @@ export function ShoppingListDetailsPage() {
       {/* Main Shopping Section */}
       <Stack gap="md">
         <Group justify="space-between">
-          <Title order={3}>Items ({boughtItemsCount}/{activeItemsCount})</Title>
+          <Title order={3}>
+            Items ({boughtItemsCount}/{activeItemsCount})
+          </Title>
           {list.status === 'PENDING' && (
-            <Button leftSection={<IconPlus size={16} />} onClick={openAddItem}>Add Item</Button>
+            <Button leftSection={<IconPlus size={16} />} onClick={openAddItem}>
+              Add Item
+            </Button>
           )}
         </Group>
 
         {groupedItems.stores.length === 0 && groupedItems.unavailable.length === 0 && (
           <Paper withBorder p="xl" radius="md" bg="gray.0">
-            <Text ta="center" c="dimmed">Your list is empty. Add some items to start planning!</Text>
+            <Text ta="center" c="dimmed">
+              Your list is empty. Add some items to start planning!
+            </Text>
           </Paper>
         )}
 
-        <Accordion multiple variant="separated" defaultValue={groupedItems.stores.map(s => s.name)}>
-          {groupedItems.stores.map(store => (
+        <Accordion
+          multiple
+          variant="separated"
+          defaultValue={(groupedItems.stores || []).map((s) => s.name)}
+        >
+          {groupedItems.stores.map((store) => (
             <Accordion.Item key={store.name} value={store.name}>
               <Accordion.Control>
                 <Group justify="space-between" pr="md">
                   <Group gap="sm">
-                    <IconBuildingStore size={20} color={store.isDone ? 'var(--mantine-color-green-6)' : 'var(--mantine-color-indigo-6)'} />
+                    <IconBuildingStore
+                      size={20}
+                      color={
+                        store.isDone
+                          ? 'var(--mantine-color-green-6)'
+                          : 'var(--mantine-color-indigo-6)'
+                      }
+                    />
                     <Text fw={700}>{store.name}</Text>
                     {store.isDone && <IconCheck size={18} color="var(--mantine-color-green-6)" />}
                   </Group>
-                  <Badge variant="light" color="indigo" size="lg">€{store.cost.toFixed(2)}</Badge>
+                  <Badge variant="light" color="indigo" size="lg">
+                    €{store.cost.toFixed(2)}
+                  </Badge>
                 </Group>
               </Accordion.Control>
               <Accordion.Panel>
                 <Stack gap="lg" mt="sm">
-                  {store.categories.map(category => (
+                  {store.categories.map((category) => (
                     <Box key={category.name}>
                       <Group gap="xs" mb="xs">
                         {category.isDone ? (
@@ -607,11 +684,15 @@ export function ShoppingListDetailsPage() {
                         ) : (
                           <IconChevronRight size={16} color="var(--mantine-color-gray-4)" />
                         )}
-                        <Text fw={600} size="sm" c={category.isDone ? 'green' : 'dark'}>{category.name}</Text>
+                        <Text fw={600} size="sm" c={category.isDone ? 'green' : 'dark'}>
+                          {category.name}
+                        </Text>
                         <Divider style={{ flex: 1 }} />
                       </Group>
                       <Stack gap="sm" pl="md">
-                        {category.items.map(item => <ItemRow key={item.id} item={item} />)}
+                        {category.items.map((item) => (
+                          <ItemRow key={item.id} item={item} />
+                        ))}
                       </Stack>
                     </Box>
                   ))}
@@ -623,15 +704,25 @@ export function ShoppingListDetailsPage() {
 
         {/* Unavailable Items Section */}
         {groupedItems.unavailable.length > 0 && (
-          <Paper withBorder p="md" radius="md" bg="orange.0" style={{ borderColor: 'var(--mantine-color-orange-3)' }}>
+          <Paper
+            withBorder
+            p="md"
+            radius="md"
+            bg="orange.0"
+            style={{ borderColor: 'var(--mantine-color-orange-3)' }}
+          >
             <Stack gap="sm">
               <Group gap="xs">
                 <IconAlertCircle size={20} color="var(--mantine-color-orange-6)" />
-                <Title order={4} c="orange.9">Unavailable / Plan for alternatives</Title>
+                <Title order={4} c="orange.9">
+                  Unavailable / Plan for alternatives
+                </Title>
               </Group>
               <Divider color="orange.2" />
               <Stack gap="sm">
-                {groupedItems.unavailable.map(item => <ItemRow key={item.id} item={item} />)}
+                {groupedItems.unavailable.map((item) => (
+                  <ItemRow key={item.id} item={item} />
+                ))}
               </Stack>
             </Stack>
           </Paper>
@@ -639,7 +730,13 @@ export function ShoppingListDetailsPage() {
       </Stack>
 
       {/* Add Item Modal */}
-      <Modal opened={addItemOpened} onClose={closeAddItem} title="Add Item to List" radius="md" zIndex={2000}>
+      <Modal
+        opened={addItemOpened}
+        onClose={closeAddItem}
+        title="Add Item to List"
+        radius="md"
+        zIndex={2000}
+      >
         <form onSubmit={addItemForm.onSubmit((v) => addItemMutation.mutate(v))}>
           <Stack gap="md">
             <Combobox
@@ -650,7 +747,7 @@ export function ShoppingListDetailsPage() {
                   handleOpenCreateItem()
                 } else {
                   addItemForm.setFieldValue('itemId', val)
-                  const selected = masterItems.find(i => i.id.toString() === val)
+                  const selected = masterItems.find((i) => i.id.toString() === val)
                   if (selected) setItemSearch(selected.name)
                 }
                 combobox.closeDropdown()
@@ -670,7 +767,9 @@ export function ShoppingListDetailsPage() {
                   onFocus={() => combobox.openDropdown()}
                   onBlur={() => {
                     combobox.closeDropdown()
-                    const selected = masterItems.find(i => i.id.toString() === addItemForm.values.itemId)
+                    const selected = masterItems.find(
+                      (i) => i.id.toString() === addItemForm.values.itemId,
+                    )
                     if (selected) setItemSearch(selected.name)
                   }}
                   required
@@ -685,7 +784,15 @@ export function ShoppingListDetailsPage() {
                       {filteredMasterItems.map((item) => (
                         <Combobox.Option value={item.id.toString()} key={item.id}>
                           <Group gap="sm">
-                            <Box w={24} h={24} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Box
+                              w={24}
+                              h={24}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
                               {item.photo ? (
                                 <Image src={getPhotoSrc(item.photo)} fit="contain" h={24} w={24} />
                               ) : (
@@ -700,7 +807,9 @@ export function ShoppingListDetailsPage() {
                       <Combobox.Option value="CREATE_NEW">
                         <Group gap="xs">
                           <IconPlus size={14} color="blue" />
-                          <Text size="sm" c="blue" fw={500}>Create "{itemSearch || 'New Item'}"</Text>
+                          <Text size="sm" c="blue" fw={500}>
+                            Create "{itemSearch || 'New Item'}"
+                          </Text>
                         </Group>
                       </Combobox.Option>
                     </>
@@ -709,7 +818,9 @@ export function ShoppingListDetailsPage() {
                       <Combobox.Option value="CREATE_NEW">
                         <Group gap="xs">
                           <IconPlus size={14} color="blue" />
-                          <Text size="sm" c="blue" fw={500}>Create "{itemSearch || 'New Item'}"</Text>
+                          <Text size="sm" c="blue" fw={500}>
+                            Create "{itemSearch || 'New Item'}"
+                          </Text>
                         </Group>
                       </Combobox.Option>
                       <Combobox.Empty>No items found</Combobox.Empty>
@@ -719,19 +830,21 @@ export function ShoppingListDetailsPage() {
               </Combobox.Dropdown>
             </Combobox>
 
-            {!addItemForm.values.itemId && itemSearch.length > 0 && filteredMasterItems.length === 0 && (
-              <Button 
-                variant="light" 
-                size="xs" 
-                leftSection={<IconPlus size={14} />}
-                onClick={handleOpenCreateItem}
-              >
-                Create "{itemSearch}" master item
-              </Button>
-            )}
+            {!addItemForm.values.itemId &&
+              itemSearch.length > 0 &&
+              filteredMasterItems.length === 0 && (
+                <Button
+                  variant="light"
+                  size="xs"
+                  leftSection={<IconPlus size={14} />}
+                  onClick={handleOpenCreateItem}
+                >
+                  Create "{itemSearch}" master item
+                </Button>
+              )}
 
-            <Select 
-              label="Store (Optional)" 
+            <Select
+              label="Store (Optional)"
               placeholder="Where to buy?"
               data={storeOptions}
               searchable
@@ -741,50 +854,64 @@ export function ShoppingListDetailsPage() {
             />
 
             <Group grow>
-              <NumberInput 
-                label="Quantity" 
-                min={0.1} 
+              <NumberInput
+                label="Quantity"
+                min={0.1}
                 step={0.1}
-                {...addItemForm.getInputProps('quantity')} 
+                {...addItemForm.getInputProps('quantity')}
               />
-              <Select 
-                label="Unit" 
-                data={['pcs', 'kg', 'g', 'L', 'ml', 'pack', 'bottle']} 
+              <Select
+                label="Unit"
+                data={['pcs', 'kg', 'g', 'L', 'ml', 'pack', 'bottle']}
                 comboboxProps={{ withinPortal: true, zIndex: 3000 }}
-                {...addItemForm.getInputProps('unit')} 
+                {...addItemForm.getInputProps('unit')}
               />
             </Group>
 
-            <NumberInput 
-              label="Price per Unit (€)" 
+            <NumberInput
+              label="Price per Unit (€)"
               placeholder="Suggested price will load if available"
               min={0}
               decimalScale={2}
               {...addItemForm.getInputProps('price')}
             />
 
-            <Button type="submit" mt="md" loading={addItemMutation.isPending}>Add Item to List</Button>
+            <Button type="submit" mt="md" loading={addItemMutation.isPending}>
+              Add Item to List
+            </Button>
           </Stack>
         </form>
       </Modal>
 
       {/* Edit Item Modal */}
-      <Modal opened={editItemOpened} onClose={closeEditItem} title={`Edit ${editingItem?.itemName}`} radius="md" zIndex={2000}>
-        <form onSubmit={editItemForm.onSubmit((v) => {
-          const selectedStore = v.storeId ? storesData?._embedded?.stores?.find(s => s.id === parseInt(v.storeId)) : null
-          updateItemMutation.mutate({
-            id: editingItem!.id,
-            data: {
-              quantity: v.quantity,
-              unit: v.unit,
-              price: v.price,
-              store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null
+      <Modal
+        opened={editItemOpened}
+        onClose={closeEditItem}
+        title={`Edit ${editingItem?.itemName}`}
+        radius="md"
+        zIndex={2000}
+      >
+        <form
+          onSubmit={editItemForm.onSubmit((v) => {
+            const selectedStore = v.storeId
+              ? storesData?._embedded?.stores?.find((s) => s.id === parseInt(v.storeId))
+              : null
+            if (editingItem) {
+              updateItemMutation.mutate({
+                id: editingItem.id,
+                data: {
+                  quantity: v.quantity,
+                  unit: v.unit,
+                  price: v.price,
+                  store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null,
+                },
+              })
             }
-          })
-        })}>
+          })}
+        >
           <Stack gap="md">
-            <Select 
-              label="Change Store" 
+            <Select
+              label="Change Store"
               placeholder="Move to a different store"
               data={storeOptions}
               searchable
@@ -794,59 +921,90 @@ export function ShoppingListDetailsPage() {
             />
 
             <Group grow>
-              <NumberInput 
-                label="Quantity" 
-                min={0.1} 
+              <NumberInput
+                label="Quantity"
+                min={0.1}
                 step={0.1}
-                {...editItemForm.getInputProps('quantity')} 
+                {...editItemForm.getInputProps('quantity')}
               />
-              <Select 
-                label="Unit" 
-                data={['pcs', 'kg', 'g', 'L', 'ml', 'pack', 'bottle']} 
+              <Select
+                label="Unit"
+                data={['pcs', 'kg', 'g', 'L', 'ml', 'pack', 'bottle']}
                 comboboxProps={{ withinPortal: true, zIndex: 3000 }}
-                {...editItemForm.getInputProps('unit')} 
+                {...editItemForm.getInputProps('unit')}
               />
             </Group>
 
-            <NumberInput 
-              label="Price per Unit (€)" 
+            <NumberInput
+              label="Price per Unit (€)"
               min={0}
               decimalScale={2}
               {...editItemForm.getInputProps('price')}
             />
 
-            <Button type="submit" mt="md" loading={updateItemMutation.isPending}>Save Changes</Button>
+            <Button type="submit" mt="md" loading={updateItemMutation.isPending}>
+              Save Changes
+            </Button>
           </Stack>
         </form>
       </Modal>
 
       {/* Create New Item Modal (Nested) */}
-      <Modal opened={createItemOpened} onClose={closeCreateItem} title="Create New Master Item" radius="md" zIndex={4000}>
-        <form onSubmit={createItemForm.onSubmit((v) => {
-          const selectedCategory = masterItemsData?._embedded?.items
-            ?.find(item => item.category.id === parseInt(v.categoryId))?.category
-          createItemMutation.mutate({
-            name: v.name,
-            photo: v.photo,
-            category: selectedCategory || { id: parseInt(v.categoryId), name: '', icon: '' }
-          })
-        })}>
+      <Modal
+        opened={createItemOpened}
+        onClose={closeCreateItem}
+        title="Create New Master Item"
+        radius="md"
+        zIndex={4000}
+      >
+        <form
+          onSubmit={createItemForm.onSubmit((v) => {
+            const selectedCategory = masterItemsData?._embedded?.items?.find(
+              (item) => item.category.id === parseInt(v.categoryId || '0'),
+            )?.category
+            createItemMutation.mutate({
+              name: v.name,
+              photo: v.photo,
+              category: selectedCategory || {
+                id: parseInt(v.categoryId || '0'),
+                name: '',
+                icon: '',
+              },
+            })
+          })}
+        >
           <Stack gap="md">
             <TextInput required label="Item Name" {...createItemForm.getInputProps('name')} />
-            <Select 
-              required 
-              label="Category" 
+            <Select
+              required
+              label="Category"
               placeholder="Select category"
               data={categoryOptions}
               searchable
               comboboxProps={{ withinPortal: true, zIndex: 5000 }}
               {...createItemForm.getInputProps('categoryId')}
             />
-            
+
             <Group align="flex-end">
-              <Box w={64} h={64} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--mantine-color-gray-3)', borderRadius: rem(4), overflow: 'hidden' }}>
+              <Box
+                w={64}
+                h={64}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid var(--mantine-color-gray-3)',
+                  borderRadius: rem(4),
+                  overflow: 'hidden',
+                }}
+              >
                 {createItemForm.values.photo ? (
-                  <Image src={getPhotoSrc(createItemForm.values.photo)} fit="contain" h={64} w={64} />
+                  <Image
+                    src={getPhotoSrc(createItemForm.values.photo)}
+                    fit="contain"
+                    h={64}
+                    w={64}
+                  />
                 ) : (
                   <IconBasket size={32} stroke={1.5} color="var(--mantine-color-gray-4)" />
                 )}
@@ -860,42 +1018,52 @@ export function ShoppingListDetailsPage() {
               </FileButton>
             </Group>
 
-            <Button type="submit" mt="md" loading={createItemMutation.isPending}>Create and Select</Button>
+            <Button type="submit" mt="md" loading={createItemMutation.isPending}>
+              Create and Select
+            </Button>
           </Stack>
         </form>
       </Modal>
 
       {/* Edit List Modal */}
-      <Modal opened={editListOpened} onClose={closeEditList} title="Edit List Info" radius="md" zIndex={2000}>
+      <Modal
+        opened={editListOpened}
+        onClose={closeEditList}
+        title="Edit List Info"
+        radius="md"
+        zIndex={2000}
+      >
         <form onSubmit={listForm.onSubmit((v) => updateListMutation.mutate(v))}>
           <Stack gap="md">
             <TextInput required label="List Name" {...listForm.getInputProps('name')} />
-            <Textarea 
-              label="Description" 
-              placeholder="Markdown supported" 
+            <Textarea
+              label="Description"
+              placeholder="Markdown supported"
               minRows={6}
-              {...listForm.getInputProps('description')} 
+              {...listForm.getInputProps('description')}
             />
-            <Button type="submit" mt="md" loading={updateListMutation.isPending}>Save Changes</Button>
+            <Button type="submit" mt="md" loading={updateListMutation.isPending}>
+              Save Changes
+            </Button>
           </Stack>
         </form>
       </Modal>
 
       {/* Image Preview Modal */}
-      <Modal 
-        opened={!!previewImage} 
-        onClose={() => setPreviewImage(null)} 
+      <Modal
+        opened={!!previewImage}
+        onClose={() => setPreviewImage(null)}
         title={previewImage?.title}
         size="lg"
         radius="md"
         zIndex={6000}
       >
         <Center pb="xl">
-          <Image 
-            src={previewImage?.url} 
-            alt={previewImage?.title} 
-            radius="md" 
-            style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain' }} 
+          <Image
+            src={previewImage?.url}
+            alt={previewImage?.title}
+            radius="md"
+            style={{ maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain' }}
           />
         </Center>
       </Modal>
@@ -903,32 +1071,41 @@ export function ShoppingListDetailsPage() {
       {/* Price History Modal */}
       <Modal
         opened={historyOpened}
-        onClose={() => { closeHistory(); setSelectedHistoryItem(null); }}
+        onClose={() => {
+          closeHistory()
+          setSelectedHistoryItem(null)
+        }}
         title={`Price History: ${selectedHistoryItem?.name}`}
         radius="md"
         size="lg"
         zIndex={2000}
       >
-        <Box pos="relative" minH={200}>
+        <Box pos="relative" mih={200}>
           <LoadingOverlay visible={historyLoading} />
-          
+
           {priceHistory && priceHistory.length > 0 ? (
             <Timeline active={0} bulletSize={24} lineWidth={2}>
               {priceHistory.map((entry) => (
-                <Timeline.Item 
-                  key={entry.id} 
-                  bullet={<IconBuildingStore size={14} />} 
+                <Timeline.Item
+                  key={entry.id}
+                  bullet={<IconBuildingStore size={14} />}
                   title={
                     <Group justify="space-between">
-                      <Text fw={700} size="lg">€{entry.price.toFixed(2)}</Text>
+                      <Text fw={700} size="lg">
+                        €{entry.price.toFixed(2)}
+                      </Text>
                       <Text size="xs" c="dimmed">
-                        {new Date(entry.recordedAt).toLocaleDateString()} {new Date(entry.recordedAt).toLocaleTimeString()}
+                        {new Date(entry.recordedAt).toLocaleDateString()}{' '}
+                        {new Date(entry.recordedAt).toLocaleTimeString()}
                       </Text>
                     </Group>
                   }
                 >
                   <Text size="sm" c="dimmed">
-                    Recorded at <Text span fw={500} c="dark">{entry.storeName || 'Any Store'}</Text>
+                    Recorded at{' '}
+                    <Text span fw={500} c="dark">
+                      {entry.storeName || 'Any Store'}
+                    </Text>
                   </Text>
                 </Timeline.Item>
               ))}

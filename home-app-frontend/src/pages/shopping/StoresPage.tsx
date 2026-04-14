@@ -24,15 +24,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import { Link } from 'react-router-dom'
 import * as TablerIcons from '@tabler/icons-react'
-import { 
-  IconPlus, 
-  IconEdit, 
-  IconTrash, 
-  IconSearch, 
-  IconQuestionMark, 
-  IconExternalLink, 
+import {
+  IconPlus,
+  IconEdit,
+  IconTrash,
+  IconSearch,
+  IconQuestionMark,
+  IconExternalLink,
   IconArrowRight,
-  IconTicket
+  IconTicket,
 } from '@tabler/icons-react'
 import { fetchStores, createStore, updateStore, deleteStore } from '../../services/api'
 import type { ShoppingStore } from '../../services/api'
@@ -43,7 +43,8 @@ import type { ShoppingStore } from '../../services/api'
  */
 const getPhotoSrc = (photo: string | undefined | null) => {
   if (!photo) return null
-  if (photo.startsWith('http') || photo.startsWith('data:image') || photo.startsWith('/logos/')) return photo
+  if (photo.startsWith('http') || photo.startsWith('data:image') || photo.startsWith('/logos/'))
+    return photo
   // Fallback for raw base64 data
   return `data:image/png;base64,${photo}`
 }
@@ -76,7 +77,11 @@ export function StoresPage() {
     mutationFn: createStore,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-stores'] })
-      notifications.show({ title: 'Success', message: 'Store created successfully', color: 'green' })
+      notifications.show({
+        title: 'Success',
+        message: 'Store created successfully',
+        color: 'green',
+      })
       close()
       form.reset()
     },
@@ -94,7 +99,11 @@ export function StoresPage() {
       updateStore(id, store),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-stores'] })
-      notifications.show({ title: 'Success', message: 'Store updated successfully', color: 'green' })
+      notifications.show({
+        title: 'Success',
+        message: 'Store updated successfully',
+        color: 'green',
+      })
       close()
       setEditingStore(null)
       form.reset()
@@ -112,9 +121,13 @@ export function StoresPage() {
     mutationFn: deleteStore,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-stores'] })
-      notifications.show({ title: 'Success', message: 'Store deleted successfully', color: 'green' })
+      notifications.show({
+        title: 'Success',
+        message: 'Store deleted successfully',
+        color: 'green',
+      })
     },
-    onError: (_error: any) => {
+    onError: () => {
       notifications.show({ title: 'Error', message: 'Failed to delete store', color: 'red' })
     },
   })
@@ -139,7 +152,11 @@ export function StoresPage() {
   }
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this store? All linked loyalty cards and coupons will be removed.')) {
+    if (
+      window.confirm(
+        'Are you sure you want to delete this store? All linked loyalty cards and coupons will be removed.',
+      )
+    ) {
       deleteMutation.mutate(id)
     }
   }
@@ -154,22 +171,41 @@ export function StoresPage() {
   const rows = stores
     .filter((s) => s.name.toLowerCase().includes(search.toLowerCase()))
     .map((store) => {
-      const IconComponent = (TablerIcons as any)[store.icon || 'IconBuildingStore'] || IconQuestionMark
+      const IconComponent =
+        (TablerIcons as any)[store.icon || 'IconBuildingStore'] || IconQuestionMark
       return (
         <Table.Tr key={store.id}>
           <Table.Td>
             <Group gap="sm">
-              <Box w={48} h={48} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+              <Box
+                w={48}
+                h={48}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                }}
+              >
                 {store.photo ? (
-                  <Image 
-                    src={getPhotoSrc(store.photo)} 
-                    fit="contain" 
-                    h={48} 
-                    w={48} 
-                  />
+                  <Image src={getPhotoSrc(store.photo)} fit="contain" h={48} w={48} />
                 ) : (
-                  <Box bg="gray.0" w="100%" h="100%" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: rem(4) }}>
-                    <IconComponent size={24} stroke={1.5} color="var(--mantine-color-indigo-filled)" />
+                  <Box
+                    bg="gray.0"
+                    w="100%"
+                    h="100%"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: rem(4),
+                    }}
+                  >
+                    <IconComponent
+                      size={24}
+                      stroke={1.5}
+                      color="var(--mantine-color-indigo-filled)"
+                    />
                   </Box>
                 )}
               </Box>
@@ -177,26 +213,29 @@ export function StoresPage() {
                 <Group gap="xs" align="center">
                   <Text fw={500}>{store.name}</Text>
                   {store.validCouponsCount && store.validCouponsCount > 0 ? (
-                    <Badge 
-                      color="green" 
-                      variant="light" 
-                      size="sm" 
+                    <Badge
+                      color="green"
+                      variant="light"
+                      size="sm"
                       leftSection={<IconTicket size={12} />}
                     >
-                      {store.validCouponsCount} {store.validCouponsCount === 1 ? 'coupon' : 'coupons'}
+                      {store.validCouponsCount}{' '}
+                      {store.validCouponsCount === 1 ? 'coupon' : 'coupons'}
                     </Badge>
                   ) : null}
                 </Group>
-                <Text size="xs" c="dimmed" lineClamp={1}>{store.description}</Text>
+                <Text size="xs" c="dimmed" lineClamp={1}>
+                  {store.description}
+                </Text>
               </div>
             </Group>
           </Table.Td>
           <Table.Td>
             <Group gap="xs" justify="flex-end">
-              <Button 
-                variant="light" 
-                size="xs" 
-                component={Link} 
+              <Button
+                variant="light"
+                size="xs"
+                component={Link}
                 to={`/shopping/stores/${store.id}`}
                 rightSection={<IconArrowRight size={14} />}
               >
@@ -219,16 +258,25 @@ export function StoresPage() {
       <Group justify="space-between">
         <div>
           <Title order={2}>Shopping Stores</Title>
-          <Text c="dimmed" size="sm">Manage your favorite stores, loyalty cards, and coupons</Text>
+          <Text c="dimmed" size="sm">
+            Manage your favorite stores, loyalty cards, and coupons
+          </Text>
         </div>
-        <Button leftSection={<IconPlus size={18} />} onClick={() => { setEditingStore(null); form.reset(); open(); }}>
+        <Button
+          leftSection={<IconPlus size={18} />}
+          onClick={() => {
+            setEditingStore(null)
+            form.reset()
+            open()
+          }}
+        >
           Add Store
         </Button>
       </Group>
 
       <Box pos="relative">
         <LoadingOverlay visible={isLoading} overlayProps={{ blur: 2 }} />
-        
+
         <Stack gap="md">
           <TextInput
             placeholder="Search stores..."
@@ -245,10 +293,14 @@ export function StoresPage() {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {rows.length > 0 ? rows : (
+              {rows.length > 0 ? (
+                rows
+              ) : (
                 <Table.Tr>
                   <Table.Td colSpan={2}>
-                    <Text ta="center" py="xl" c="dimmed">No stores found. Start by adding one!</Text>
+                    <Text ta="center" py="xl" c="dimmed">
+                      No stores found. Start by adding one!
+                    </Text>
                   </Table.Td>
                 </Table.Tr>
               )}
@@ -278,16 +330,22 @@ export function StoresPage() {
               placeholder="e.g. Walmart, Carrefour"
               {...form.getInputProps('name')}
             />
-            
+
             <Group align="flex-end">
-              <Box w={80} h={80} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--mantine-color-gray-3)', borderRadius: rem(4), overflow: 'hidden' }}>
+              <Box
+                w={80}
+                h={80}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid var(--mantine-color-gray-3)',
+                  borderRadius: rem(4),
+                  overflow: 'hidden',
+                }}
+              >
                 {form.values.photo ? (
-                  <Image 
-                    src={getPhotoSrc(form.values.photo)} 
-                    fit="contain" 
-                    h={80} 
-                    w={80} 
-                  />
+                  <Image src={getPhotoSrc(form.values.photo)} fit="contain" h={80} w={80} />
                 ) : (
                   <SelectedIcon size={40} stroke={1.5} color="var(--mantine-color-gray-4)" />
                 )}
@@ -317,9 +375,11 @@ export function StoresPage() {
               placeholder="Store location or notes"
               {...form.getInputProps('description')}
             />
-            
+
             <Group justify="flex-end" mt="md">
-              <Button variant="subtle" onClick={close}>Cancel</Button>
+              <Button variant="subtle" onClick={close}>
+                Cancel
+              </Button>
               <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
                 {editingStore ? 'Save Changes' : 'Create Store'}
               </Button>

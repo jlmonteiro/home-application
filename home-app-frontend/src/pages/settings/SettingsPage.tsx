@@ -18,22 +18,16 @@ import {
 } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { 
-  fetchAgeGroups, 
-  updateAgeGroups, 
-  fetchFamilyRoles, 
-  createFamilyRole, 
-  updateFamilyRole, 
-  deleteFamilyRole 
+import {
+  fetchAgeGroups,
+  updateAgeGroups,
+  fetchFamilyRoles,
+  createFamilyRole,
+  updateFamilyRole,
+  deleteFamilyRole,
 } from '../../services/api'
 import { notifications } from '@mantine/notifications'
-import { 
-  IconCheck, 
-  IconDeviceFloppy, 
-  IconPlus, 
-  IconTrash, 
-  IconPencil,
-} from '@tabler/icons-react'
+import { IconCheck, IconDeviceFloppy, IconPlus, IconTrash, IconPencil } from '@tabler/icons-react'
 import { useState, useEffect } from 'react'
 import { useDisclosure } from '@mantine/hooks'
 import type { AgeGroupConfig, FamilyRole } from '../../services/api'
@@ -47,9 +41,9 @@ export function SettingsPage() {
 
   // -- Queries --
   const { data: roles } = useQuery({ queryKey: ['family-roles'], queryFn: fetchFamilyRoles })
-  const { data: ageGroups, isLoading: loadingAgeGroups } = useQuery({ 
-    queryKey: ['age-groups'], 
-    queryFn: fetchAgeGroups 
+  const { data: ageGroups, isLoading: loadingAgeGroups } = useQuery({
+    queryKey: ['age-groups'],
+    queryFn: fetchAgeGroups,
   })
 
   const [localAgeGroups, setLocalAgeGroups] = useState<AgeGroupConfig[]>([])
@@ -86,24 +80,33 @@ export function SettingsPage() {
     mutationFn: createFamilyRole,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['family-roles'] })
-      notifications.show({ title: 'Role Created', message: 'New family role added.', color: 'green' })
+      notifications.show({
+        title: 'Role Created',
+        message: 'New family role added.',
+        color: 'green',
+      })
       handleCloseModal()
     },
     onError: (error: any) => {
       notifications.show({ title: 'Error', message: error.message, color: 'red' })
-    }
+    },
   })
 
   const updateRoleMutation = useMutation({
-    mutationFn: (data: { id: number, role: Partial<FamilyRole> }) => updateFamilyRole(data.id, data.role),
+    mutationFn: (data: { id: number; role: Partial<FamilyRole> }) =>
+      updateFamilyRole(data.id, data.role),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['family-roles'] })
-      notifications.show({ title: 'Role Updated', message: 'Family role has been renamed.', color: 'green' })
+      notifications.show({
+        title: 'Role Updated',
+        message: 'Family role has been renamed.',
+        color: 'green',
+      })
       handleCloseModal()
     },
     onError: (error: any) => {
       notifications.show({ title: 'Error', message: error.message, color: 'red' })
-    }
+    },
   })
 
   const deleteRoleMutation = useMutation({
@@ -113,19 +116,19 @@ export function SettingsPage() {
       notifications.show({ title: 'Role Deleted', message: 'Family role removed.', color: 'green' })
     },
     onError: (error: any) => {
-      notifications.show({ 
-        title: 'Delete Failed', 
-        message: error.message || 'Check if any user is still assigned to this role.', 
-        color: 'red' 
+      notifications.show({
+        title: 'Delete Failed',
+        message: error.message || 'Check if any user is still assigned to this role.',
+        color: 'red',
       })
-    }
+    },
   })
 
   // -- Handlers --
   const handleAgeChange = (id: number, field: 'minAge' | 'maxAge', value: string | number) => {
     const numValue = typeof value === 'string' ? parseInt(value) : value
     setLocalAgeGroups((current) =>
-      current.map((g) => (g.id === id ? { ...g, [field]: numValue } : g))
+      current.map((g) => (g.id === id ? { ...g, [field]: numValue } : g)),
     )
   }
 
@@ -180,8 +183,8 @@ export function SettingsPage() {
           <Stack gap="md">
             <Group justify="space-between">
               <Title order={4}>Age Group Ranges</Title>
-              <Button 
-                leftSection={<IconDeviceFloppy size={16} />} 
+              <Button
+                leftSection={<IconDeviceFloppy size={16} />}
                 onClick={handleSaveAgeGroups}
                 loading={ageMutation.isPending}
                 disabled={loadingAgeGroups}
@@ -189,9 +192,10 @@ export function SettingsPage() {
                 Save Ranges
               </Button>
             </Group>
-            
+
             <Text size="sm" c="dimmed">
-              Define the age boundaries for each group. Changes will automatically reclassify all family members.
+              Define the age boundaries for each group. Changes will automatically reclassify all
+              family members.
             </Text>
 
             <Table verticalSpacing="sm">
@@ -238,10 +242,13 @@ export function SettingsPage() {
           <Stack gap="md">
             <Group justify="space-between">
               <Title order={4}>Family Roles</Title>
-              <Button 
-                variant="light" 
+              <Button
+                variant="light"
                 leftSection={<IconPlus size={16} />}
-                onClick={() => { setEditingRole(null); open(); }}
+                onClick={() => {
+                  setEditingRole(null)
+                  open()
+                }}
               >
                 Add Custom Role
               </Button>
@@ -252,26 +259,34 @@ export function SettingsPage() {
 
             <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
               {roles?.map((role) => (
-                <Paper key={role.id} withBorder p="md" radius="md" bg={computedColorScheme === 'dark' ? 'dark.6' : 'gray.0'}>
+                <Paper
+                  key={role.id}
+                  withBorder
+                  p="md"
+                  radius="md"
+                  bg={computedColorScheme === 'dark' ? 'dark.6' : 'gray.0'}
+                >
                   <Group justify="space-between" wrap="nowrap">
                     <Box>
-                      <Text fw={600} size="sm">{role.name}</Text>
+                      <Text fw={600} size="sm">
+                        {role.name}
+                      </Text>
                       <Badge size="xs" variant="dot" color={role.immutable ? 'gray' : 'indigo'}>
                         {role.immutable ? 'System' : 'Custom'}
                       </Badge>
                     </Box>
-                    
+
                     {!role.immutable && (
                       <Group gap={4}>
-                        <ActionIcon 
-                          variant="subtle" 
-                          color="blue" 
+                        <ActionIcon
+                          variant="subtle"
+                          color="blue"
                           onClick={() => handleEditRole(role)}
                         >
                           <IconPencil size={16} />
                         </ActionIcon>
-                        <ActionIcon 
-                          variant="subtle" 
+                        <ActionIcon
+                          variant="subtle"
                           color="red"
                           loading={deleteRoleMutation.isPending}
                           onClick={() => openDeleteConfirmModal(role)}
@@ -289,9 +304,9 @@ export function SettingsPage() {
       </Stack>
 
       {/* Role Add/Edit Modal */}
-      <Modal 
-        opened={modalOpened} 
-        onClose={handleCloseModal} 
+      <Modal
+        opened={modalOpened}
+        onClose={handleCloseModal}
         title={editingRole ? 'Edit Family Role' : 'Add Custom Role'}
         centered
       >
@@ -304,8 +319,10 @@ export function SettingsPage() {
             data-autofocus
           />
           <Group justify="flex-end" mt="md">
-            <Button variant="subtle" color="gray" onClick={handleCloseModal}>Cancel</Button>
-            <Button 
+            <Button variant="subtle" color="gray" onClick={handleCloseModal}>
+              Cancel
+            </Button>
+            <Button
               onClick={handleSaveRole}
               disabled={!newRoleName.trim()}
               loading={createRoleMutation.isPending || updateRoleMutation.isPending}

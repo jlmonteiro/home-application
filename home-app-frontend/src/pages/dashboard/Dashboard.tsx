@@ -1,16 +1,31 @@
-import { Title, Text, Paper, Stack, Group, Badge, ActionIcon, List, ThemeIcon, rem, Loader, Button, Box, Modal, Center } from '@mantine/core'
+import {
+  Title,
+  Text,
+  Paper,
+  Stack,
+  Group,
+  Badge,
+  ActionIcon,
+  ThemeIcon,
+  rem,
+  Loader,
+  Button,
+  Box,
+  Modal,
+  Center,
+} from '@mantine/core'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
 import { useState } from 'react'
-import { 
-  IconShoppingCart, 
-  IconChevronRight, 
-  IconArrowRight, 
-  IconBasket, 
+import {
+  IconShoppingCart,
+  IconChevronRight,
+  IconArrowRight,
+  IconBasket,
   IconTicket,
   IconCalendarClock,
   IconBuildingStore,
-  IconMaximize
+  IconMaximize,
 } from '@tabler/icons-react'
 import { QRCodeSVG } from 'qrcode.react'
 import Barcode from 'react-barcode'
@@ -40,7 +55,7 @@ export function Dashboard() {
 
   const [fullscreenCoupon, setFullscreenCoupon] = useState<Coupon | null>(null)
 
-  const pendingLists = lists?.filter(l => l.status === 'PENDING') || []
+  const pendingLists = lists?.filter((l) => l.status === 'PENDING') || []
   const expiringCoupons = coupons || []
 
   const showShopping = preferences?.showShoppingWidget ?? true
@@ -50,9 +65,7 @@ export function Dashboard() {
     <Stack gap="xl">
       <Stack gap={4}>
         <Title order={1}>Welcome back, {user?.firstName}!</Title>
-        <Text c="dimmed">
-          Here is what's happening in your household today.
-        </Text>
+        <Text c="dimmed">Here is what's happening in your household today.</Text>
       </Stack>
 
       <Group grow align="flex-start" wrap="wrap">
@@ -60,10 +73,10 @@ export function Dashboard() {
           <Stack style={{ minWidth: rem(350), flex: 1 }}>
             <Group justify="space-between" align="center">
               <Title order={3}>Pending Shopping Lists</Title>
-              <Button 
-                variant="subtle" 
-                size="compact-sm" 
-                component={Link} 
+              <Button
+                variant="subtle"
+                size="compact-sm"
+                component={Link}
                 to="/shopping/lists"
                 rightSection={<IconArrowRight size={14} />}
               >
@@ -83,30 +96,34 @@ export function Dashboard() {
                   <ThemeIcon variant="light" size="xl" radius="md" color="gray">
                     <IconBasket size={24} />
                   </ThemeIcon>
-                  <Text size="sm" c="dimmed">No pending shopping lists</Text>
-                  <Button variant="light" size="xs" component={Link} to="/shopping/lists">Create one</Button>
+                  <Text size="sm" c="dimmed">
+                    No pending shopping lists
+                  </Text>
+                  <Button variant="light" size="xs" component={Link} to="/shopping/lists">
+                    Create one
+                  </Button>
                 </Stack>
               )}
 
               {!listsLoading && pendingLists.length > 0 && (
                 <Stack gap="sm">
                   {pendingLists.map((list) => {
-                    const bought = list.items.filter(i => i.bought && !i.unavailable).length
-                    const total = list.items.filter(i => !i.unavailable).length
+                    const bought = list.items.filter((i) => i.bought && !i.unavailable).length
+                    const total = list.items.filter((i) => !i.unavailable).length
                     const progress = total > 0 ? Math.round((bought / total) * 100) : 0
 
                     return (
-                      <Paper 
-                        key={list.id} 
-                        withBorder 
-                        p="sm" 
-                        radius="sm" 
-                        component={Link} 
+                      <Paper
+                        key={list.id}
+                        withBorder
+                        p="sm"
+                        radius="sm"
+                        component={Link}
                         to={`/shopping/lists/${list.id}`}
-                        style={{ 
-                          textDecoration: 'none', 
+                        style={{
+                          textDecoration: 'none',
                           color: 'inherit',
-                          transition: 'background-color 100ms ease'
+                          transition: 'background-color 100ms ease',
                         }}
                       >
                         <Group justify="space-between" wrap="nowrap">
@@ -115,7 +132,9 @@ export function Dashboard() {
                               <IconShoppingCart size={16} />
                             </ThemeIcon>
                             <Box style={{ overflow: 'hidden' }}>
-                              <Text fw={600} size="sm" truncate>{list.name}</Text>
+                              <Text fw={600} size="sm" truncate>
+                                {list.name}
+                              </Text>
                               <Text size="xs" c="dimmed">
                                 {bought}/{total} items • {progress}% complete
                               </Text>
@@ -136,10 +155,10 @@ export function Dashboard() {
           <Stack style={{ minWidth: rem(350), flex: 1 }}>
             <Group justify="space-between" align="center">
               <Title order={3}>Expiring Coupons</Title>
-              <Button 
-                variant="subtle" 
-                size="compact-sm" 
-                component={Link} 
+              <Button
+                variant="subtle"
+                size="compact-sm"
+                component={Link}
                 to="/shopping/stores"
                 rightSection={<IconArrowRight size={14} />}
               >
@@ -159,52 +178,73 @@ export function Dashboard() {
                   <ThemeIcon variant="light" size="xl" radius="md" color="gray">
                     <IconTicket size={24} />
                   </ThemeIcon>
-                  <Text size="sm" c="dimmed">No expiring coupons</Text>
+                  <Text size="sm" c="dimmed">
+                    No expiring coupons
+                  </Text>
                 </Stack>
               )}
 
               {!couponsLoading && expiringCoupons.length > 0 && (
                 <Stack gap="sm">
                   {expiringCoupons.map((coupon) => {
-                    const isExpired = coupon.dueDate && new Date(coupon.dueDate) < new Date(new Date().setHours(0, 0, 0, 0))
+                    const isExpired =
+                      coupon.dueDate &&
+                      new Date(coupon.dueDate) < new Date(new Date().setHours(0, 0, 0, 0))
                     return (
-                      <Paper 
-                        key={coupon.id} 
-                        withBorder 
-                        p="sm" 
+                      <Paper
+                        key={coupon.id}
+                        withBorder
+                        p="sm"
                         radius="sm"
-                        style={{ 
+                        style={{
                           transition: 'background-color 100ms ease',
                           opacity: isExpired ? 0.7 : 1,
-                          backgroundColor: isExpired ? 'var(--mantine-color-red-0)' : undefined
+                          backgroundColor: isExpired ? 'var(--mantine-color-red-0)' : undefined,
                         }}
                       >
                         <Group justify="space-between" wrap="nowrap">
                           <Group gap="sm" wrap="nowrap">
-                            <ThemeIcon variant="light" color={isExpired ? 'red' : 'teal'} radius="sm">
+                            <ThemeIcon
+                              variant="light"
+                              color={isExpired ? 'red' : 'teal'}
+                              radius="sm"
+                            >
                               <IconTicket size={16} />
                             </ThemeIcon>
                             <Box style={{ overflow: 'hidden' }}>
-                              <Text fw={600} size="sm" truncate>{coupon.name}</Text>
+                              <Text fw={600} size="sm" truncate>
+                                {coupon.name}
+                              </Text>
                               <Group gap={4} wrap="nowrap">
                                 <IconBuildingStore size={12} color="var(--mantine-color-dimmed)" />
-                                <Text size="xs" c="dimmed" truncate>{coupon.store.name}</Text>
+                                <Text size="xs" c="dimmed" truncate>
+                                  {coupon.store.name}
+                                </Text>
                               </Group>
                             </Box>
                           </Group>
                           <Group gap="xs" wrap="nowrap">
                             {coupon.barcode?.code && (
-                              <ActionIcon variant="subtle" color="blue" size="sm" onClick={() => setFullscreenCoupon(coupon)}>
+                              <ActionIcon
+                                variant="subtle"
+                                color="blue"
+                                size="sm"
+                                onClick={() => setFullscreenCoupon(coupon)}
+                              >
                                 <IconMaximize size={14} />
                               </ActionIcon>
                             )}
-                            <Badge 
-                              color="red" 
-                              variant={isExpired ? 'filled' : 'light'} 
-                              size="sm" 
+                            <Badge
+                              color="red"
+                              variant={isExpired ? 'filled' : 'light'}
+                              size="sm"
                               leftSection={<IconCalendarClock size={12} />}
                             >
-                              {isExpired ? 'EXPIRED' : (coupon.dueDate ? new Date(coupon.dueDate).toLocaleDateString() : 'No date')}
+                              {isExpired
+                                ? 'EXPIRED'
+                                : coupon.dueDate
+                                  ? new Date(coupon.dueDate).toLocaleDateString()
+                                  : 'No date'}
                             </Badge>
                           </Group>
                         </Group>
@@ -221,10 +261,18 @@ export function Dashboard() {
           <Title order={3}>Quick Actions</Title>
           <Paper withBorder p="md" radius="md">
             <Text size="sm" c="dimmed">
-              More dashboard widgets coming soon, including family member activities and household tasks.
+              More dashboard widgets coming soon, including family member activities and household
+              tasks.
             </Text>
             {(!showShopping || !showCoupons) && (
-              <Text size="xs" mt="sm" c="indigo" component={Link} to="/preferences" style={{ textDecoration: 'none' }}>
+              <Text
+                size="xs"
+                mt="sm"
+                c="indigo"
+                component={Link}
+                to="/preferences"
+                style={{ textDecoration: 'none' }}
+              >
                 Enable widgets in your preferences →
               </Text>
             )}
@@ -243,12 +291,21 @@ export function Dashboard() {
         <Center h="100%" pb={rem(100)}>
           <Stack align="center" gap="xl" w="100%">
             {fullscreenCoupon?.barcode?.code && (
-              <Box bg="white" p="xl" style={{ borderRadius: rem(12), boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}>
+              <Box
+                bg="white"
+                p="xl"
+                style={{ borderRadius: rem(12), boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}
+              >
                 {fullscreenCoupon.barcode.type === 'QR' ? (
                   <QRCodeSVG value={fullscreenCoupon.barcode.code} size={280} />
                 ) : (
                   <Box style={{ transform: 'scale(1.5)', transformOrigin: 'center' }} py="xl">
-                    <Barcode value={fullscreenCoupon.barcode.code} width={2} height={100} fontSize={16} />
+                    <Barcode
+                      value={fullscreenCoupon.barcode.code}
+                      width={2}
+                      height={100}
+                      fontSize={16}
+                    />
                   </Box>
                 )}
               </Box>

@@ -21,8 +21,21 @@ import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
 import * as TablerIcons from '@tabler/icons-react'
-import { IconPlus, IconEdit, IconTrash, IconSearch, IconQuestionMark, IconExternalLink } from '@tabler/icons-react'
-import { fetchCategories, createCategory, updateCategory, deleteCategory } from '../../services/api'
+import {
+  IconPlus,
+  IconEdit,
+  IconTrash,
+  IconSearch,
+  IconQuestionMark,
+  IconExternalLink,
+} from '@tabler/icons-react'
+import {
+  fetchCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  type ApiError,
+} from '../../services/api'
 import type { ShoppingCategory } from '../../services/api'
 
 export function ShoppingCategoriesPage() {
@@ -53,11 +66,15 @@ export function ShoppingCategoriesPage() {
     mutationFn: createCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-categories'] })
-      notifications.show({ title: 'Success', message: 'Category created successfully', color: 'green' })
+      notifications.show({
+        title: 'Success',
+        message: 'Category created successfully',
+        color: 'green',
+      })
       close()
       form.reset()
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       notifications.show({
         title: 'Error',
         message: error.data?.detail || 'Failed to create category',
@@ -71,12 +88,16 @@ export function ShoppingCategoriesPage() {
       updateCategory(id, category),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-categories'] })
-      notifications.show({ title: 'Success', message: 'Category updated successfully', color: 'green' })
+      notifications.show({
+        title: 'Success',
+        message: 'Category updated successfully',
+        color: 'green',
+      })
       close()
       setEditingCategory(null)
       form.reset()
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       notifications.show({
         title: 'Error',
         message: error.data?.detail || 'Failed to update category',
@@ -89,9 +110,13 @@ export function ShoppingCategoriesPage() {
     mutationFn: deleteCategory,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-categories'] })
-      notifications.show({ title: 'Success', message: 'Category deleted successfully', color: 'green' })
+      notifications.show({
+        title: 'Success',
+        message: 'Category deleted successfully',
+        color: 'green',
+      })
     },
-    onError: (_error: any) => {
+    onError: () => {
       notifications.show({ title: 'Error', message: 'Failed to delete category', color: 'red' })
     },
   })
@@ -115,7 +140,11 @@ export function ShoppingCategoriesPage() {
   }
 
   const handleDelete = (id: number) => {
-    if (window.confirm('Are you sure you want to delete this category? This will also delete all items in it.')) {
+    if (
+      window.confirm(
+        'Are you sure you want to delete this category? This will also delete all items in it.',
+      )
+    ) {
       deleteMutation.mutate(id)
     }
   }
@@ -125,23 +154,36 @@ export function ShoppingCategoriesPage() {
   const rows = categories
     .filter((cat) => cat.name.toLowerCase().includes(search.toLowerCase()))
     .map((category) => {
-      const IconComponent = (category.icon ? (TablerIcons as any)[category.icon] : null) || IconQuestionMark
+      const IconComponent =
+        ((TablerIcons as unknown as Record<string, React.FC>)[category.icon || ''] as React.FC) ||
+        IconQuestionMark
       return (
         <Table.Tr key={category.id}>
           <Table.Td>
             <Group gap="sm">
-              <Box 
-                w={32} 
-                h={32} 
-                bg="gray.1" 
-                style={{ borderRadius: rem(4), display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              <Box
+                w={32}
+                h={32}
+                bg="gray.1"
+                style={{
+                  borderRadius: rem(4),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
                 <IconComponent size={18} stroke={1.5} color="var(--mantine-color-indigo-filled)" />
               </Box>
               <Text fw={500}>{category.name}</Text>
             </Group>
           </Table.Td>
-          <Table.Td>{category.description || <Text c="dimmed" size="xs">No description</Text>}</Table.Td>
+          <Table.Td>
+            {category.description || (
+              <Text c="dimmed" size="xs">
+                No description
+              </Text>
+            )}
+          </Table.Td>
           <Table.Td>
             <Group gap="xs" justify="flex-end">
               <ActionIcon variant="light" color="blue" onClick={() => handleEdit(category)}>
@@ -158,7 +200,10 @@ export function ShoppingCategoriesPage() {
 
   // Live preview of the typed icon name
   const SelectedIcon = useMemo(() => {
-    return (TablerIcons as any)[form.values.icon] || IconQuestionMark
+    return (
+      ((TablerIcons as unknown as Record<string, React.FC>)[form.values.icon] as React.FC) ||
+      IconQuestionMark
+    )
   }, [form.values.icon])
 
   return (
@@ -166,16 +211,25 @@ export function ShoppingCategoriesPage() {
       <Group justify="space-between">
         <div>
           <Title order={2}>Shopping Categories</Title>
-          <Text c="dimmed" size="sm">Manage categories to organize your shopping items</Text>
+          <Text c="dimmed" size="sm">
+            Manage categories to organize your shopping items
+          </Text>
         </div>
-        <Button leftSection={<IconPlus size={18} />} onClick={() => { setEditingCategory(null); form.reset(); open(); }}>
+        <Button
+          leftSection={<IconPlus size={18} />}
+          onClick={() => {
+            setEditingCategory(null)
+            form.reset()
+            open()
+          }}
+        >
           Add Category
         </Button>
       </Group>
 
       <Box pos="relative">
         <LoadingOverlay visible={isLoading} overlayProps={{ blur: 2 }} />
-        
+
         <Stack gap="md">
           <TextInput
             placeholder="Search categories..."
@@ -193,10 +247,14 @@ export function ShoppingCategoriesPage() {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {rows.length > 0 ? rows : (
+              {rows.length > 0 ? (
+                rows
+              ) : (
                 <Table.Tr>
                   <Table.Td colSpan={3}>
-                    <Text ta="center" py="xl" c="dimmed">No categories found</Text>
+                    <Text ta="center" py="xl" c="dimmed">
+                      No categories found
+                    </Text>
                   </Table.Td>
                 </Table.Tr>
               )}
@@ -226,12 +284,12 @@ export function ShoppingCategoriesPage() {
               placeholder="e.g. Groceries, Pharmacy"
               {...form.getInputProps('name')}
             />
-            
+
             <Stack gap={4}>
               <TextInput
                 label="Category Icon"
                 placeholder="e.g. IconApple, IconBasket"
-                leftSection={<SelectedIcon size={18} stroke={1.5} />}
+                leftSection={<SelectedIcon style={{ width: rem(18), height: rem(18) }} stroke={1.5} />}
                 {...form.getInputProps('icon')}
               />
               <Text size="xs" c="dimmed">
@@ -248,9 +306,11 @@ export function ShoppingCategoriesPage() {
               placeholder="Brief description of what goes in this category"
               {...form.getInputProps('description')}
             />
-            
+
             <Group justify="flex-end" mt="md">
-              <Button variant="subtle" onClick={close}>Cancel</Button>
+              <Button variant="subtle" onClick={close}>
+                Cancel
+              </Button>
               <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
                 {editingCategory ? 'Save Changes' : 'Create Category'}
               </Button>

@@ -61,21 +61,29 @@ export function Layout() {
 
   const isAdult = user?.ageGroupName === 'Adult'
 
-  const isActive = (path: string) => 
+  const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
 
   // Breadcrumb logic
   const getBreadcrumbs = () => {
     const path = location.pathname
     const crumbs: { title: string; href: string; icon?: React.ReactNode }[] = [
-      { title: 'Home', href: '/', icon: <IconLayoutDashboard size={16} /> }
+      { title: 'Home', href: '/', icon: <IconLayoutDashboard size={16} /> },
     ]
 
     if (path.startsWith('/shopping/')) {
-      crumbs.push({ title: 'Shopping', href: '/shopping/lists', icon: <IconShoppingCart size={16} /> })
-      
+      crumbs.push({
+        title: 'Shopping',
+        href: '/shopping/lists',
+        icon: <IconShoppingCart size={16} />,
+      })
+
       if (path.includes('/stores')) {
-        crumbs.push({ title: 'Stores', href: '/shopping/stores', icon: <IconBuildingStore size={16} /> })
+        crumbs.push({
+          title: 'Stores',
+          href: '/shopping/stores',
+          icon: <IconBuildingStore size={16} />,
+        })
         if (path.match(/\/stores\/\d+$/)) {
           crumbs.push({ title: 'Store Details', href: path })
         }
@@ -85,14 +93,22 @@ export function Layout() {
           crumbs.push({ title: 'List Details', href: path })
         }
       } else if (path.includes('/categories')) {
-        crumbs.push({ title: 'Categories', href: '/shopping/categories', icon: <IconCategory size={16} /> })
+        crumbs.push({
+          title: 'Categories',
+          href: '/shopping/categories',
+          icon: <IconCategory size={16} />,
+        })
       } else if (path.includes('/items')) {
         crumbs.push({ title: 'Items', href: '/shopping/items', icon: <IconPackages size={16} /> })
       }
     } else if (path === '/profile') {
       crumbs.push({ title: 'Profile', href: '/profile', icon: <IconUserCircle size={16} /> })
     } else if (path === '/preferences') {
-      crumbs.push({ title: 'Preferences', href: '/preferences', icon: <IconAdjustments size={16} /> })
+      crumbs.push({
+        title: 'Preferences',
+        href: '/preferences',
+        icon: <IconAdjustments size={16} />,
+      })
     } else if (path === '/settings') {
       crumbs.push({ title: 'Settings', href: '/settings', icon: <IconSettings size={16} /> })
     }
@@ -117,7 +133,8 @@ export function Layout() {
       <AppShell.Header
         withBorder={false}
         style={{
-          backgroundColor: computedColorScheme === 'dark' ? 'rgba(26, 27, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+          backgroundColor:
+            computedColorScheme === 'dark' ? 'rgba(26, 27, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(10px)',
           borderBottom: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}`,
           zIndex: 1000,
@@ -133,11 +150,26 @@ export function Layout() {
                 bg="indigo"
                 component={Link}
                 to="/"
-                style={{ borderRadius: rem(8), display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
+                style={{
+                  borderRadius: rem(8),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textDecoration: 'none',
+                }}
               >
-                <Text c="white" fw={900} size="xl" style={{ lineHeight: 1 }}>H</Text>
+                <Text c="white" fw={900} size="xl" style={{ lineHeight: 1 }}>
+                  H
+                </Text>
               </Box>
-              <Text size="lg" fw={800} style={{ letterSpacing: rem(-0.5), textDecoration: 'none' }} component={Link} to="/" c="var(--mantine-color-text)">
+              <Text
+                size="lg"
+                fw={800}
+                style={{ letterSpacing: rem(-0.5), textDecoration: 'none' }}
+                component={Link}
+                to="/"
+                c="var(--mantine-color-text)"
+              >
                 HOME APP
               </Text>
             </Group>
@@ -184,7 +216,8 @@ export function Layout() {
                         size={32}
                         color="indigo"
                       >
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        {user?.firstName?.[0]}
+                        {user?.lastName?.[0]}
                       </Avatar>
                       <Box visibleFrom="sm">
                         <Stack gap={0}>
@@ -208,7 +241,9 @@ export function Layout() {
                   <Menu.Item
                     component={Link}
                     to="/profile"
-                    leftSection={<IconUser style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
+                    leftSection={
+                      <IconUser style={{ width: rem(14), height: rem(14) }} stroke={1.5} />
+                    }
                   >
                     View/Edit Profile
                   </Menu.Item>
@@ -216,7 +251,9 @@ export function Layout() {
                   <Menu.Item
                     component={Link}
                     to="/preferences"
-                    leftSection={<IconSettings style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
+                    leftSection={
+                      <IconSettings style={{ width: rem(14), height: rem(14) }} stroke={1.5} />
+                    }
                   >
                     Preferences
                   </Menu.Item>
@@ -226,7 +263,9 @@ export function Layout() {
                       <Menu.Divider />
                       <Menu.Label>Contact Info</Menu.Label>
                       <Menu.Item
-                        leftSection={<IconPhone style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
+                        leftSection={
+                          <IconPhone style={{ width: rem(14), height: rem(14) }} stroke={1.5} />
+                        }
                       >
                         {user.mobilePhone}
                       </Menu.Item>
@@ -297,17 +336,25 @@ export function Layout() {
         </Container>
       </AppShell.Header>
 
-      <AppShell.Navbar 
-        p="md" 
-        style={{ 
+      <AppShell.Navbar
+        p="md"
+        style={{
           borderRight: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}`,
         }}
       >
         <Stack gap="xs">
-          <Text size="xs" fw={700} c="dimmed" tt="uppercase" pl="xs" mb={4} style={{ whiteSpace: 'nowrap' }}>
+          <Text
+            size="xs"
+            fw={700}
+            c="dimmed"
+            tt="uppercase"
+            pl="xs"
+            mb={4}
+            style={{ whiteSpace: 'nowrap' }}
+          >
             Main Menu
           </Text>
-          
+
           <NavLink
             component={Link}
             to="/"
@@ -325,16 +372,44 @@ export function Layout() {
             opened={shoppingOpened}
             onChange={toggleShopping}
           >
-            <NavLink component={Link} to="/shopping/lists" label="Lists" active={isActive('/shopping/lists')} />
-            <NavLink component={Link} to="/shopping/stores" label="Stores" active={isActive('/shopping/stores')} />
-            <NavLink component={Link} to="/shopping/categories" label="Categories" active={isActive('/shopping/categories')} />
-            <NavLink component={Link} to="/shopping/items" label="Items" active={isActive('/shopping/items')} />
+            <NavLink
+              component={Link}
+              to="/shopping/lists"
+              label="Lists"
+              active={isActive('/shopping/lists')}
+            />
+            <NavLink
+              component={Link}
+              to="/shopping/stores"
+              label="Stores"
+              active={isActive('/shopping/stores')}
+            />
+            <NavLink
+              component={Link}
+              to="/shopping/categories"
+              label="Categories"
+              active={isActive('/shopping/categories')}
+            />
+            <NavLink
+              component={Link}
+              to="/shopping/items"
+              label="Items"
+              active={isActive('/shopping/items')}
+            />
           </NavLink>
 
           {isAdult && (
             <>
               <Divider my="sm" />
-              <Text size="xs" fw={700} c="dimmed" tt="uppercase" pl="xs" mb={4} style={{ whiteSpace: 'nowrap' }}>
+              <Text
+                size="xs"
+                fw={700}
+                c="dimmed"
+                tt="uppercase"
+                pl="xs"
+                mb={4}
+                style={{ whiteSpace: 'nowrap' }}
+              >
                 Administration
               </Text>
               <NavLink
@@ -359,7 +434,9 @@ export function Layout() {
               radius="md"
               mb="lg"
               bg={computedColorScheme === 'dark' ? 'dark.5' : 'gray.0'}
-              style={{ border: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}` }}
+              style={{
+                border: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}`,
+              }}
             >
               <Breadcrumbs
                 separator={<IconChevronRight size={14} style={{ opacity: 0.4 }} />}

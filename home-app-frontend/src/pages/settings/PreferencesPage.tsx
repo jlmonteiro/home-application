@@ -1,7 +1,23 @@
-import { Title, Text, Paper, Stack, Switch, Group, Divider, Button, LoadingOverlay, Box, ThemeIcon } from '@mantine/core'
+import {
+  Title,
+  Text,
+  Paper,
+  Stack,
+  Switch,
+  Group,
+  Divider,
+  LoadingOverlay,
+  Box,
+  ThemeIcon,
+} from '@mantine/core'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
-import { IconSettings, IconShoppingCart, IconLayoutDashboard, IconTicket } from '@tabler/icons-react'
+import {
+  IconSettings,
+  IconShoppingCart,
+  IconLayoutDashboard,
+  IconTicket,
+} from '@tabler/icons-react'
 import { fetchUserPreferences, updateUserPreferences } from '../../services/api'
 
 export function PreferencesPage() {
@@ -28,20 +44,20 @@ export function PreferencesPage() {
         message: 'Failed to update preferences',
         color: 'red',
       })
-    }
+    },
   })
 
   const handleToggleShopping = (checked: boolean) => {
-    mutation.mutate({ 
+    mutation.mutate({
       showShoppingWidget: checked,
-      showCouponsWidget: preferences?.showCouponsWidget ?? true
+      showCouponsWidget: preferences?.showCouponsWidget ?? true,
     })
   }
 
   const handleToggleCoupons = (checked: boolean) => {
-    mutation.mutate({ 
+    mutation.mutate({
       showShoppingWidget: preferences?.showShoppingWidget ?? true,
-      showCouponsWidget: checked 
+      showCouponsWidget: checked,
     })
   }
 
@@ -49,7 +65,7 @@ export function PreferencesPage() {
     <Stack gap="lg">
       <Box pos="relative">
         <LoadingOverlay visible={isLoading || mutation.isPending} overlayProps={{ blur: 2 }} />
-        
+
         <Group justify="space-between" align="flex-end" mb="md">
           <Stack gap={4}>
             <Title order={1}>Preferences</Title>
@@ -78,12 +94,16 @@ export function PreferencesPage() {
                         <IconShoppingCart size={18} />
                       </ThemeIcon>
                       <div>
-                        <Text fw={600} size="sm">Pending Shopping Lists</Text>
-                        <Text size="xs" c="dimmed">Shows your active shopping lists and their completion progress.</Text>
+                        <Text fw={600} size="sm">
+                          Pending Shopping Lists
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          Shows your active shopping lists and their completion progress.
+                        </Text>
                       </div>
                     </Group>
-                    <Switch 
-                      checked={preferences?.showShoppingWidget ?? true} 
+                    <Switch
+                      checked={preferences?.showShoppingWidget ?? true}
                       onChange={(event) => handleToggleShopping(event.currentTarget.checked)}
                       size="md"
                       color="indigo"
@@ -94,16 +114,20 @@ export function PreferencesPage() {
                 <Paper withBorder p="md" radius="md" bg="gray.0">
                   <Group justify="space-between">
                     <Group gap="md">
-                      <ThemeIcon variant="white" color="teal" withBorder>
+                      <ThemeIcon variant="subtle" color="teal" withBorder>
                         <IconTicket size={18} />
                       </ThemeIcon>
                       <div>
-                        <Text fw={600} size="sm">Pending Coupons</Text>
-                        <Text size="xs" c="dimmed">Shows coupons that are close to expiring and haven't been used yet.</Text>
+                        <Text fw={600} size="sm">
+                          Pending Coupons
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          Shows coupons that are close to expiring and haven't been used yet.
+                        </Text>
                       </div>
                     </Group>
-                    <Switch 
-                      checked={preferences?.showCouponsWidget ?? true} 
+                    <Switch
+                      checked={preferences?.showCouponsWidget ?? true}
                       onChange={(event) => handleToggleCoupons(event.currentTarget.checked)}
                       size="md"
                       color="teal"
@@ -118,8 +142,12 @@ export function PreferencesPage() {
                         <IconSettings size={18} />
                       </ThemeIcon>
                       <div>
-                        <Text fw={600} size="sm">Household Tasks (Coming Soon)</Text>
-                        <Text size="xs" c="dimmed">A widget to track shared chores and responsibilities.</Text>
+                        <Text fw={600} size="sm">
+                          Household Tasks (Coming Soon)
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          A widget to track shared chores and responsibilities.
+                        </Text>
                       </div>
                     </Group>
                     <Switch disabled size="md" />
@@ -131,9 +159,12 @@ export function PreferencesPage() {
             <Divider />
 
             <Box>
-              <Title order={3} mb="md">General Settings</Title>
+              <Title order={3} mb="md">
+                General Settings
+              </Title>
               <Text size="sm" c="dimmed">
-                More preferences like language, currency, and notification settings will be available here in the future.
+                More preferences like language, currency, and notification settings will be
+                available here in the future.
               </Text>
             </Box>
           </Stack>

@@ -49,7 +49,7 @@ function App() {
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="preferences" element={<PreferencesPage />} />
                 <Route path="settings" element={<SettingsPage />} />
-                
+
                 {/* Shopping Routes */}
                 <Route path="shopping">
                   <Route path="categories" element={<ShoppingCategoriesPage />} />

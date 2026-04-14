@@ -23,26 +23,26 @@ import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
-import { 
-  IconPlus, 
-  IconEdit, 
-  IconTrash, 
-  IconSearch, 
-  IconBasket, 
-  IconUpload, 
-  IconHistory, 
+import {
+  IconPlus,
+  IconEdit,
+  IconTrash,
+  IconSearch,
+  IconBasket,
+  IconUpload,
+  IconHistory,
   IconBuildingStore,
-  IconArrowRight
 } from '@tabler/icons-react'
-import { 
-  fetchItems, 
-  createItem, 
-  updateItem, 
-  deleteItem, 
+import {
+  fetchItems,
+  createItem,
+  updateItem,
+  deleteItem,
   fetchCategories,
-  fetchItemPriceHistory
+  fetchItemPriceHistory,
+  type ApiError,
 } from '../../services/api'
-import type { ShoppingItem, ShoppingItemPriceHistory } from '../../services/api'
+import type { ShoppingItem } from '../../services/api'
 
 /**
  * Helper to determine the correct image source for item photos.
@@ -60,7 +60,7 @@ export function ShoppingItemsPage() {
   const [search, setSearch] = useState('')
   const [opened, { open, close }] = useDisclosure(false)
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
-  
+
   const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false)
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<ShoppingItem | null>(null)
 
@@ -76,7 +76,8 @@ export function ShoppingItemsPage() {
 
   const { data: priceHistory, isLoading: historyLoading } = useQuery({
     queryKey: ['price-history', selectedHistoryItem?.id],
-    queryFn: () => fetchItemPriceHistory(selectedHistoryItem!.id),
+    queryFn: () =>
+      selectedHistoryItem ? fetchItemPriceHistory(selectedHistoryItem.id) : Promise.resolve([]),
     enabled: !!selectedHistoryItem,
   })
 
@@ -111,7 +112,7 @@ export function ShoppingItemsPage() {
       close()
       form.reset()
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       notifications.show({
         title: 'Error',
         message: error.data?.detail || 'Failed to create item',
@@ -121,8 +122,7 @@ export function ShoppingItemsPage() {
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, item }: { id: number; item: Partial<ShoppingItem> }) =>
-      updateItem(id, item),
+    mutationFn: ({ id, item }: { id: number; item: Partial<ShoppingItem> }) => updateItem(id, item),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items'] })
       notifications.show({ title: 'Success', message: 'Item updated successfully', color: 'green' })
@@ -130,7 +130,7 @@ export function ShoppingItemsPage() {
       setEditingItem(null)
       form.reset()
     },
-    onError: (error: any) => {
+    onError: (error: ApiError) => {
       notifications.show({
         title: 'Error',
         message: error.data?.detail || 'Failed to update item',
@@ -145,11 +145,10 @@ export function ShoppingItemsPage() {
       queryClient.invalidateQueries({ queryKey: ['shopping-items'] })
       notifications.show({ title: 'Success', message: 'Item deleted successfully', color: 'green' })
     },
-    onError: (_error: any) => {
+    onError: () => {
       notifications.show({ title: 'Error', message: 'Failed to delete item', color: 'red' })
     },
   })
-
   const handleEdit = (item: ShoppingItem) => {
     setEditingItem(item)
     form.setValues({
@@ -166,12 +165,13 @@ export function ShoppingItemsPage() {
   }
 
   const handleSubmit = (values: typeof form.values) => {
-    const selectedCategory = categoriesData?._embedded?.categories
-      ?.find(cat => cat.id === parseInt(values.categoryId))
+    const selectedCategory = categoriesData?._embedded?.categories?.find(
+      (cat) => cat.id === parseInt(values.categoryId),
+    )
     const payload = {
       name: values.name,
       photo: values.photo,
-      category: selectedCategory || { id: parseInt(values.categoryId), name: '', icon: '' }
+      category: selectedCategory || { id: parseInt(values.categoryId), name: '', icon: '' },
     }
     if (editingItem) {
       updateMutation.mutate({ id: editingItem.id, item: payload })
@@ -198,14 +198,18 @@ export function ShoppingItemsPage() {
       <Table.Tr key={item.id}>
         <Table.Td>
           <Group gap="sm">
-            <Box w={32} h={32} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <Box
+              w={32}
+              h={32}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                overflow: 'hidden',
+              }}
+            >
               {item.photo ? (
-                <Image 
-                  src={getPhotoSrc(item.photo)} 
-                  fit="contain" 
-                  h={32} 
-                  w={32} 
-                />
+                <Image src={getPhotoSrc(item.photo)} fit="contain" h={32} w={32} />
               ) : (
                 <Avatar radius="sm" size="sm">
                   <IconBasket size={16} />
@@ -220,7 +224,12 @@ export function ShoppingItemsPage() {
         </Table.Td>
         <Table.Td>
           <Group gap="xs" justify="flex-end">
-            <ActionIcon variant="light" color="indigo" onClick={() => handleShowHistory(item)} title="Price History">
+            <ActionIcon
+              variant="light"
+              color="indigo"
+              onClick={() => handleShowHistory(item)}
+              title="Price History"
+            >
               <IconHistory style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
             </ActionIcon>
             <ActionIcon variant="light" color="blue" onClick={() => handleEdit(item)}>
@@ -239,16 +248,25 @@ export function ShoppingItemsPage() {
       <Group justify="space-between">
         <div>
           <Title order={2}>Shopping Items</Title>
-          <Text c="dimmed" size="sm">Manage master list of items for your shopping lists</Text>
+          <Text c="dimmed" size="sm">
+            Manage master list of items for your shopping lists
+          </Text>
         </div>
-        <Button leftSection={<IconPlus size={18} />} onClick={() => { setEditingItem(null); form.reset(); open(); }}>
+        <Button
+          leftSection={<IconPlus size={18} />}
+          onClick={() => {
+            setEditingItem(null)
+            form.reset()
+            open()
+          }}
+        >
           Add Item
         </Button>
       </Group>
 
       <Box pos="relative">
         <LoadingOverlay visible={itemsLoading} overlayProps={{ blur: 2 }} />
-        
+
         <Stack gap="md">
           <TextInput
             placeholder="Search items..."
@@ -266,10 +284,14 @@ export function ShoppingItemsPage() {
               </Table.Tr>
             </Table.Thead>
             <Table.Tbody>
-              {rows.length > 0 ? rows : (
+              {rows.length > 0 ? (
+                rows
+              ) : (
                 <Table.Tr>
                   <Table.Td colSpan={3}>
-                    <Text ta="center" py="xl" c="dimmed">No items found</Text>
+                    <Text ta="center" py="xl" c="dimmed">
+                      No items found
+                    </Text>
                   </Table.Td>
                 </Table.Tr>
               )}
@@ -310,16 +332,22 @@ export function ShoppingItemsPage() {
               comboboxProps={{ withinPortal: true, zIndex: 3000 }}
               {...form.getInputProps('categoryId')}
             />
-            
+
             <Group align="flex-end">
-              <Box w={64} h={64} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid var(--mantine-color-gray-3)', borderRadius: rem(4), overflow: 'hidden' }}>
+              <Box
+                w={64}
+                h={64}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1px solid var(--mantine-color-gray-3)',
+                  borderRadius: rem(4),
+                  overflow: 'hidden',
+                }}
+              >
                 {form.values.photo ? (
-                  <Image 
-                    src={getPhotoSrc(form.values.photo)} 
-                    fit="contain" 
-                    h={64} 
-                    w={64} 
-                  />
+                  <Image src={getPhotoSrc(form.values.photo)} fit="contain" h={64} w={64} />
                 ) : (
                   <IconBasket size={32} stroke={1.5} color="var(--mantine-color-gray-4)" />
                 )}
@@ -332,14 +360,21 @@ export function ShoppingItemsPage() {
                 )}
               </FileButton>
               {form.values.photo && (
-                <Button variant="subtle" color="red" size="xs" onClick={() => form.setFieldValue('photo', '')}>
+                <Button
+                  variant="subtle"
+                  color="red"
+                  size="xs"
+                  onClick={() => form.setFieldValue('photo', '')}
+                >
                   Remove
                 </Button>
               )}
             </Group>
 
             <Group justify="flex-end" mt="md">
-              <Button variant="subtle" onClick={close}>Cancel</Button>
+              <Button variant="subtle" onClick={close}>
+                Cancel
+              </Button>
               <Button type="submit" loading={createMutation.isPending || updateMutation.isPending}>
                 {editingItem ? 'Save Changes' : 'Create Item'}
               </Button>
@@ -351,32 +386,41 @@ export function ShoppingItemsPage() {
       {/* Price History Modal */}
       <Modal
         opened={historyOpened}
-        onClose={() => { closeHistory(); setSelectedHistoryItem(null); }}
+        onClose={() => {
+          closeHistory()
+          setSelectedHistoryItem(null)
+        }}
         title={`Price History: ${selectedHistoryItem?.name}`}
         radius="md"
         size="lg"
         zIndex={2000}
       >
-        <Box pos="relative" minH={200}>
+        <Box pos="relative" mih={200}>
           <LoadingOverlay visible={historyLoading} />
-          
+
           {priceHistory && priceHistory.length > 0 ? (
             <Timeline active={0} bulletSize={24} lineWidth={2}>
               {priceHistory.map((entry) => (
-                <Timeline.Item 
-                  key={entry.id} 
-                  bullet={<IconBuildingStore size={14} />} 
+                <Timeline.Item
+                  key={entry.id}
+                  bullet={<IconBuildingStore size={14} />}
                   title={
                     <Group justify="space-between">
-                      <Text fw={700} size="lg">€{entry.price.toFixed(2)}</Text>
+                      <Text fw={700} size="lg">
+                        €{entry.price.toFixed(2)}
+                      </Text>
                       <Text size="xs" c="dimmed">
-                        {new Date(entry.recordedAt).toLocaleDateString()} {new Date(entry.recordedAt).toLocaleTimeString()}
+                        {new Date(entry.recordedAt).toLocaleDateString()}{' '}
+                        {new Date(entry.recordedAt).toLocaleTimeString()}
                       </Text>
                     </Group>
                   }
                 >
                   <Text size="sm" c="dimmed">
-                    Recorded at <Text span fw={500} c="dark">{entry.storeName || 'Any Store'}</Text>
+                    Recorded at{' '}
+                    <Text span fw={500} c="dark">
+                      {entry.storeName || 'Any Store'}
+                    </Text>
                   </Text>
                 </Timeline.Item>
               ))}

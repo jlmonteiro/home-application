@@ -1,16 +1,37 @@
 import { notifications } from '@mantine/notifications'
 import type { UserProfile } from '../types/user'
+import type { ProblemDetail, ApiError, PagedResponse } from '../types/api'
+import type {
+  ShoppingCategory,
+  ShoppingItem,
+  ShoppingItemPriceHistory,
+  ShoppingStore,
+  LoyaltyCard,
+  Coupon,
+  ShoppingListItem,
+  ShoppingList,
+} from '../types/shopping'
+import type { AgeGroupConfig, FamilyRole, UserPreference } from '../types/settings'
+
+// Re-export types for backward compatibility
+export type {
+  ProblemDetail,
+  ApiError,
+  PagedResponse,
+  ShoppingCategory,
+  ShoppingItem,
+  ShoppingItemPriceHistory,
+  ShoppingStore,
+  LoyaltyCard,
+  Coupon,
+  ShoppingListItem,
+  ShoppingList,
+  AgeGroupConfig,
+  FamilyRole,
+  UserPreference,
+}
 
 const API_BASE = '/api'
-
-export interface ProblemDetail {
-  type: string
-  title: string
-  status: number
-  detail: string
-  instance?: string
-  errors?: Record<string, string>
-}
 
 function getCsrfToken(): string | null {
   const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
@@ -44,7 +65,9 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
         const fieldErrors = Object.values(detail.errors).join('; ')
         message = fieldErrors || message
       }
-    } catch { /* not JSON */ }
+    } catch {
+      /* not JSON */
+    }
 
     notifications.show({
       title: detail?.title || 'Error',
@@ -55,172 +78,6 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
   }
 
   return response
-}
-
-export interface AgeGroupConfig {
-  id: number
-  name: string
-  minAge: number
-  maxAge: number
-}
-
-export interface FamilyRole {
-  id: number
-  name: string
-  immutable: boolean
-}
-
-// --- Shopping Module Types ---
-
-export interface ShoppingCategory {
-  id: number
-  name: string
-  description?: string
-  icon?: string
-  version: number
-  _links?: {
-    self: { href: string }
-  }
-}
-
-export interface ShoppingItem {
-  id: number
-  name: string
-  photo?: string
-  category: {
-    id: number
-    name: string
-    icon?: string
-  }
-  version: number
-  _links?: {
-    self: { href: string }
-  }
-}
-
-export interface ShoppingItemPriceHistory {
-  id: number
-  storeId: number | null
-  storeName: string | null
-  price: number
-  recordedAt: string
-}
-
-export interface ShoppingStore {
-  id: number
-  name: string
-  description?: string
-  icon?: string
-  photo?: string
-  validCouponsCount?: number
-  version: number
-  _links?: {
-    self: { href: string }
-    loyaltyCards: { href: string }
-    coupons: { href: string }
-  }
-}
-
-export interface LoyaltyCard {
-  id: number
-  store: {
-    id: number
-    name: string
-  }
-  name: string
-  barcode: {
-    code: string
-    type: 'QR' | 'CODE_128'
-  }
-  version: number
-  _links?: {
-    self: { href: string }
-    delete: { href: string }
-  }
-}
-
-export interface Coupon {
-  id: number
-  store: {
-    id: number
-    name: string
-  }
-  name: string
-  description?: string
-  value?: string
-  photo?: string
-  dueDate?: string
-  barcode?: {
-    code: string
-    type: 'QR' | 'CODE_128'
-  }
-  used: boolean
-  version: number
-  _links?: {
-    self: { href: string }
-    delete: { href: string }
-  }
-}
-
-export interface ShoppingListItem {
-  id: number
-  itemId: number
-  itemName: string
-  itemPhoto: string
-  category: {
-    name: string
-    icon?: string
-  }
-  store: {
-    id: number | null
-    name: string | null
-  }
-  quantity: number
-  unit: string
-  price: number | null
-  previousPrice: number | null
-  bought: boolean
-  unavailable: boolean
-  version: number
-  _links?: {
-    self: { href: string }
-    update: { href: string }
-    remove: { href: string }
-  }
-}
-
-export interface ShoppingList {
-  id: number
-  name: string
-  description?: string
-  status: 'PENDING' | 'COMPLETED'
-  createdBy: string
-  creatorName: string
-  items: ShoppingListItem[]
-  createdAt: string
-  completedAt: string | null
-  version: number
-  _links?: {
-    self: { href: string }
-    lists: { href: string }
-  }
-}
-
-export interface PagedResponse<T> {
-  _embedded: Record<string, T[]>
-  page: {
-    size: number
-    totalElements: number
-    totalPages: number
-    number: number
-  }
-  _links: Record<string, { href: string }>
-}
-
-export interface UserPreference {
-  showShoppingWidget: boolean
-  showCouponsWidget: boolean
-  version: number
 }
 
 // --- Auth & Profile ---
@@ -244,9 +101,7 @@ export async function fetchCurrentUser(): Promise<UserProfile | null> {
   return response.json()
 }
 
-export async function updateUserProfile(
-  profile: Partial<UserProfile>,
-): Promise<UserProfile> {
+export async function updateUserProfile(profile: Partial<UserProfile>): Promise<UserProfile> {
   const response = await apiFetch(`${API_BASE}/user/me`, {
     method: 'PUT',
     headers: {
@@ -257,8 +112,8 @@ export async function updateUserProfile(
   })
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    const error = new Error(errorData.detail || 'Failed to update profile') as any
+    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
+    const error = new Error(errorData.detail || 'Failed to update profile') as ApiError
     error.status = response.status
     error.data = errorData
     throw error
@@ -273,7 +128,9 @@ export async function fetchUserPreferences(): Promise<UserPreference> {
   return response.json()
 }
 
-export async function updateUserPreferences(preferences: Partial<UserPreference>): Promise<UserPreference> {
+export async function updateUserPreferences(
+  preferences: Partial<UserPreference>,
+): Promise<UserPreference> {
   const response = await apiFetch(`${API_BASE}/user/preferences`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
@@ -341,36 +198,44 @@ export async function deleteFamilyRole(id: number): Promise<void> {
 
 // --- Shopping Categories & Items API ---
 
-export async function fetchCategories(page = 0, size = 20): Promise<PagedResponse<ShoppingCategory>> {
+export async function fetchCategories(
+  page = 0,
+  size = 20,
+): Promise<PagedResponse<ShoppingCategory>> {
   const response = await apiFetch(`${API_BASE}/shopping/categories?page=${page}&size=${size}`)
   if (!response.ok) throw new Error('Failed to fetch categories')
   return response.json()
 }
 
-export async function createCategory(category: Partial<ShoppingCategory>): Promise<ShoppingCategory> {
+export async function createCategory(
+  category: Partial<ShoppingCategory>,
+): Promise<ShoppingCategory> {
   const response = await apiFetch(`${API_BASE}/shopping/categories`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(category),
   })
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    const error = new Error(errorData.detail || 'Failed to create category') as any
+    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
+    const error = new Error(errorData.detail || 'Failed to create category') as ApiError
     error.data = errorData
     throw error
   }
   return response.json()
 }
 
-export async function updateCategory(id: number, category: Partial<ShoppingCategory>): Promise<ShoppingCategory> {
+export async function updateCategory(
+  id: number,
+  category: Partial<ShoppingCategory>,
+): Promise<ShoppingCategory> {
   const response = await apiFetch(`${API_BASE}/shopping/categories/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(category),
   })
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    const error = new Error(errorData.detail || 'Failed to update category') as any
+    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
+    const error = new Error(errorData.detail || 'Failed to update category') as ApiError
     error.data = errorData
     throw error
   }
@@ -390,8 +255,14 @@ export async function fetchItems(page = 0, size = 20): Promise<PagedResponse<Sho
   return response.json()
 }
 
-export async function fetchItemsByCategory(categoryId: number, page = 0, size = 20): Promise<PagedResponse<ShoppingItem>> {
-  const response = await apiFetch(`${API_BASE}/shopping/categories/${categoryId}/items?page=${page}&size=${size}`)
+export async function fetchItemsByCategory(
+  categoryId: number,
+  page = 0,
+  size = 20,
+): Promise<PagedResponse<ShoppingItem>> {
+  const response = await apiFetch(
+    `${API_BASE}/shopping/categories/${categoryId}/items?page=${page}&size=${size}`,
+  )
   if (!response.ok) throw new Error('Failed to fetch items by category')
   return response.json()
 }
@@ -403,8 +274,8 @@ export async function createItem(item: Partial<ShoppingItem>): Promise<ShoppingI
     body: JSON.stringify(item),
   })
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    const error = new Error(errorData.detail || 'Failed to create item') as any
+    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
+    const error = new Error(errorData.detail || 'Failed to create item') as ApiError
     error.data = errorData
     throw error
   }
@@ -418,8 +289,8 @@ export async function updateItem(id: number, item: Partial<ShoppingItem>): Promi
     body: JSON.stringify(item),
   })
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    const error = new Error(errorData.detail || 'Failed to update item') as any
+    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
+    const error = new Error(errorData.detail || 'Failed to update item') as ApiError
     error.data = errorData
     throw error
   }
@@ -460,23 +331,26 @@ export async function createStore(store: Partial<ShoppingStore>): Promise<Shoppi
     body: JSON.stringify(store),
   })
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    const error = new Error(errorData.detail || 'Failed to create store') as any
+    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
+    const error = new Error(errorData.detail || 'Failed to create store') as ApiError
     error.data = errorData
     throw error
   }
   return response.json()
 }
 
-export async function updateStore(id: number, store: Partial<ShoppingStore>): Promise<ShoppingStore> {
+export async function updateStore(
+  id: number,
+  store: Partial<ShoppingStore>,
+): Promise<ShoppingStore> {
   const response = await apiFetch(`${API_BASE}/shopping/stores/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(store),
   })
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    const error = new Error(errorData.detail || 'Failed to update store') as any
+    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
+    const error = new Error(errorData.detail || 'Failed to update store') as ApiError
     error.data = errorData
     throw error
   }
@@ -499,15 +373,18 @@ export async function fetchLoyaltyCards(storeId: number): Promise<LoyaltyCard[]>
   return data._embedded?.loyaltyCards || []
 }
 
-export async function createLoyaltyCard(storeId: number, card: Partial<LoyaltyCard>): Promise<LoyaltyCard> {
+export async function createLoyaltyCard(
+  storeId: number,
+  card: Partial<LoyaltyCard>,
+): Promise<LoyaltyCard> {
   const response = await apiFetch(`${API_BASE}/shopping/stores/${storeId}/loyalty-cards`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(card),
   })
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    const error = new Error(errorData.detail || 'Failed to create loyalty card') as any
+    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
+    const error = new Error(errorData.detail || 'Failed to create loyalty card') as ApiError
     error.data = errorData
     throw error
   }
@@ -523,8 +400,14 @@ export async function deleteLoyaltyCard(id: number): Promise<void> {
 
 // --- Coupons API ---
 
-export async function fetchCoupons(storeId: number, page = 0, size = 20): Promise<PagedResponse<Coupon>> {
-  const response = await apiFetch(`${API_BASE}/shopping/stores/${storeId}/coupons?page=${page}&size=${size}`)
+export async function fetchCoupons(
+  storeId: number,
+  page = 0,
+  size = 20,
+): Promise<PagedResponse<Coupon>> {
+  const response = await apiFetch(
+    `${API_BASE}/shopping/stores/${storeId}/coupons?page=${page}&size=${size}`,
+  )
   if (!response.ok) throw new Error('Failed to fetch coupons')
   return response.json()
 }
@@ -543,8 +426,8 @@ export async function createCoupon(storeId: number, coupon: Partial<Coupon>): Pr
     body: JSON.stringify(coupon),
   })
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    const error = new Error(errorData.detail || 'Failed to create coupon') as any
+    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
+    const error = new Error(errorData.detail || 'Failed to create coupon') as ApiError
     error.data = errorData
     throw error
   }
@@ -619,7 +502,10 @@ export async function deleteList(id: number): Promise<void> {
   if (!response.ok) throw new Error('Failed to delete shopping list')
 }
 
-export async function addItemToList(listId: number, item: Partial<ShoppingListItem>): Promise<ShoppingListItem> {
+export async function addItemToList(
+  listId: number,
+  item: Partial<ShoppingListItem>,
+): Promise<ShoppingListItem> {
   const response = await apiFetch(`${API_BASE}/shopping/lists/${listId}/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -629,7 +515,10 @@ export async function addItemToList(listId: number, item: Partial<ShoppingListIt
   return response.json()
 }
 
-export async function updateListItem(itemId: number, item: Partial<ShoppingListItem>): Promise<ShoppingListItem> {
+export async function updateListItem(
+  itemId: number,
+  item: Partial<ShoppingListItem>,
+): Promise<ShoppingListItem> {
   const response = await apiFetch(`${API_BASE}/shopping/lists/items/${itemId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
@@ -646,8 +535,11 @@ export async function removeListItem(itemId: number): Promise<void> {
   if (!response.ok) throw new Error('Failed to remove item from list')
 }
 
-export async function fetchSuggestedPrice(itemId: number, storeId?: number): Promise<number | null> {
-  const url = storeId 
+export async function fetchSuggestedPrice(
+  itemId: number,
+  storeId?: number,
+): Promise<number | null> {
+  const url = storeId
     ? `${API_BASE}/shopping/lists/suggest-price?itemId=${itemId}&storeId=${storeId}`
     : `${API_BASE}/shopping/lists/suggest-price?itemId=${itemId}`
   const response = await apiFetch(url)

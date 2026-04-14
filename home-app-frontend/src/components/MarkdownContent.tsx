@@ -12,13 +12,41 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ children }) => <Title order={1} mb="sm" mt="md">{children}</Title>,
-          h2: ({ children }) => <Title order={2} mb="sm" mt="md">{children}</Title>,
-          h3: ({ children }) => <Title order={3} mb="xs" mt="sm">{children}</Title>,
-          h4: ({ children }) => <Title order={4} mb="xs" mt="sm">{children}</Title>,
-          p: ({ children }) => <Text mb="sm" size="sm" style={{ lineHeight: 1.6 }}>{children}</Text>,
-          ul: ({ children }) => <List withPadding mb="sm" size="sm">{children}</List>,
-          ol: ({ children }) => <List type="ordered" withPadding mb="sm" size="sm">{children}</List>,
+          h1: ({ children }) => (
+            <Title order={1} mb="sm" mt="md">
+              {children}
+            </Title>
+          ),
+          h2: ({ children }) => (
+            <Title order={2} mb="sm" mt="md">
+              {children}
+            </Title>
+          ),
+          h3: ({ children }) => (
+            <Title order={3} mb="xs" mt="sm">
+              {children}
+            </Title>
+          ),
+          h4: ({ children }) => (
+            <Title order={4} mb="xs" mt="sm">
+              {children}
+            </Title>
+          ),
+          p: ({ children }) => (
+            <Text mb="sm" size="sm" style={{ lineHeight: 1.6 }}>
+              {children}
+            </Text>
+          ),
+          ul: ({ children }) => (
+            <List withPadding mb="sm" size="sm">
+              {children}
+            </List>
+          ),
+          ol: ({ children }) => (
+            <List type="ordered" withPadding mb="sm" size="sm">
+              {children}
+            </List>
+          ),
           li: ({ children }) => <List.Item>{children}</List.Item>,
           table: ({ children }) => (
             <Box mb="md" style={{ overflowX: 'auto' }}>
@@ -40,10 +68,10 @@ export function MarkdownContent({ content }: MarkdownContentProps) {
           hr: () => <Divider my="md" />,
           code: ({ children }) => <Code>{children}</Code>,
           blockquote: ({ children }) => (
-            <Box 
-              pl="md" 
-              py="xs" 
-              mb="sm" 
+            <Box
+              pl="md"
+              py="xs"
+              mb="sm"
               style={{ borderLeft: '4px solid var(--mantine-color-gray-3)', fontStyle: 'italic' }}
             >
               {children}
