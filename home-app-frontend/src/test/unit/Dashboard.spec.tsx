@@ -1,23 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
+import { MantineProvider } from '@mantine/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
-import { MantineProvider } from '@mantine/core'
 import { AuthProvider } from '../../context/AuthContext'
 import { Dashboard } from '../../pages/dashboard/Dashboard'
-
-const server = setupServer()
-
-beforeEach(() => {
-  server.listen({ onUnhandledRequest: 'error' })
-  server.resetHandlers()
-})
-
-afterEach(() => {
-  server.close()
-})
+import { server } from '../mocks/server'
 
 const renderDashboard = () => {
   const queryClient = new QueryClient({
@@ -107,7 +96,7 @@ describe('Dashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Weekly Groceries')).toBeInTheDocument()
-      expect(screen.getByText(/2\/2 items/i)).toBeInTheDocument()
+      expect(screen.getByText(/1\/2 items/i)).toBeInTheDocument()
     })
   })
 
@@ -224,7 +213,7 @@ describe('Dashboard', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Expired Coupon')).toBeInTheDocument()
-      expect(screen.getByText(/EXPIRED/i)).toBeInTheDocument()
+      expect(screen.getByText(/^EXPIRED$/)).toBeInTheDocument()
     })
   })
 

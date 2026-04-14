@@ -151,6 +151,7 @@ export function ShoppingListsPage() {
                     onClick={() => {
                       if (window.confirm('Delete this list?')) deleteMutation.mutate(list.id)
                     }}
+                    data-testid={`delete-list-${list.id}`}
                   >
                     <IconTrash size={16} />
                   </ActionIcon>

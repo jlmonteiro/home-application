@@ -13,7 +13,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (isLoading) {
     return (
       <Box pos="relative" h="100vh">
-        <LoadingOverlay visible overlayProps={{ blur: 2 }} />
+        <LoadingOverlay visible overlayProps={{ blur: 2 }} data-testid="auth-loading-overlay" />
       </Box>
     )
   }

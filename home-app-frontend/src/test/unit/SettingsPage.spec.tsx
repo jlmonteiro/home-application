@@ -1,22 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
+import { MantineProvider } from '@mantine/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
-import { MantineProvider } from '@mantine/core'
 import { SettingsPage } from '../../pages/settings/SettingsPage'
-
-const server = setupServer()
-
-beforeEach(() => {
-  server.listen({ onUnhandledRequest: 'error' })
-  server.resetHandlers()
-})
-
-afterEach(() => {
-  server.close()
-})
+import { server } from '../mocks/server'
 
 const renderPage = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -87,7 +76,7 @@ describe('SettingsPage', () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Add Role/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Add Custom Role/i })).toBeInTheDocument()
     })
   })
 
@@ -104,7 +93,7 @@ describe('SettingsPage', () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Save Age Groups/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: /Save Ranges/i })).toBeInTheDocument()
     })
   })
 })

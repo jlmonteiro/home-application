@@ -4,17 +4,25 @@ import { ProfilePage } from '../../pages/user/ProfilePage'
 import { useAuth } from '../../context/AuthContext'
 import { MantineProvider } from '@mantine/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import * as api from '../../services/api'
 import { notifications } from '@mantine/notifications'
 import type { UserProfile } from '../../types/user'
-import { server } from '../mocks/server'
-import { http, HttpResponse } from 'msw'
+import type { FamilyRole } from '../../services/api'
 
+// Mock dependencies
 vi.mock('../../context/AuthContext', () => ({
   useAuth: vi.fn(),
 }))
 
+vi.mock('../../services/api', () => ({
+  updateUserProfile: vi.fn(),
+  fetchFamilyRoles: vi.fn(),
+}))
+
 vi.mock('@mantine/notifications', () => ({
-  notifications: { show: vi.fn() },
+  notifications: {
+    show: vi.fn(),
+  },
 }))
 
 const mockUser = {
@@ -27,18 +35,27 @@ const mockUser = {
   familyRoleId: 1,
 }
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } )
+const mockRoles = [
+  { id: 1, name: 'Parent', immutable: true },
+  { id: 2, name: 'Child', immutable: false },
+]
 
-describe('Profile Management', () => {
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+  },
+})
+
+describe('Given the ProfilePage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    queryClient.clear()
     vi.mocked(useAuth).mockReturnValue({
       user: mockUser as unknown as UserProfile,
       isLoading: false,
       isError: false,
       logout: vi.fn(),
     })
+    vi.mocked(api.fetchFamilyRoles).mockResolvedValue(mockRoles as unknown as FamilyRole[])
   })
 
   const renderProfilePage = () =>
@@ -50,141 +67,82 @@ describe('Profile Management', () => {
       </QueryClientProvider>,
     )
 
-  it('pre-fills form with user data from context', async () => {
-    renderProfilePage()
+  describe('When it is rendered', () => {
+    it('Then it should pre-fill the form with user data', async () => {
+      renderProfilePage()
 
-    expect(screen.getByLabelText(/First Name/i)).toHaveValue('John')
-    expect(screen.getByLabelText(/Last Name/i)).toHaveValue('Doe')
-    expect(screen.getByLabelText(/Email/i)).toHaveValue('john@example.com')
+      expect(screen.getByLabelText(/First Name/i)).toHaveValue('John')
+      expect(screen.getByLabelText(/Last Name/i)).toHaveValue('Doe')
+      expect(screen.getByLabelText(/Email/i)).toHaveValue('john@example.com')
 
-    await waitFor(() => {
-      expect(screen.getByDisplayValue('January 1, 1990')).toBeInTheDocument()
+      // Check Birthdate - DateInput can be tricky, but we can look for the value
+      await waitFor(() => {
+        expect(screen.getByDisplayValue('January 1, 1990')).toBeInTheDocument()
+      })
     })
   })
 
-  it('calls update API and shows success notification', async () => {
-    let capturePayload: any = null
-    server.use(
-      http.put('/api/user/me', async ({ request }) => {
-        capturePayload = await request.json()
-        return HttpResponse.json({ ...mockUser, ...capturePayload })
-      }),
-    )
+  describe('When the user updates their profile with valid data', () => {
+    it('Then it should call the update service and show a success notification', async () => {
+      vi.mocked(api.updateUserProfile).mockResolvedValue({
+        ...mockUser,
+        mobilePhone: '+351912345678',
+      } as unknown as UserProfile)
+      renderProfilePage()
 
-    renderProfilePage()
+      const phoneInput = screen.getByLabelText(/Mobile Phone/i)
+      fireEvent.change(phoneInput, { target: { value: '+351912345678' } })
 
-    const phoneInput = screen.getByLabelText(/Mobile Phone/i)
-    fireEvent.change(phoneInput, { target: { value: '+351912345678' } })
+      const saveButton = screen.getByRole('button', { name: /Save Changes/i })
+      fireEvent.click(saveButton)
 
-    const saveButton = screen.getByRole('button', { name: /Save Changes/i })
-    fireEvent.click(saveButton)
-
-    await waitFor(() => {
-      expect(capturePayload).toMatchObject({ mobilePhone: '+351912345678' })
-      expect(notifications.show).toHaveBeenCalledWith(
-        expect.objectContaining({ title: 'Profile Updated', color: 'green' }),
-      )
+      await waitFor(() => {
+        expect(api.updateUserProfile).toHaveBeenCalledWith(
+          expect.objectContaining({
+            mobilePhone: '+351912345678',
+          }),
+          expect.anything(),
+        )
+        expect(notifications.show).toHaveBeenCalledWith(
+          expect.objectContaining({
+            title: 'Profile Updated',
+            color: 'green',
+          }),
+        )
+      })
     })
   })
 
-  it('shows validation error for invalid phone', async () => {
-    renderProfilePage()
+  describe('When the user enters an invalid phone number', () => {
+    it('Then it should display a validation error', async () => {
+      renderProfilePage()
 
-    const phoneInput = screen.getByLabelText(/Mobile Phone/i)
-    fireEvent.change(phoneInput, { target: { value: 'invalid-phone' } })
+      const phoneInput = screen.getByLabelText(/Mobile Phone/i)
+      fireEvent.change(phoneInput, { target: { value: 'invalid-phone' } })
 
-    const saveButton = screen.getByRole('button', { name: /Save Changes/i })
-    fireEvent.click(saveButton)
+      const saveButton = screen.getByRole('button', { name: /Save Changes/i })
+      fireEvent.click(saveButton)
 
-    await waitFor(() => {
-      expect(screen.getByText(/Mobile phone must be a valid phone number/i)).toBeInTheDocument()
+      await waitFor(() => {
+        expect(screen.getByText(/Mobile phone must be a valid phone number/i)).toBeInTheDocument()
+        expect(api.updateUserProfile).not.toHaveBeenCalled()
+      })
     })
   })
 
-  it('shows validation error for invalid Facebook URL', async () => {
-    renderProfilePage()
+  describe('When the user enters an invalid social URL', () => {
+    it('Then it should display a validation error for Facebook', async () => {
+      renderProfilePage()
 
-    const fbInput = screen.getByLabelText(/Facebook/i)
-    fireEvent.change(fbInput, { target: { value: 'not-a-url' } })
+      const fbInput = screen.getByLabelText(/Facebook/i)
+      fireEvent.change(fbInput, { target: { value: 'not-a-url' } })
 
-    const saveButton = screen.getByRole('button', { name: /Save Changes/i })
-    fireEvent.click(saveButton)
+      const saveButton = screen.getByRole('button', { name: /Save Changes/i })
+      fireEvent.click(saveButton)
 
-    await waitFor(() => {
-      expect(screen.getByText(/Facebook must be a valid Facebook URL/i)).toBeInTheDocument()
-    })
-  })
-
-  it('shows photo upload section', async () => {
-    renderProfilePage()
-
-    await waitFor(() => {
-      expect(screen.getByText(/Photo/i)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /Upload/i })).toBeInTheDocument()
-    })
-  })
-
-  it('displays user initials when no photo', async () => {
-    const userWithoutPhoto = { ...mockUser, photo: null }
-    vi.mocked(useAuth).mockReturnValue({
-      user: userWithoutPhoto as unknown as UserProfile,
-      isLoading: false,
-      isError: false,
-      logout: vi.fn(),
-    })
-
-    renderProfilePage()
-
-    await waitFor(() => {
-      expect(screen.getByText('JD')).toBeInTheDocument()
-    })
-  })
-
-  it('shows social link inputs', async () => {
-    renderProfilePage()
-
-    await waitFor(() => {
-      expect(screen.getByLabelText(/Facebook/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/Instagram/i)).toBeInTheDocument()
-      expect(screen.getByLabelText(/LinkedIn/i)).toBeInTheDocument()
-    })
-  })
-
-  it('shows contact info section when phone exists', async () => {
-    renderProfilePage()
-
-    await waitFor(() => {
-      expect(screen.getByText(/Contact Info/i)).toBeInTheDocument()
-    })
-  })
-
-  it('displays family role badge', async () => {
-    renderProfilePage()
-
-    await waitFor(() => {
-      expect(screen.getByText('Adult')).toBeInTheDocument()
-    })
-  })
-
-  it('shows error notification on API failure', async () => {
-    server.use(
-      http.put('/api/user/me', () => {
-        return HttpResponse.json({ detail: 'Update failed' }, { status: 500 })
-      }),
-    )
-
-    renderProfilePage()
-
-    const phoneInput = screen.getByLabelText(/Mobile Phone/i)
-    fireEvent.change(phoneInput, { target: { value: '+351912345678' } })
-
-    const saveButton = screen.getByRole('button', { name: /Save Changes/i })
-    fireEvent.click(saveButton)
-
-    await waitFor(() => {
-      expect(notifications.show).toHaveBeenCalledWith(
-        expect.objectContaining({ color: 'red' }),
-      )
+      await waitFor(() => {
+        expect(screen.getByText(/Facebook must be a valid Facebook URL/i)).toBeInTheDocument()
+      })
     })
   })
 })

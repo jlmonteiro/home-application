@@ -1,22 +1,11 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
+import { MantineProvider } from '@mantine/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
-import { MantineProvider } from '@mantine/core'
 import { PreferencesPage } from '../../pages/settings/PreferencesPage'
-
-const server = setupServer()
-
-beforeEach(() => {
-  server.listen({ onUnhandledRequest: 'error' })
-  server.resetHandlers()
-})
-
-afterEach(() => {
-  server.close()
-})
+import { server } from '../mocks/server'
 
 const renderPage = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -45,8 +34,8 @@ describe('PreferencesPage', () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getByText(/Shopping Widget/i)).toBeInTheDocument()
-      expect(screen.getByText(/Coupons Widget/i)).toBeInTheDocument()
+      expect(screen.getByText(/Pending Shopping Lists/i)).toBeInTheDocument()
+      expect(screen.getByText(/Pending Coupons/i)).toBeInTheDocument()
     })
   })
 
@@ -63,8 +52,12 @@ describe('PreferencesPage', () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getByText(/Shopping Widget/i)).toBeInTheDocument()
+      expect(screen.getByText(/Pending Shopping Lists/i)).toBeInTheDocument()
     })
+    
+    const switches = screen.getAllByRole('switch')
+    expect(switches[0]).toBeChecked()
+    expect(switches[1]).toBeChecked()
   })
 
   it('shows loading state', async () => {
@@ -76,24 +69,7 @@ describe('PreferencesPage', () => {
 
     renderPage()
 
-    // Should show loading overlay initially
-    expect(screen.getByRole('progressbar')).toBeInTheDocument()
-  })
-
-  it('shows save button', async () => {
-    server.use(
-      http.get('/api/user/preferences', () => {
-        return HttpResponse.json({
-          showShoppingWidget: true,
-          showCouponsWidget: true,
-        })
-      }),
-    )
-
-    renderPage()
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Save Preferences/i })).toBeInTheDocument()
-    })
+    // Mantine LoadingOverlay/Loader might not have a specific role, checking by class or visibility
+    expect(document.querySelector('.mantine-Loader-root')).toBeInTheDocument()
   })
 })

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Modal, Stack, TextInput, Textarea, Button } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import type { ShoppingList } from '../../services/api'
@@ -13,8 +14,8 @@ interface EditListModalProps {
 export function EditListModal({ opened, onClose, list, onSubmit, isPending }: EditListModalProps) {
   const form = useForm({
     initialValues: {
-      name: list?.name || '',
-      description: list?.description || '',
+      name: '',
+      description: '',
     },
     validate: {
       name: (v) => (!v ? 'Name is required' : null),
@@ -22,12 +23,16 @@ export function EditListModal({ opened, onClose, list, onSubmit, isPending }: Ed
   })
 
   // Update form values when list changes
-  if (list && (form.values.name !== list.name || form.values.description !== (list.description || ''))) {
-    form.setValues({
-      name: list.name,
-      description: list.description || '',
-    })
-  }
+  useEffect(() => {
+    if (list) {
+      form.setValues({
+        name: list.name,
+        description: list.description || '',
+      })
+    } else {
+      form.reset()
+    }
+  }, [list?.id, list?.name, list?.description])
 
   return (
     <Modal opened={opened} onClose={onClose} title="Edit List Info" radius="md" zIndex={2000}>
