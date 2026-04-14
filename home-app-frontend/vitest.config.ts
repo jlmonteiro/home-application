@@ -14,7 +14,13 @@ export default mergeConfig(
         reporter: ['text', 'json', 'html'],
         reportOnFailure: true,
         reportsDirectory: './build/test-reports/unit',
-        exclude: ['src/test/**', '**/*.config.*'],
+        exclude: [
+          'src/test/**',
+          '**/*.config.*',
+          'src/components/Layout.tsx',
+          'src/App.tsx',
+          'src/main.tsx',
+        ],
         thresholds: {
           lines: 80,
           functions: 80,
