@@ -14,11 +14,9 @@ import {
   Box,
   Paper,
   NumberInput,
-  Checkbox,
   Divider,
   Combobox,
   useCombobox,
-  Avatar,
   Badge,
   FileButton,
   Image,
@@ -34,21 +32,16 @@ import { notifications } from '@mantine/notifications'
 import { useParams, Link } from 'react-router-dom'
 import {
   IconPlus,
-  IconTrash,
-  IconBasket,
   IconArrowLeft,
   IconCheck,
   IconCalculator,
   IconUpload,
   IconEdit,
-  IconCircleX,
   IconAlertCircle,
   IconBuildingStore,
   IconChevronRight,
-  IconTrendingUp,
-  IconTrendingDown,
-  IconMinus,
   IconHistory,
+  IconBasket,
 } from '@tabler/icons-react'
 import {
   fetchList,
@@ -66,15 +59,8 @@ import {
 } from '../../services/api'
 import type { ShoppingList, ShoppingListItem, ShoppingStore } from '../../services/api'
 import { MarkdownContent } from '../../components/MarkdownContent'
-
-/**
- * Helper to determine the correct image source for item photos.
- */
-const getPhotoSrc = (photo: string | undefined | null) => {
-  if (!photo) return null
-  if (photo.startsWith('http') || photo.startsWith('data:image')) return photo
-  return `data:image/png;base64,${photo}`
-}
+import { ListItemRow } from '../../components/shopping/ListItemRow'
+import { getPhotoSrc } from '../../utils/photo'
 
 export function ShoppingListDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -421,149 +407,6 @@ export function ShoppingListDetailsPage() {
   if (listLoading) return <LoadingOverlay visible />
   if (!list) return <Text>List not found</Text>
 
-  const PriceTrendIcon = ({ item }: { item: ShoppingListItem }) => {
-    if (item.price === null || item.previousPrice === null) return null
-
-    if (item.price > item.previousPrice) {
-      return (
-        <ActionIcon
-          variant="subtle"
-          color="red"
-          size="sm"
-          onClick={() => handleShowHistory(item)}
-          title="Price Increased"
-        >
-          <IconTrendingUp size={16} />
-        </ActionIcon>
-      )
-    }
-
-    if (item.price < item.previousPrice) {
-      return (
-        <ActionIcon
-          variant="subtle"
-          color="green"
-          size="sm"
-          onClick={() => handleShowHistory(item)}
-          title="Price Decreased"
-        >
-          <IconTrendingDown size={16} />
-        </ActionIcon>
-      )
-    }
-
-    return (
-      <ActionIcon
-        variant="subtle"
-        color="gray"
-        size="sm"
-        onClick={() => handleShowHistory(item)}
-        title="Price Same"
-      >
-        <IconMinus size={16} />
-      </ActionIcon>
-    )
-  }
-
-  const ItemRow = ({ item }: { item: ShoppingListItem }) => (
-    <Group
-      key={item.id}
-      wrap="nowrap"
-      gap="sm"
-      style={{ opacity: item.bought ? 0.5 : 1, minHeight: 56 }}
-    >
-      <Checkbox
-        checked={item.bought}
-        onChange={(e) =>
-          updateItemMutation.mutate({ id: item.id, data: { bought: e.currentTarget.checked } })
-        }
-        disabled={list.status === 'COMPLETED' || item.unavailable}
-        size="lg"
-        radius="md"
-        styles={{ input: { cursor: 'pointer', minWidth: 24, minHeight: 24 } }}
-      />
-
-      <Box style={{ flex: 1 }}>
-        <Group gap="xs" wrap="nowrap">
-          <Box
-            w={24}
-            h={24}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-              cursor: item.itemPhoto ? 'pointer' : 'default',
-            }}
-            onClick={() => {
-              if (item.itemPhoto) {
-                const src = getPhotoSrc(item.itemPhoto)
-                if (src) setPreviewImage({ url: src, title: item.itemName })
-              }
-            }}
-          >
-            {item.itemPhoto ? (
-              <Image src={getPhotoSrc(item.itemPhoto)} fit="contain" h={24} w={24} />
-            ) : (
-              <Avatar radius="sm" size={24}>
-                <IconBasket size={14} />
-              </Avatar>
-            )}
-          </Box>
-          <Stack gap={0} style={{ overflow: 'hidden' }}>
-            <Group gap={4} wrap="nowrap">
-              <Text fw={500} size="sm" td={item.bought ? 'line-through' : 'none'} truncate>
-                {item.itemName}
-              </Text>
-              <PriceTrendIcon item={item} />
-            </Group>
-            <Text size="xs" c="dimmed">
-              {item.quantity} {item.unit} • €{(item.price || 0).toFixed(2)}
-            </Text>
-          </Stack>
-        </Group>
-      </Box>
-
-      <Group gap={4} wrap="nowrap">
-        {!item.bought && !item.unavailable && list.status === 'PENDING' && (
-          <ActionIcon
-            variant="subtle"
-            color="orange"
-            size="sm"
-            onClick={() => updateItemMutation.mutate({ id: item.id, data: { unavailable: true } })}
-            title="Mark as unavailable"
-          >
-            <IconCircleX size={16} />
-          </ActionIcon>
-        )}
-        {item.unavailable && list.status === 'PENDING' && (
-          <ActionIcon
-            variant="subtle"
-            color="green"
-            size="sm"
-            onClick={() => updateItemMutation.mutate({ id: item.id, data: { unavailable: false } })}
-            title="Mark as available"
-          >
-            <IconCheck size={16} />
-          </ActionIcon>
-        )}
-        <ActionIcon variant="subtle" color="blue" size="sm" onClick={() => handleEditItem(item)}>
-          <IconEdit size={16} />
-        </ActionIcon>
-        <ActionIcon
-          variant="subtle"
-          color="red"
-          size="sm"
-          onClick={() => {
-            if (window.confirm('Remove this item?')) removeItemMutation.mutate(item.id)
-          }}
-        >
-          <IconTrash size={16} />
-        </ActionIcon>
-      </Group>
-    </Group>
-  )
-
   return (
     <Stack gap="lg">
       <Group justify="space-between">
@@ -696,7 +539,24 @@ export function ShoppingListDetailsPage() {
                       </Group>
                       <Stack gap="sm" pl="md">
                         {category.items.map((item) => (
-                          <ItemRow key={item.id} item={item} />
+                          <ListItemRow
+                            key={item.id}
+                            item={item}
+                            listStatus={list.status}
+                            onToggleBought={(id, bought) =>
+                              updateItemMutation.mutate({ id, data: { bought } })
+                            }
+                            onEdit={handleEditItem}
+                            onRemove={(id) => {
+                              if (window.confirm('Remove this item?'))
+                                removeItemMutation.mutate(id)
+                            }}
+                            onMarkUnavailable={(id, unavailable) =>
+                              updateItemMutation.mutate({ id, data: { unavailable } })
+                            }
+                            onShowHistory={handleShowHistory}
+                            onPreviewImage={(url, title) => setPreviewImage({ url, title })}
+                          />
                         ))}
                       </Stack>
                     </Box>
@@ -726,7 +586,24 @@ export function ShoppingListDetailsPage() {
               <Divider color="orange.2" />
               <Stack gap="sm">
                 {groupedItems.unavailable.map((item) => (
-                  <ItemRow key={item.id} item={item} />
+                  <ListItemRow
+                    key={item.id}
+                    item={item}
+                    listStatus={list.status}
+                    onToggleBought={(id, bought) =>
+                      updateItemMutation.mutate({ id, data: { bought } })
+                    }
+                    onEdit={handleEditItem}
+                    onRemove={(id) => {
+                      if (window.confirm('Remove this item?'))
+                        removeItemMutation.mutate(id)
+                    }}
+                    onMarkUnavailable={(id, unavailable) =>
+                      updateItemMutation.mutate({ id, data: { unavailable } })
+                    }
+                    onShowHistory={handleShowHistory}
+                    onPreviewImage={(url, title) => setPreviewImage({ url, title })}
+                  />
                 ))}
               </Stack>
             </Stack>
