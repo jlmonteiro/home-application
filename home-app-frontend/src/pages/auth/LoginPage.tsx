@@ -1,6 +1,6 @@
 import { Button, Center, Container, Paper, Stack, Text, Title } from '@mantine/core'
 import { Navigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../../context/AuthContext'
 
 export function LoginPage() {
   const { user } = useAuth()

@@ -23,7 +23,7 @@ import { notifications } from '@mantine/notifications'
 import * as TablerIcons from '@tabler/icons-react'
 import { IconPlus, IconEdit, IconTrash, IconSearch, IconQuestionMark, IconExternalLink } from '@tabler/icons-react'
 import { fetchCategories, createCategory, updateCategory, deleteCategory } from '../../services/api'
-import type { ShoppingCategory } from '../services/api'
+import type { ShoppingCategory } from '../../services/api'
 
 export function ShoppingCategoriesPage() {
   const queryClient = useQueryClient()

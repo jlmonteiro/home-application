@@ -16,7 +16,7 @@ import { QRCodeSVG } from 'qrcode.react'
 import Barcode from 'react-barcode'
 import { useAuth } from '../../context/AuthContext'
 import { fetchLists, fetchUserPreferences, fetchExpiringCoupons } from '../../services/api'
-import type { Coupon } from '../services/api'
+import type { Coupon } from '../../services/api'
 
 export function Dashboard() {
   const { user } = useAuth()
