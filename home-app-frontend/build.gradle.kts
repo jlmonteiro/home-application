@@ -36,3 +36,22 @@ tasks.named("assemble") {
     dependsOn("npm_run_build")
 }
 
+tasks.register<NpmTask>("testUnit") {
+    group = "verification"
+    description = "Runs unit tests with coverage."
+    dependsOn("npmInstall")
+    args.set(listOf("run", "test:coverage"))
+}
+
+tasks.register<NpmTask>("testE2e") {
+    group = "verification"
+    description = "Runs e2e tests with Playwright."
+    dependsOn("npmInstall")
+    args.set(listOf("run", "test:e2e"))
+}
+
+tasks.named("check") {
+    dependsOn("testUnit")
+    dependsOn("testE2e")
+}
+
