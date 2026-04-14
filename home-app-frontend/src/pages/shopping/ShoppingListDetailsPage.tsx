@@ -166,7 +166,28 @@ export function ShoppingListDetailsPage() {
 
   const updateItemMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<ShoppingListItem> }) => updateListItem(id, data),
-    onSuccess: () => {
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: ['shopping-list', listId] })
+      const previousList = queryClient.getQueryData(['shopping-list', listId])
+      
+      queryClient.setQueryData(['shopping-list', listId], (old: any) => {
+        if (!old) return old
+        return {
+          ...old,
+          items: old.items?.map((item: ShoppingListItem) => 
+            item.id === id ? { ...item, ...data } : item
+          )
+        }
+      })
+      
+      return { previousList }
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previousList) {
+        queryClient.setQueryData(['shopping-list', listId], context.previousList)
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-list', listId] })
       if (editItemOpened) {
         notifications.show({ title: 'Success', message: 'Item updated', color: 'green' })
@@ -405,11 +426,14 @@ export function ShoppingListDetailsPage() {
   }
 
   const ItemRow = ({ item }: { item: ShoppingListItem }) => (
-    <Group key={item.id} wrap="nowrap" gap="sm" style={{ opacity: item.bought ? 0.5 : 1 }}>
+    <Group key={item.id} wrap="nowrap" gap="sm" style={{ opacity: item.bought ? 0.5 : 1, minHeight: 56 }}>
       <Checkbox 
         checked={item.bought} 
         onChange={(e) => updateItemMutation.mutate({ id: item.id, data: { bought: e.currentTarget.checked } })}
         disabled={list.status === 'COMPLETED' || item.unavailable}
+        size="lg"
+        radius="md"
+        styles={{ input: { cursor: 'pointer', minWidth: 24, minHeight: 24 } }}
       />
       
       <Box style={{ flex: 1 }}>

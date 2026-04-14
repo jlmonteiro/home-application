@@ -82,15 +82,15 @@ Implement a comprehensive shopping assistant module that allows household member
 **Dependencies:** US-3
 
 #### Acceptance Criteria
-- [ ] AC-4.1: Items can be marked as "Bought" with a single tap.
-- [ ] AC-4.2: Bought items move to the bottom with a strikethrough.
-- [ ] AC-4.3: Interface is mobile-optimized (large tap targets).
-- [ ] AC-4.4: Supports offline viewing and checking (local cache sync).
+- [x] AC-4.1: Items can be marked as "Bought" with a single tap.
+- [x] AC-4.2: Bought items move to the bottom with a strikethrough.
+- [x] AC-4.3: Interface is mobile-optimized (large tap targets).
+- [x] AC-4.4: Supports offline viewing and checking (local cache sync).
 
 #### Tasks
-- [ ] T-4.1: Implement "Shopping Mode" UI optimized for mobile devices.
-- [ ] T-4.2: Implement optimistic updates for `PATCH /list-items/{id}`.
-- [ ] T-4.3: Add `completed_at` timestamp logic when a list is finished.
+- [x] T-4.1: Implement "Shopping Mode" UI optimized for mobile devices.
+- [x] T-4.2: Implement optimistic updates for `PATCH /list-items/{id}`.
+- [x] T-4.3: Add `completed_at` timestamp logic when a list is finished.
 
 ---
 
@@ -103,14 +103,14 @@ Implement a comprehensive shopping assistant module that allows household member
 **Dependencies:** US-2, US-4
 
 #### Acceptance Criteria
-- [ ] AC-5.1: Dashboard "Expiring Coupons" panel shows coupons due in < 4 days.
-- [ ] AC-5.2: Side navigation uses a nested "Shopping" menu for all sub-features.
-- [ ] AC-5.3: Lists older than 3 months are automatically deleted from the DB.
+- [x] AC-5.1: Dashboard "Expiring Coupons" panel shows coupons due in < 4 days.
+- [x] AC-5.2: Side navigation uses a nested "Shopping" menu for all sub-features.
+- [x] AC-5.3: Lists older than 3 months are automatically deleted from the DB.
 
 #### Tasks
-- [ ] T-5.1: Implement Spring `@Scheduled` task for 3-month data retention.
-- [ ] T-5.2: Build the "Expiring Coupons" widget for the Dashboard.
-- [ ] T-5.3: Refactor global navigation to use the nested "Shopping" structure.
+- [x] T-5.1: Implement Spring `@Scheduled` task for 3-month data retention.
+- [x] T-5.2: Build the "Expiring Coupons" widget for the Dashboard.
+- [x] T-5.3: Refactor global navigation to use the nested "Shopping" structure.
 
 ---
 
