@@ -115,6 +115,18 @@ export const e2eHandlers = [
     return new HttpResponse(null, { status: 204 })
   }),
 
+  // --- Suggest Price ---
+  http.get(`${API_BASE}/shopping/lists/suggest-price`, ({ request }) => {
+    const url = new URL(request.url)
+    const itemId = url.searchParams.get('itemId')
+    return HttpResponse.json({
+      itemId: itemId ? Number(itemId) : 100,
+      suggestedPrice: 2.99,
+      storeId: 1,
+      storeName: 'Tesco',
+    })
+  }),
+
   // --- Stores ---
   http.get(`${API_BASE}/shopping/stores`, () => {
     return HttpResponse.json({
