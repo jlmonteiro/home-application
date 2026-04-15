@@ -120,11 +120,14 @@ describe('CreateItemModal', () => {
   it('handles null file in photo upload', () => {
     renderWithProvider()
     
-    const fileButton = screen.getByRole('button', { name: /Upload Photo/i })
-    fireEvent.click(fileButton)
+    // Get the FileButton input and trigger onChange with null
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement
     
-    // Should not crash when file is null
-    expect(fileButton).toBeInTheDocument()
+    // Simulate cancel (null file)
+    fireEvent.change(fileInput, { target: { files: [] } })
+    
+    // Should not crash - input value cleared but no error
+    expect(fileInput.value).toBe('')
   })
 
   it('does not update name if initialName is empty and name already has value', () => {
