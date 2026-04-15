@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
 import spock.lang.Title
 
+import static groovy.json.JsonOutput.toJson
 import static org.hamcrest.Matchers.containsString
 import static org.mockito.ArgumentMatchers.anyString
 import static org.mockito.Mockito.doReturn
@@ -24,7 +25,7 @@ import static org.springframework.security.test.web.servlet.request.SecurityMock
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@Title("UserProfileUpdateSpec")
+@Title("User Profile API Update Use Cases")
 @Narrative("""
 As an authenticated user
 I want to update my profile information
@@ -51,7 +52,7 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
             def targetEmail = "existing@example.com"
             def auth = oauth2Login().attributes { it.put("email", targetEmail) }
             def existingUser = userRepository.findByEmail(targetEmail).get()
-            
+
         and: "a request body with new values and some immutable values"
             def requestBody = [
                 photo: "new-photo-base64",
@@ -69,7 +70,7 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
             def response = mockMvc.perform(put("/api/user/me")
                     .with(auth)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(JsonOutput.toJson(requestBody)))
+                    .content(toJson(requestBody)))
 
         then: "response status is 200 OK"
             response.andExpect(status().isOk())
@@ -86,7 +87,7 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
             response.andExpect(jsonPath('$.email').value(targetEmail))
                     .andExpect(jsonPath('$.firstName').value(existingUser.firstName))
                     .andExpect(jsonPath('$.lastName').value(existingUser.lastName))
-            
+
         and: "database is updated correctly"
             def updatedUser = userRepository.findByEmail(targetEmail).get()
             updatedUser.userProfile.photo == "new-photo-base64"
@@ -98,11 +99,11 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
         given: "an authenticated user session"
             def targetEmail = "existing@example.com"
             def auth = oauth2Login().attributes { it.put("email", targetEmail) }
-            
+
         and: "a request with a photo URL"
             def photoUrl = "https://example.com/photo.jpg"
             def requestBody = [ photo: photoUrl ]
-            
+
         and: "stubbed network response via Spy (necessary to avoid real network call)"
             doReturn("converted-base64-data")
                 .when(photoService).downloadAndConvertToBase64(anyString())
@@ -111,7 +112,7 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
             def response = mockMvc.perform(put("/api/user/me")
                     .with(auth)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(JsonOutput.toJson(requestBody)))
+                    .content(toJson(requestBody)))
 
         then: "response contains the converted base64 photo"
             response.andExpect(status().isOk())
@@ -122,22 +123,22 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
     def "PUT /api/user/me should return 400 when validation fails"() {
         given: "an authenticated user session"
             def auth = oauth2Login().attributes { it.put("email", "existing@example.com") }
-            
+
         and: "an invalid request body"
-            def requestBody = [ 
-                facebook: "not-a-url", 
-                mobilePhone: "short" 
+            def requestBody = [
+                facebook: "not-a-url",
+                mobilePhone: "short"
             ]
 
         when: "updating the 'me' profile"
             def response = mockMvc.perform(put("/api/user/me")
                     .with(auth)
                     .contentType(MediaType.APPLICATION_JSON)
-                    .content(JsonOutput.toJson(requestBody)))
+                    .content(toJson(requestBody)))
 
         then: "400 ProblemDetail is returned with specific error messages"
             response.andExpect(status().isBadRequest())
-                    .andExpect(jsonPath('$.type').value("VALIDATION_ERROR"))
+                    .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/validation-error"))
                     .andExpect(jsonPath('$.errors.facebook').value("Facebook must be a valid Facebook URL"))
                     .andExpect(jsonPath('$.errors.mobilePhone').value("Mobile phone must be a valid phone number"))
     }

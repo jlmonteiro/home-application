@@ -15,6 +15,9 @@ import {
   NavLink,
   Stack,
   Divider,
+  Breadcrumbs,
+  Anchor,
+  Paper,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { Outlet, Link, useLocation } from 'react-router-dom'
@@ -31,6 +34,13 @@ import {
   IconBrandLinkedin,
   IconShoppingCart,
   IconLayoutDashboard,
+  IconChevronRight,
+  IconList,
+  IconBuildingStore,
+  IconCategory,
+  IconPackages,
+  IconUserCircle,
+  IconAdjustments,
 } from '@tabler/icons-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -38,7 +48,8 @@ export function Layout() {
   const { user, logout } = useAuth()
   const location = useLocation()
   const [opened, { toggle }] = useDisclosure(true)
-  // @ts-ignore
+  const [shoppingOpened, { toggle: toggleShopping }] = useDisclosure(true)
+  // @ts-expect-error: setColorScheme is not in the type definition but available in runtime for Mantine v7+
   const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
 
@@ -50,8 +61,62 @@ export function Layout() {
 
   const isAdult = user?.ageGroupName === 'Adult'
 
-  const isActive = (path: string) => 
+  const isActive = (path: string) =>
     path === '/' ? location.pathname === '/' : location.pathname.startsWith(path)
+
+  // Breadcrumb logic
+  const getBreadcrumbs = () => {
+    const path = location.pathname
+    const crumbs: { title: string; href: string; icon?: React.ReactNode }[] = [
+      { title: 'Home', href: '/', icon: <IconLayoutDashboard size={16} /> },
+    ]
+
+    if (path.startsWith('/shopping/')) {
+      crumbs.push({
+        title: 'Shopping',
+        href: '/shopping/lists',
+        icon: <IconShoppingCart size={16} />,
+      })
+
+      if (path.includes('/stores')) {
+        crumbs.push({
+          title: 'Stores',
+          href: '/shopping/stores',
+          icon: <IconBuildingStore size={16} />,
+        })
+        if (path.match(/\/stores\/\d+$/)) {
+          crumbs.push({ title: 'Store Details', href: path })
+        }
+      } else if (path.includes('/lists')) {
+        crumbs.push({ title: 'Lists', href: '/shopping/lists', icon: <IconList size={16} /> })
+        if (path.match(/\/lists\/\d+$/)) {
+          crumbs.push({ title: 'List Details', href: path })
+        }
+      } else if (path.includes('/categories')) {
+        crumbs.push({
+          title: 'Categories',
+          href: '/shopping/categories',
+          icon: <IconCategory size={16} />,
+        })
+      } else if (path.includes('/items')) {
+        crumbs.push({ title: 'Items', href: '/shopping/items', icon: <IconPackages size={16} /> })
+      }
+    } else if (path === '/profile') {
+      crumbs.push({ title: 'Profile', href: '/profile', icon: <IconUserCircle size={16} /> })
+    } else if (path === '/preferences') {
+      crumbs.push({
+        title: 'Preferences',
+        href: '/preferences',
+        icon: <IconAdjustments size={16} />,
+      })
+    } else if (path === '/settings') {
+      crumbs.push({ title: 'Settings', href: '/settings', icon: <IconSettings size={16} /> })
+    }
+
+    return crumbs
+  }
+
+  const breadcrumbs = getBreadcrumbs()
 
   return (
     <AppShell
@@ -68,7 +133,8 @@ export function Layout() {
       <AppShell.Header
         withBorder={false}
         style={{
-          backgroundColor: computedColorScheme === 'dark' ? 'rgba(26, 27, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)',
+          backgroundColor:
+            computedColorScheme === 'dark' ? 'rgba(26, 27, 30, 0.8)' : 'rgba(255, 255, 255, 0.8)',
           backdropFilter: 'blur(10px)',
           borderBottom: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}`,
           zIndex: 1000,
@@ -84,11 +150,26 @@ export function Layout() {
                 bg="indigo"
                 component={Link}
                 to="/"
-                style={{ borderRadius: rem(8), display: 'flex', alignItems: 'center', justifyContent: 'center', textDecoration: 'none' }}
+                style={{
+                  borderRadius: rem(8),
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  textDecoration: 'none',
+                }}
               >
-                <Text c="white" fw={900} size="xl" style={{ lineHeight: 1 }}>H</Text>
+                <Text c="white" fw={900} size="xl" style={{ lineHeight: 1 }}>
+                  H
+                </Text>
               </Box>
-              <Text size="lg" fw={800} style={{ letterSpacing: rem(-0.5), textDecoration: 'none' }} component={Link} to="/" c="var(--mantine-color-text)">
+              <Text
+                size="lg"
+                fw={800}
+                style={{ letterSpacing: rem(-0.5), textDecoration: 'none' }}
+                component={Link}
+                to="/"
+                c="var(--mantine-color-text)"
+              >
                 HOME APP
               </Text>
             </Group>
@@ -135,7 +216,8 @@ export function Layout() {
                         size={32}
                         color="indigo"
                       >
-                        {user?.firstName?.[0]}{user?.lastName?.[0]}
+                        {user?.firstName?.[0]}
+                        {user?.lastName?.[0]}
                       </Avatar>
                       <Box visibleFrom="sm">
                         <Stack gap={0}>
@@ -159,9 +241,21 @@ export function Layout() {
                   <Menu.Item
                     component={Link}
                     to="/profile"
-                    leftSection={<IconUser style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
+                    leftSection={
+                      <IconUser style={{ width: rem(14), height: rem(14) }} stroke={1.5} />
+                    }
                   >
                     View/Edit Profile
+                  </Menu.Item>
+
+                  <Menu.Item
+                    component={Link}
+                    to="/preferences"
+                    leftSection={
+                      <IconSettings style={{ width: rem(14), height: rem(14) }} stroke={1.5} />
+                    }
+                  >
+                    Preferences
                   </Menu.Item>
 
                   {user?.mobilePhone && (
@@ -169,7 +263,9 @@ export function Layout() {
                       <Menu.Divider />
                       <Menu.Label>Contact Info</Menu.Label>
                       <Menu.Item
-                        leftSection={<IconPhone style={{ width: rem(14), height: rem(14) }} stroke={1.5} />}
+                        leftSection={
+                          <IconPhone style={{ width: rem(14), height: rem(14) }} stroke={1.5} />
+                        }
                       >
                         {user.mobilePhone}
                       </Menu.Item>
@@ -240,19 +336,25 @@ export function Layout() {
         </Container>
       </AppShell.Header>
 
-      <AppShell.Navbar 
-        p="md" 
-        style={{ 
+      <AppShell.Navbar
+        p="md"
+        style={{
           borderRight: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}`,
-          overflow: 'hidden',
-          display: opened ? 'block' : 'none'
         }}
       >
         <Stack gap="xs">
-          <Text size="xs" fw={700} c="dimmed" tt="uppercase" pl="xs" mb={4} style={{ whiteSpace: 'nowrap' }}>
+          <Text
+            size="xs"
+            fw={700}
+            c="dimmed"
+            tt="uppercase"
+            pl="xs"
+            mb={4}
+            style={{ whiteSpace: 'nowrap' }}
+          >
             Main Menu
           </Text>
-          
+
           <NavLink
             component={Link}
             to="/"
@@ -261,26 +363,53 @@ export function Layout() {
             active={isActive('/')}
             variant="filled"
             color="indigo"
-            radius="md"
           />
 
           <NavLink
             label="Shopping"
             leftSection={<IconShoppingCart size={20} stroke={1.5} />}
             childrenOffset={28}
-            defaultOpened
-            radius="md"
+            opened={shoppingOpened}
+            onChange={toggleShopping}
           >
-            <NavLink component={Link} to="/shopping/lists" label="Lists" active={isActive('/shopping/lists')} />
-            <NavLink component={Link} to="/shopping/stores" label="Stores" active={isActive('/shopping/stores')} />
-            <NavLink component={Link} to="/shopping/categories" label="Categories" active={isActive('/shopping/categories')} />
-            <NavLink component={Link} to="/shopping/items" label="Items" active={isActive('/shopping/items')} />
+            <NavLink
+              component={Link}
+              to="/shopping/lists"
+              label="Lists"
+              active={isActive('/shopping/lists')}
+            />
+            <NavLink
+              component={Link}
+              to="/shopping/stores"
+              label="Stores"
+              active={isActive('/shopping/stores')}
+            />
+            <NavLink
+              component={Link}
+              to="/shopping/categories"
+              label="Categories"
+              active={isActive('/shopping/categories')}
+            />
+            <NavLink
+              component={Link}
+              to="/shopping/items"
+              label="Items"
+              active={isActive('/shopping/items')}
+            />
           </NavLink>
 
           {isAdult && (
             <>
               <Divider my="sm" />
-              <Text size="xs" fw={700} c="dimmed" tt="uppercase" pl="xs" mb={4} style={{ whiteSpace: 'nowrap' }}>
+              <Text
+                size="xs"
+                fw={700}
+                c="dimmed"
+                tt="uppercase"
+                pl="xs"
+                mb={4}
+                style={{ whiteSpace: 'nowrap' }}
+              >
                 Administration
               </Text>
               <NavLink
@@ -291,7 +420,6 @@ export function Layout() {
                 active={isActive('/settings')}
                 variant="filled"
                 color="indigo"
-                radius="md"
               />
             </>
           )}
@@ -300,6 +428,44 @@ export function Layout() {
 
       <AppShell.Main pt={rem(70 + 24)}>
         <Container size="xl">
+          {location.pathname !== '/' && (
+            <Paper
+              p="sm"
+              radius="md"
+              mb="lg"
+              bg={computedColorScheme === 'dark' ? 'dark.5' : 'gray.0'}
+              style={{
+                border: `1px solid ${computedColorScheme === 'dark' ? '#2c2e33' : '#e9ecef'}`,
+              }}
+            >
+              <Breadcrumbs
+                separator={<IconChevronRight size={14} style={{ opacity: 0.4 }} />}
+                separatorMargin={8}
+              >
+                {breadcrumbs.map((crumb, index) => {
+                  const isLast = index === breadcrumbs.length - 1
+                  return (
+                    <Anchor
+                      key={crumb.href}
+                      component={Link}
+                      to={crumb.href}
+                      c={isLast ? 'dimmed' : computedColorScheme === 'dark' ? 'gray.3' : 'dark'}
+                      fw={isLast ? 600 : 500}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        textDecoration: 'none',
+                      }}
+                    >
+                      {crumb.icon}
+                      {crumb.title}
+                    </Anchor>
+                  )
+                })}
+              </Breadcrumbs>
+            </Paper>
+          )}
           <Outlet />
         </Container>
       </AppShell.Main>

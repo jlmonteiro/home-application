@@ -3,7 +3,9 @@ package com.jorgemonteiro.home_app.service.profiles;
 import com.jorgemonteiro.home_app.model.entities.profiles.AgeGroupConfig;
 import com.jorgemonteiro.home_app.repository.profiles.AgeGroupConfigRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -13,26 +15,33 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AgeClassificationService {
 
+    static final String CACHE_NAME = "ageGroupConfigs";
+
     private final AgeGroupConfigRepository ageGroupConfigRepository;
 
     /**
-     * Calculates the age group name based on the provided birthdate and the current configuration.
+     * Calculates the age group name based on the provided birthdate and the cached configuration.
      *
      * @param birthdate the user's birthdate
      * @return the name of the age group (e.g., "Adult", "Teenager", "Child")
      */
     public String classify(LocalDate birthdate) {
-        if (birthdate == null) {
-            return "Adult"; // Default fallback for safety, though birthdate should be mandatory for non-adults
-        }
-
+        if (birthdate == null) return "Adult";
         int age = Period.between(birthdate, LocalDate.now()).getYears();
-        List<AgeGroupConfig> configs = ageGroupConfigRepository.findAll();
-
-        return configs.stream()
-                .filter(config -> age >= config.getMinAge() && age <= config.getMaxAge())
+        return loadConfigs().stream()
+                .filter(c -> age >= c.getMinAge() && age <= c.getMaxAge())
                 .map(AgeGroupConfig::getName)
                 .findFirst()
                 .orElse("Adult");
+    }
+
+    /**
+     * Loads all age group configurations from the database.
+     * Cached separately so the list can be reused across multiple classify calls in the same request.
+     */
+    @Cacheable(CACHE_NAME + "List")
+    @Transactional(readOnly = true)
+    public List<AgeGroupConfig> loadConfigs() {
+        return ageGroupConfigRepository.findAll();
     }
 }

@@ -16,4 +16,8 @@ public class PhotoDownloadException extends HomeAppException {
     public PhotoDownloadException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public PhotoDownloadException(String message) {
+        super(message);
+    }
 }

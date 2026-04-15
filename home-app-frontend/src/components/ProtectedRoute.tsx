@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
-import { LoadingOverlay, Alert, Box } from '@mantine/core'
-import { IconAlertCircle } from '@tabler/icons-react'
+import { LoadingOverlay, Box } from '@mantine/core'
 import { useAuth } from '../context/AuthContext'
 
 interface ProtectedRouteProps {
@@ -14,21 +13,12 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   if (isLoading) {
     return (
       <Box pos="relative" h="100vh">
-        <LoadingOverlay visible overlayProps={{ blur: 2 }} />
+        <LoadingOverlay visible overlayProps={{ blur: 2 }} data-testid="auth-loading-overlay" />
       </Box>
     )
   }
 
-  if (isError) {
-    return (
-      <Alert variant="light" color="red" title="Authentication Error" icon={<IconAlertCircle />}>
-        Failed to verify your session. Please try refreshing the page or check your connection to
-        the backend.
-      </Alert>
-    )
-  }
-
-  if (user === null) {
+  if (isError || user === null) {
     return <Navigate to="/login" replace />
   }
 

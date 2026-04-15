@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
 import spock.lang.Title
 
-@Title("UserProfileAdapter")
+@Title("User Profile Adapter")
 @Narrative("""
 As a developer
 I want the UserProfileAdapter to correctly convert between User/UserProfile entities and UserProfileDTO

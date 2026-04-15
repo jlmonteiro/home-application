@@ -8,7 +8,7 @@ import org.springframework.test.context.ActiveProfiles
 import spock.lang.Narrative
 import spock.lang.Title
 
-@Title("PhotoService")
+@Title("Photo Service")
 @Narrative("""
 As the user creation process
 I want profile photos to be downloaded and encoded as Base64

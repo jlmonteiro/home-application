@@ -29,6 +29,9 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
         
+  cache:
+    type: none
+
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled: true

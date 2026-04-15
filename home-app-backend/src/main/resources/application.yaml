@@ -28,6 +28,9 @@ spring:
           google-people-api:
             url: https://people.googleapis.com/v1
 
+  cache:
+    type: simple
+
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     enabled: true
@@ -49,3 +52,8 @@ spring:
 
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  error-base-url: ${ERROR_BASE_URL:http://localhost:8080/errors}
+  photo:
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000
+    max-size-bytes: 2097152  # 2 MB

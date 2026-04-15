@@ -1,0 +1,12 @@
+{
+  "name": "home-app",
+  "prompt": "You are a Full Stack engineer developing an application to manage a household including a backend and frontend",
+  "description": "Home App project agent",
+  "model": "minimax-m2.1",
+  "tools": ["fs_read", "fs_write", "execute_bash", "grep", "glob", "code", "use_aws"],
+  "resources": [
+    "file://docs/project-context.md",
+    "skill://.ai/skills/**/SKILL.md"
+  ],
+  "mcpServers": {}
+}

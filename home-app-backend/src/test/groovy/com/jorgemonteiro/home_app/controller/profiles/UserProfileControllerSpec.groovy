@@ -21,7 +21,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 
-@Title("UserProfileController")
+@Title("User Profile API Integration")
 @Narrative("""
 As a client of the API
 I want to retrieve and update user profiles via REST endpoints with HATEOAS links
@@ -146,7 +146,7 @@ class UserProfileControllerSpec extends BaseIntegrationTest {
 
         then: "404 ProblemDetail is returned"
             response.andExpect(status().isNotFound())
-                    .andExpect(jsonPath('$.type').value("NOT_FOUND"))
+                    .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/not-found"))
                     .andExpect(jsonPath('$.detail').value(containsString("ghost@example.com")))
     }
 
@@ -172,7 +172,7 @@ class UserProfileControllerSpec extends BaseIntegrationTest {
 
         then: "404 is returned"
             response.andExpect(status().isNotFound())
-                    .andExpect(jsonPath('$.type').value("NOT_FOUND"))
+                    .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/not-found"))
     }
 
     @Sql("/scripts/sql/user-profile-test-data.sql")
@@ -205,7 +205,7 @@ class UserProfileControllerSpec extends BaseIntegrationTest {
         then: "400 ProblemDetail is returned with specific field error"
             response.andExpect(status().isBadRequest())
                     .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
-                    .andExpect(jsonPath('$.type').value("VALIDATION_ERROR"))
+                    .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/validation-error"))
                     .andExpect(jsonPath('$.title').value("Constraint Violation"))
                     .andExpect(jsonPath("\$.errors.${field}").value(message))
 

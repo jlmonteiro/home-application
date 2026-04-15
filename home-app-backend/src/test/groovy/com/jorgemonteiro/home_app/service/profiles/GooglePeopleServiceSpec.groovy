@@ -38,7 +38,7 @@ class GooglePeopleServiceSpec extends BaseIntegrationTest {
 
     def setupSpec() {
         wireMockServer.start()
-        WireMock.configureFor("localhost", 8089)
+        configureFor("localhost", 8089)
     }
 
     def cleanupSpec() {
@@ -52,7 +52,7 @@ class GooglePeopleServiceSpec extends BaseIntegrationTest {
     def "should successfully fetch birthdate from Google"() {
         given: "a valid access token"
             def token = "valid-token"
-            
+
         and: "Google People API returns a valid birthday"
             wireMockServer.stubFor(get(urlPathEqualTo("/people/me"))
                     .withQueryParam("personFields", equalTo("birthdays"))

@@ -18,6 +18,7 @@ public class UserProfileDTO {
     private Long id;
 
     /** The user's unique email address. */
+    @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
     @Size(max = 100, message = "Email must not exceed 100 characters")
     private String email;

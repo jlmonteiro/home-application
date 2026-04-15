@@ -1,4 +1,4 @@
-import { createTheme } from '@mantine/core';
+import { createTheme } from '@mantine/core'
 
 export const theme = createTheme({
   primaryColor: 'indigo',
@@ -34,4 +34,4 @@ export const theme = createTheme({
       },
     },
   },
-});
+})
