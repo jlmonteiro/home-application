@@ -43,18 +43,7 @@ import {
   type ApiError,
 } from '../../services/api'
 import type { ShoppingStore } from '../../services/api'
-
-/**
- * Helper to determine the correct image source for store logos.
- * Handles direct URLs and Base64 strings (with or without prefixes).
- */
-const getPhotoSrc = (photo: string | undefined | null) => {
-  if (!photo) return null
-  if (photo.startsWith('http') || photo.startsWith('data:image') || photo.startsWith('/logos/'))
-    return photo
-  // Fallback for raw base64 data
-  return `data:image/png;base64,${photo}`
-}
+import { getPhotoSrc } from '../../utils/photo'
 
 export function StoresPage() {
   const queryClient = useQueryClient()

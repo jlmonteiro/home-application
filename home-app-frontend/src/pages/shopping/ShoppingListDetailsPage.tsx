@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Title,
   Text,
@@ -9,14 +9,12 @@ import {
   Modal,
   TextInput,
   Select,
+  NumberInput,
   rem,
   LoadingOverlay,
   Box,
   Paper,
-  NumberInput,
   Divider,
-  Combobox,
-  useCombobox,
   Badge,
   FileButton,
   Image,
@@ -25,6 +23,7 @@ import {
   Center,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import { useCombobox } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { notifications } from '@mantine/notifications'
@@ -47,7 +46,6 @@ import {
   addItemToList,
   updateListItem,
   removeListItem,
-  fetchSuggestedPrice,
   updateList,
   fetchStores,
   createItem,
@@ -61,6 +59,9 @@ import { ListItemRow } from '../../components/shopping/ListItemRow'
 import { EditListModal } from '../../components/shopping/EditListModal'
 import { ImagePreviewModal } from '../../components/shopping/ImagePreviewModal'
 import { PriceHistoryModal } from '../../components/shopping/PriceHistoryModal'
+import { AddItemModal, type AddItemFormValues } from '../../components/shopping/AddItemModal'
+import { EditItemModal } from '../../components/shopping/EditItemModal'
+import { CreateItemModal } from '../../components/shopping/CreateItemModal'
 import { getPhotoSrc } from '../../utils/photo'
 
 export function ShoppingListDetailsPage() {
@@ -68,13 +69,13 @@ export function ShoppingListDetailsPage() {
   const listId = parseInt(id || '0')
   const queryClient = useQueryClient()
 
-  const [itemSearch, setItemSearch] = useState('')
   const [addItemOpened, { open: openAddItem, close: closeAddItem }] = useDisclosure(false)
   const [createItemOpened, { open: openCreateItem, close: closeCreateItem }] = useDisclosure(false)
   const [editListOpened, { open: openEditList, close: closeEditList }] = useDisclosure(false)
   const [editingItem, setEditingItem] = useState<ShoppingListItem | null>(null)
   const [editItemOpened, { open: openEditItem, close: closeEditItem }] = useDisclosure(false)
   const [previewImage, setPreviewImage] = useState<{ url: string; title: string } | null>(null)
+  const [itemSearch, setItemSearch] = useState('')
 
   const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false)
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<{
@@ -112,7 +113,7 @@ export function ShoppingListDetailsPage() {
 
   // Mutations
   const addItemMutation = useMutation({
-    mutationFn: (values: typeof addItemForm.values) => {
+    mutationFn: (values: AddItemFormValues) => {
       const selectedStore = values.storeId
         ? storesData?._embedded?.stores?.find((s) => s.id === parseInt(values.storeId))
         : null
@@ -128,7 +129,6 @@ export function ShoppingListDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ['shopping-list', listId] })
       notifications.show({ title: 'Success', message: 'Item added', color: 'green' })
       closeAddItem()
-      addItemForm.reset()
       setItemSearch('')
     },
   })
@@ -138,10 +138,8 @@ export function ShoppingListDetailsPage() {
     onSuccess: (newItem) => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items-all'] })
       notifications.show({ title: 'Success', message: 'Master item created', color: 'green' })
-      addItemForm.setFieldValue('itemId', newItem.id.toString())
       setItemSearch(newItem.name)
       closeCreateItem()
-      createItemForm.reset()
     },
     onError: (error: ApiError) => {
       notifications.show({
@@ -204,40 +202,6 @@ export function ShoppingListDetailsPage() {
   })
 
   // Forms
-  const addItemForm = useForm({
-    initialValues: {
-      itemId: '',
-      storeId: '',
-      quantity: 1,
-      unit: 'pcs',
-      price: undefined as number | undefined,
-    },
-    validate: {
-      itemId: (v) => (!v ? 'Select an item' : null),
-    },
-  })
-
-  const editItemForm = useForm({
-    initialValues: {
-      storeId: '',
-      quantity: 1,
-      unit: 'pcs',
-      price: 0 as number | undefined,
-    },
-  })
-
-  const createItemForm = useForm({
-    initialValues: {
-      name: '',
-      categoryId: '',
-      photo: '',
-    },
-    validate: {
-      name: (v) => (!v ? 'Name is required' : null),
-      categoryId: (v) => (!v ? 'Category is required' : null),
-    },
-  })
-
   const listForm = useForm({
     initialValues: {
       name: '',
@@ -249,14 +213,6 @@ export function ShoppingListDetailsPage() {
   })
 
   // Handlers
-  const handlePhotoUpload = (file: File | null) => {
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => createItemForm.setFieldValue('photo', e.target?.result as string)
-      reader.readAsDataURL(file)
-    }
-  }
-
   const handleEditList = () => {
     if (list) {
       listForm.setValues({
@@ -268,19 +224,12 @@ export function ShoppingListDetailsPage() {
   }
 
   const handleOpenCreateItem = () => {
-    createItemForm.setFieldValue('name', itemSearch)
     openCreateItem()
     combobox.closeDropdown()
   }
 
   const handleEditItem = (item: ShoppingListItem) => {
     setEditingItem(item)
-    editItemForm.setValues({
-      storeId: item.store?.id?.toString() || '',
-      quantity: item.quantity,
-      unit: item.unit,
-      price: item.price || 0,
-    })
     openEditItem()
   }
 
@@ -288,16 +237,6 @@ export function ShoppingListDetailsPage() {
     setSelectedHistoryItem({ id: item.itemId, name: item.itemName })
     openHistory()
   }
-
-  // Fetch suggested price when item or store changes
-  useEffect(() => {
-    if (addItemForm.values.itemId) {
-      const storeId = addItemForm.values.storeId ? parseInt(addItemForm.values.storeId) : undefined
-      fetchSuggestedPrice(parseInt(addItemForm.values.itemId), storeId).then((price) => {
-        if (price) addItemForm.setFieldValue('price', price)
-      })
-    }
-  }, [addItemForm])
 
   const masterItems = masterItemsData?._embedded?.items || []
   const filteredMasterItems = masterItems.filter((item) =>
@@ -613,300 +552,61 @@ export function ShoppingListDetailsPage() {
       </Stack>
 
       {/* Add Item Modal */}
-      <Modal
+      <AddItemModal
         opened={addItemOpened}
         onClose={closeAddItem}
-        title="Add Item to List"
-        radius="md"
-        zIndex={2000}
-      >
-        <form onSubmit={addItemForm.onSubmit((v) => addItemMutation.mutate(v))}>
-          <Stack gap="md">
-            <Combobox
-              store={combobox}
-              withinPortal={true}
-              onOptionSubmit={(val) => {
-                if (val === 'CREATE_NEW') {
-                  handleOpenCreateItem()
-                } else {
-                  addItemForm.setFieldValue('itemId', val)
-                  const selected = masterItems.find((i) => i.id.toString() === val)
-                  if (selected) setItemSearch(selected.name)
-                }
-                combobox.closeDropdown()
-              }}
-            >
-              <Combobox.Target>
-                <TextInput
-                  label="Search Item"
-                  placeholder="Type to search..."
-                  value={itemSearch}
-                  onChange={(event) => {
-                    setItemSearch(event.currentTarget.value)
-                    combobox.openDropdown()
-                    combobox.updateSelectedOptionIndex()
-                  }}
-                  onClick={() => combobox.openDropdown()}
-                  onFocus={() => combobox.openDropdown()}
-                  onBlur={() => {
-                    combobox.closeDropdown()
-                    const selected = masterItems.find(
-                      (i) => i.id.toString() === addItemForm.values.itemId,
-                    )
-                    if (selected) setItemSearch(selected.name)
-                  }}
-                  required
-                  error={addItemForm.errors.itemId}
-                />
-              </Combobox.Target>
-
-              <Combobox.Dropdown style={{ zIndex: 3000 }}>
-                <Combobox.Options>
-                  {filteredMasterItems.length > 0 ? (
-                    <>
-                      {filteredMasterItems.map((item) => (
-                        <Combobox.Option value={item.id.toString()} key={item.id}>
-                          <Group gap="sm">
-                            <Box
-                              w={24}
-                              h={24}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                              }}
-                            >
-                              {item.photo ? (
-                                <Image src={getPhotoSrc(item.photo)} fit="contain" h={24} w={24} />
-                              ) : (
-                                <IconBasket size={14} />
-                              )}
-                            </Box>
-                            <Text size="sm">{item.name}</Text>
-                          </Group>
-                        </Combobox.Option>
-                      ))}
-                      <Divider my="xs" />
-                      <Combobox.Option value="CREATE_NEW">
-                        <Group gap="xs">
-                          <IconPlus size={14} color="blue" />
-                          <Text size="sm" c="blue" fw={500}>
-                            Create "{itemSearch || 'New Item'}"
-                          </Text>
-                        </Group>
-                      </Combobox.Option>
-                    </>
-                  ) : (
-                    <>
-                      <Combobox.Option value="CREATE_NEW">
-                        <Group gap="xs">
-                          <IconPlus size={14} color="blue" />
-                          <Text size="sm" c="blue" fw={500}>
-                            Create "{itemSearch || 'New Item'}"
-                          </Text>
-                        </Group>
-                      </Combobox.Option>
-                      <Combobox.Empty>No items found</Combobox.Empty>
-                    </>
-                  )}
-                </Combobox.Options>
-              </Combobox.Dropdown>
-            </Combobox>
-
-            {!addItemForm.values.itemId &&
-              itemSearch.length > 0 &&
-              filteredMasterItems.length === 0 && (
-                <Button
-                  variant="light"
-                  size="xs"
-                  leftSection={<IconPlus size={14} />}
-                  onClick={handleOpenCreateItem}
-                >
-                  Create "{itemSearch}" master item
-                </Button>
-              )}
-
-            <Select
-              label="Store (Optional)"
-              placeholder="Where to buy?"
-              data={storeOptions}
-              searchable
-              clearable
-              comboboxProps={{ withinPortal: true, zIndex: 3000 }}
-              {...addItemForm.getInputProps('storeId')}
-            />
-
-            <Group grow>
-              <NumberInput
-                label="Quantity"
-                min={0.1}
-                step={0.1}
-                {...addItemForm.getInputProps('quantity')}
-              />
-              <Select
-                label="Unit"
-                data={['pcs', 'kg', 'g', 'L', 'ml', 'pack', 'bottle']}
-                comboboxProps={{ withinPortal: true, zIndex: 3000 }}
-                {...addItemForm.getInputProps('unit')}
-              />
-            </Group>
-
-            <NumberInput
-              label="Price per Unit (€)"
-              placeholder="Suggested price will load if available"
-              min={0}
-              decimalScale={2}
-              {...addItemForm.getInputProps('price')}
-            />
-
-            <Button type="submit" mt="md" loading={addItemMutation.isPending}>
-              Add Item to List
-            </Button>
-          </Stack>
-        </form>
-      </Modal>
+        masterItems={masterItems}
+        storeOptions={storeOptions}
+        onSubmit={(values) => addItemMutation.mutate(values)}
+        onCreateNew={handleOpenCreateItem}
+        isPending={addItemMutation.isPending}
+      />
 
       {/* Edit Item Modal */}
-      <Modal
+      <EditItemModal
         opened={editItemOpened}
         onClose={closeEditItem}
-        title={`Edit ${editingItem?.itemName}`}
-        radius="md"
-        zIndex={2000}
-      >
-        <form
-          onSubmit={editItemForm.onSubmit((v) => {
-            const selectedStore = v.storeId
-              ? storesData?._embedded?.stores?.find((s) => s.id === parseInt(v.storeId))
-              : null
-            if (editingItem) {
-              updateItemMutation.mutate({
-                id: editingItem.id,
-                data: {
-                  quantity: v.quantity,
-                  unit: v.unit,
-                  price: v.price,
-                  store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null,
-                },
-              })
-            }
-          })}
-        >
-          <Stack gap="md">
-            <Select
-              label="Change Store"
-              placeholder="Move to a different store"
-              data={storeOptions}
-              searchable
-              clearable
-              comboboxProps={{ withinPortal: true, zIndex: 3000 }}
-              {...editItemForm.getInputProps('storeId')}
-            />
-
-            <Group grow>
-              <NumberInput
-                label="Quantity"
-                min={0.1}
-                step={0.1}
-                {...editItemForm.getInputProps('quantity')}
-              />
-              <Select
-                label="Unit"
-                data={['pcs', 'kg', 'g', 'L', 'ml', 'pack', 'bottle']}
-                comboboxProps={{ withinPortal: true, zIndex: 3000 }}
-                {...editItemForm.getInputProps('unit')}
-              />
-            </Group>
-
-            <NumberInput
-              label="Price per Unit (€)"
-              min={0}
-              decimalScale={2}
-              {...editItemForm.getInputProps('price')}
-            />
-
-            <Button type="submit" mt="md" loading={updateItemMutation.isPending}>
-              Save Changes
-            </Button>
-          </Stack>
-        </form>
-      </Modal>
+        item={editingItem}
+        storeOptions={storeOptions}
+        onSubmit={(id, data) => {
+          const selectedStore = data.storeId
+            ? storesData?._embedded?.stores?.find((s) => s.id === parseInt(data.storeId))
+            : null
+          updateItemMutation.mutate({
+            id,
+            data: {
+              quantity: data.quantity,
+              unit: data.unit,
+              price: data.price,
+              store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null,
+            },
+          })
+        }}
+        isPending={updateItemMutation.isPending}
+      />
 
       {/* Create New Item Modal (Nested) */}
-      <Modal
+      <CreateItemModal
         opened={createItemOpened}
         onClose={closeCreateItem}
-        title="Create New Master Item"
-        radius="md"
-        zIndex={4000}
-      >
-        <form
-          onSubmit={createItemForm.onSubmit((v) => {
-            const selectedCategory = masterItemsData?._embedded?.items?.find(
-              (item) => item.category.id === parseInt(v.categoryId || '0'),
-            )?.category
-            createItemMutation.mutate({
-              name: v.name,
-              photo: v.photo,
-              category: selectedCategory || {
-                id: parseInt(v.categoryId || '0'),
-                name: '',
-                icon: '',
-              },
-            })
-          })}
-        >
-          <Stack gap="md">
-            <TextInput required label="Item Name" {...createItemForm.getInputProps('name')} />
-            <Select
-              required
-              label="Category"
-              placeholder="Select category"
-              data={categoryOptions}
-              searchable
-              comboboxProps={{ withinPortal: true, zIndex: 5000 }}
-              {...createItemForm.getInputProps('categoryId')}
-            />
-
-            <Group align="flex-end">
-              <Box
-                w={64}
-                h={64}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px solid var(--mantine-color-gray-3)',
-                  borderRadius: rem(4),
-                  overflow: 'hidden',
-                }}
-              >
-                {createItemForm.values.photo ? (
-                  <Image
-                    src={getPhotoSrc(createItemForm.values.photo)}
-                    fit="contain"
-                    h={64}
-                    w={64}
-                  />
-                ) : (
-                  <IconBasket size={32} stroke={1.5} color="var(--mantine-color-gray-4)" />
-                )}
-              </Box>
-              <FileButton onChange={handlePhotoUpload} accept="image/png,image/jpeg">
-                {(props) => (
-                  <Button {...props} variant="light" leftSection={<IconUpload size={16} />}>
-                    Upload Photo
-                  </Button>
-                )}
-              </FileButton>
-            </Group>
-
-            <Button type="submit" mt="md" loading={createItemMutation.isPending}>
-              Create and Select
-            </Button>
-          </Stack>
-        </form>
-      </Modal>
+        categoryOptions={categoryOptions}
+        initialName={itemSearch}
+        onSubmit={(values) => {
+          const selectedCategory = masterItemsData?._embedded?.items?.find(
+            (item) => item.category.id === parseInt(values.categoryId || '0'),
+          )?.category
+          createItemMutation.mutate({
+            name: values.name,
+            photo: values.photo,
+            category: selectedCategory || {
+              id: parseInt(values.categoryId || '0'),
+              name: '',
+              icon: '',
+            },
+          })
+        }}
+        isPending={createItemMutation.isPending}
+      />
 
       {/* Edit List Modal */}
       <EditListModal

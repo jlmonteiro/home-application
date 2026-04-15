@@ -7,9 +7,6 @@ import {
   Group,
   Stack,
   ActionIcon,
-  Modal,
-  TextInput,
-  Textarea,
   rem,
   LoadingOverlay,
   Box,
@@ -18,12 +15,10 @@ import {
   SimpleGrid,
   Image,
   Tabs,
-  Select,
   Center,
   Divider,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import { useForm } from '@mantine/form'
 import { notifications } from '@mantine/notifications'
 import {
   IconArrowLeft,
@@ -36,7 +31,6 @@ import {
   IconClock,
   IconBuildingStore,
   IconMaximize,
-  IconBarcode,
   IconEdit,
 } from '@tabler/icons-react'
 import {
@@ -51,38 +45,13 @@ import {
   type ApiError,
 } from '../../services/api'
 import type { Coupon } from '../../services/api'
-import { QRCodeSVG } from 'qrcode.react'
-import Barcode from 'react-barcode'
 import { useState } from 'react'
-
-/**
- * Helper to determine the correct image source for store logos and coupon photos.
- * Handles direct URLs and internal public path.
- */
-const getPhotoSrc = (photo: string | undefined | null) => {
-  if (!photo) return null
-  if (photo.startsWith('http') || photo.startsWith('data:image')) return photo
-  if (photo.startsWith('/')) return photo
-  return `data:image/png;base64,${photo}`
-}
-
-/**
- * Helper to format currency values to Euro.
- */
-const formatEuro = (value: string | undefined | null) => {
-  if (!value) return ''
-  if (value.startsWith('€')) return value
-  return `€${value}`
-}
-
-interface CouponFormValues {
-  name: string
-  description: string
-  value: string
-  dueDate: string
-  code: string
-  barcodeType: 'QR' | 'CODE_128'
-}
+import { getPhotoSrc } from '../../utils/photo'
+import { formatEuro } from '../../utils/currency'
+import { AddCardModal, type CardFormValues } from '../../components/shopping/AddCardModal'
+import { CouponFormModal, type CouponFormValues } from '../../components/shopping/CouponFormModal'
+import { BarcodeDisplay } from '../../components/shopping/BarcodeDisplay'
+import { FullscreenBarcodeModal } from '../../components/shopping/FullscreenBarcodeModal'
 
 export function StoreDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -115,36 +84,9 @@ export function StoreDetailsPage() {
     queryFn: () => fetchCoupons(storeId),
   })
 
-  // Forms
-  const cardForm = useForm({
-    initialValues: {
-      name: '',
-      number: '',
-      barcodeType: 'CODE_128' as 'QR' | 'CODE_128',
-    },
-    validate: {
-      name: (v) => (!v ? 'Name is required' : null),
-      number: (v) => (!v ? 'Number is required' : null),
-    },
-  })
-
-  const couponForm = useForm<CouponFormValues>({
-    initialValues: {
-      name: '',
-      description: '',
-      value: '',
-      dueDate: '',
-      code: '',
-      barcodeType: 'CODE_128',
-    },
-    validate: {
-      name: (v) => (!v ? 'Name is required' : null),
-    },
-  })
-
   // Mutations
   const addCardMutation = useMutation({
-    mutationFn: (values: typeof cardForm.values) =>
+    mutationFn: (values: CardFormValues) =>
       createLoyaltyCard(storeId, {
         name: values.name,
         barcode: { code: values.number, type: values.barcodeType },
@@ -153,7 +95,6 @@ export function StoreDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ['loyalty-cards', storeId] })
       notifications.show({ title: 'Success', message: 'Loyalty card added', color: 'green' })
       closeCard()
-      cardForm.reset()
     },
     onError: (error: ApiError) => {
       notifications.show({
@@ -180,7 +121,6 @@ export function StoreDetailsPage() {
       queryClient.invalidateQueries({ queryKey: ['coupons', storeId] })
       notifications.show({ title: 'Success', message: 'Coupon added', color: 'green' })
       closeCoupon()
-      couponForm.reset()
     },
     onError: (error: ApiError) => {
       notifications.show({
@@ -199,7 +139,6 @@ export function StoreDetailsPage() {
       notifications.show({ title: 'Success', message: 'Coupon updated', color: 'green' })
       closeCoupon()
       setEditingCoupon(null)
-      couponForm.reset()
     },
     onError: (error: ApiError) => {
       notifications.show({
@@ -227,14 +166,6 @@ export function StoreDetailsPage() {
 
   const handleEditCoupon = (coupon: Coupon) => {
     setEditingCoupon(coupon)
-    couponForm.setValues({
-      name: coupon.name,
-      description: coupon.description || '',
-      value: coupon.value?.replace('€', '') || '',
-      dueDate: coupon.dueDate ? new Date(coupon.dueDate).toISOString().split('T')[0] : '',
-      code: coupon.barcode?.code || '',
-      barcodeType: coupon.barcode?.type || 'CODE_128',
-    })
     openCoupon()
   }
 
@@ -242,7 +173,7 @@ export function StoreDetailsPage() {
     const payload: Partial<Coupon> = {
       name: values.name,
       description: values.description || undefined,
-      value: formatEuro(values.value) || undefined,
+      value: values.value || undefined,
       dueDate: values.dueDate || undefined,
       barcode: values.code ? { code: values.code, type: values.barcodeType } : undefined,
     }
@@ -356,14 +287,10 @@ export function StoreDetailsPage() {
                       </Group>
                     </Group>
 
-                    <Box
-                      bg="white"
-                      p="md"
-                      style={{
-                        borderRadius: rem(8),
-                        border: '1px solid var(--mantine-color-gray-2)',
-                        cursor: 'pointer',
-                      }}
+                    <BarcodeDisplay
+                      code={card.barcode.code}
+                      type={card.barcode.type as 'QR' | 'CODE_128'}
+                      size="md"
                       onClick={() =>
                         setFullscreenData({
                           name: card.name,
@@ -371,13 +298,7 @@ export function StoreDetailsPage() {
                           barcodeType: card.barcode.type,
                         })
                       }
-                    >
-                      {card.barcode.type === 'QR' ? (
-                        <QRCodeSVG value={card.barcode.code} size={150} />
-                      ) : (
-                        <Barcode value={card.barcode.code} width={1.5} height={60} fontSize={14} />
-                      )}
-                    </Box>
+                    />
                     <Text fw={500} ff="monospace">
                       {card.barcode.code}
                     </Text>
@@ -400,7 +321,6 @@ export function StoreDetailsPage() {
                 leftSection={<IconPlus size={16} />}
                 onClick={() => {
                   setEditingCoupon(null)
-                  couponForm.reset()
                   openCoupon()
                 }}
               >
@@ -470,15 +390,11 @@ export function StoreDetailsPage() {
                         <>
                           <Divider my="xs" variant="dashed" />
                           <Center>
-                            <Box
-                              bg="white"
-                              p="xs"
-                              style={{
-                                borderRadius: rem(4),
-                                border: '1px solid var(--mantine-color-gray-2)',
-                                cursor: 'pointer',
-                                filter: isExpired ? 'grayscale(1)' : undefined,
-                              }}
+                            <BarcodeDisplay
+                              code={coupon.barcode.code}
+                              type={coupon.barcode.type as 'QR' | 'CODE_128'}
+                              size="sm"
+                              style={{ filter: isExpired ? 'grayscale(1)' : undefined }}
                               onClick={() =>
                                 setFullscreenData({
                                   name: coupon.name,
@@ -487,18 +403,7 @@ export function StoreDetailsPage() {
                                     (coupon.barcode?.type as 'QR' | 'CODE_128') || 'CODE_128',
                                 })
                               }
-                            >
-                              {coupon.barcode.type === 'QR' ? (
-                                <QRCodeSVG value={coupon.barcode.code} size={80} />
-                              ) : (
-                                <Barcode
-                                  value={coupon.barcode.code}
-                                  width={1}
-                                  height={40}
-                                  fontSize={10}
-                                />
-                              )}
-                            </Box>
+                            />
                           </Center>
                         </>
                       )}
@@ -568,141 +473,31 @@ export function StoreDetailsPage() {
       </Tabs>
 
       {/* Loyalty Card Modal */}
-      <Modal
+      <AddCardModal
         opened={cardOpened}
         onClose={closeCard}
-        title="Add Loyalty Card"
-        radius="md"
-        zIndex={2000}
-      >
-        <form onSubmit={cardForm.onSubmit((v) => addCardMutation.mutate(v))}>
-          <Stack gap="md">
-            <TextInput
-              required
-              label="Card Name"
-              placeholder="e.g. My Clubcard"
-              {...cardForm.getInputProps('name')}
-            />
-            <TextInput
-              required
-              label="Card Number"
-              placeholder="Scan or type number"
-              {...cardForm.getInputProps('number')}
-            />
-            <Select
-              label="Barcode Type"
-              data={[
-                { value: 'CODE_128', label: 'Standard Barcode (CODE128)' },
-                { value: 'QR', label: 'QR Code' },
-              ]}
-              comboboxProps={{ withinPortal: true, zIndex: 3000 }}
-              {...cardForm.getInputProps('barcodeType')}
-            />
-            <Button type="submit" mt="md" loading={addCardMutation.isPending}>
-              Add Card
-            </Button>
-          </Stack>
-        </form>
-      </Modal>
+        onSubmit={(values) => addCardMutation.mutate(values)}
+        isPending={addCardMutation.isPending}
+      />
 
       {/* Coupon Modal */}
-      <Modal
+      <CouponFormModal
         opened={couponOpened}
         onClose={() => {
           closeCoupon()
           setEditingCoupon(null)
         }}
-        title={editingCoupon ? 'Edit Coupon' : 'Add Coupon'}
-        radius="md"
-        zIndex={2000}
-      >
-        <form onSubmit={couponForm.onSubmit(handleCouponSubmit)}>
-          <Stack gap="md">
-            <TextInput
-              required
-              label="Coupon Name"
-              placeholder="e.g. €5 off €25"
-              {...couponForm.getInputProps('name')}
-            />
-            <TextInput
-              label="Value"
-              placeholder="5.00"
-              leftSection={<Text size="sm">€</Text>}
-              {...couponForm.getInputProps('value')}
-            />
-            <Textarea
-              label="Description"
-              placeholder="Optional details"
-              {...couponForm.getInputProps('description')}
-            />
-            <TextInput label="Due Date" type="date" {...couponForm.getInputProps('dueDate')} />
-
-            <Divider label="Code Details" labelPosition="center" />
-
-            <TextInput
-              label="Coupon Code"
-              placeholder="Code to scan at checkout"
-              leftSection={<IconBarcode size={16} />}
-              {...couponForm.getInputProps('code')}
-            />
-            <Select
-              label="Barcode Type"
-              data={[
-                { value: 'CODE_128', label: 'Standard Barcode (CODE128)' },
-                { value: 'QR', label: 'QR Code' },
-              ]}
-              comboboxProps={{ withinPortal: true, zIndex: 3000 }}
-              {...couponForm.getInputProps('barcodeType')}
-            />
-
-            <Button
-              type="submit"
-              mt="md"
-              loading={addCouponMutation.isPending || updateCouponMutation.isPending}
-            >
-              {editingCoupon ? 'Save Changes' : 'Add Coupon'}
-            </Button>
-          </Stack>
-        </form>
-      </Modal>
+        editingCoupon={editingCoupon}
+        onSubmit={handleCouponSubmit}
+        isPending={addCouponMutation.isPending || updateCouponMutation.isPending}
+      />
 
       {/* Fullscreen Code View */}
-      <Modal
+      <FullscreenBarcodeModal
         opened={!!fullscreenData}
         onClose={() => setFullscreenData(null)}
-        title={fullscreenData?.name}
-        fullScreen
-        zIndex={3000}
-      >
-        <Center h="100%" pb={rem(100)}>
-          <Stack align="center" gap="xl" w="100%">
-            <Box
-              bg="white"
-              p="xl"
-              style={{ borderRadius: rem(12), boxShadow: '0 0 20px rgba(0,0,0,0.1)' }}
-            >
-              {fullscreenData?.barcodeType === 'QR' ? (
-                <QRCodeSVG value={fullscreenData.number} size={280} />
-              ) : (
-                <Box style={{ transform: 'scale(1.5)', transformOrigin: 'center' }} py="xl">
-                  <Barcode
-                    value={fullscreenData?.number || ''}
-                    width={2}
-                    height={100}
-                    fontSize={16}
-                  />
-                </Box>
-              )}
-            </Box>
-            <Text size="xl" fw={700} ff="monospace" style={{ letterSpacing: rem(2) }}>
-              {fullscreenData?.number}
-            </Text>
-            <Button size="lg" variant="light" onClick={() => setFullscreenData(null)}>
-              Close
-            </Button>
-          </Stack>
-        </Center>
-      </Modal>
+        data={fullscreenData}
+      />
     </Stack>
   )
 }

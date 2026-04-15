@@ -33,6 +33,7 @@ import { updateUserProfile, fetchFamilyRoles, type ApiError } from '../../servic
 import { notifications } from '@mantine/notifications'
 import type { UserProfile } from '../../types/user'
 import dayjs from 'dayjs'
+import { getPhotoSrc } from '../../utils/photo'
 
 const PHONE_REGEX = /^\+?[0-9\s\-()]{7,20}$/
 const FACEBOOK_REGEX = /^https?:\/\/(www\.)?facebook\.com\/.*$/
@@ -142,14 +143,6 @@ export function ProfilePage() {
     Teenager: 'orange',
     Child: 'green',
   }[user.ageGroupName || 'Adult']
-
-  const getPhotoSrc = (photo: string | undefined) => {
-    if (!photo) return null
-    if (photo.startsWith('http') || photo.startsWith('data:image')) {
-      return photo
-    }
-    return `data:image/png;base64,${photo}`
-  }
 
   return (
     <Container size="md" py="xl">

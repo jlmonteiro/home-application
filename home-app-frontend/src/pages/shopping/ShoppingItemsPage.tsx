@@ -43,16 +43,7 @@ import {
   type ApiError,
 } from '../../services/api'
 import type { ShoppingItem } from '../../services/api'
-
-/**
- * Helper to determine the correct image source for item photos.
- * Handles direct URLs and Base64 strings (with or without prefixes).
- */
-const getPhotoSrc = (photo: string | undefined | null) => {
-  if (!photo) return null
-  if (photo.startsWith('http') || photo.startsWith('data:image')) return photo
-  return `data:image/png;base64,${photo}`
-}
+import { getPhotoSrc } from '../../utils/photo'
 
 export function ShoppingItemsPage() {
   const queryClient = useQueryClient()
