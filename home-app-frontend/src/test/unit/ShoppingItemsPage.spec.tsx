@@ -6,6 +6,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MemoryRouter } from 'react-router-dom'
 import { ShoppingItemsPage } from '../../pages/shopping/ShoppingItemsPage'
 import { server } from '../mocks/server'
+import { notifications } from '@mantine/notifications'
+
+vi.mock('@mantine/notifications', () => ({
+  notifications: { show: vi.fn() },
+}))
 
 const renderPage = () => {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
@@ -58,7 +63,41 @@ describe('ShoppingItemsPage', () => {
     expect(screen.queryByText('Bread')).not.toBeInTheDocument()
   })
 
-  it('handles add item with photo upload', async () => {
+  it('handles empty state', async () => {
+    server.use(
+      http.get('/api/shopping/items', () => {
+        return HttpResponse.json({ _embedded: { items: [] }, page: { size: 20, totalElements: 0, totalPages: 0, number: 0 } })
+      }),
+      http.get('/api/shopping/categories', () => HttpResponse.json({ _embedded: { categories: [] } })),
+    )
+
+    renderPage()
+    await waitFor(() => expect(screen.getByText('No items found')).toBeInTheDocument())
+  })
+
+  it('shows price history modal', async () => {
+    server.use(
+      http.get('/api/shopping/items', () => HttpResponse.json({
+        _embedded: { items: [{ id: 1, name: 'Milk', category: { id: 1, name: 'Dairy' }, version: 1 }] },
+        page: { size: 20, totalElements: 1, totalPages: 1, number: 0 },
+      })),
+      http.get('/api/shopping/items/1/price-history', () => HttpResponse.json([
+        { id: 1, price: 1.5, recordedAt: new Date().toISOString(), storeName: 'SuperMart' }
+      ])),
+      http.get('/api/shopping/categories', () => HttpResponse.json({ _embedded: { categories: [] } })),
+    )
+
+    renderPage()
+    await waitFor(() => expect(screen.getByText('Milk')).toBeInTheDocument())
+
+    fireEvent.click(screen.getByTitle('Price History'))
+    
+    expect(await screen.findByText(/Price History: Milk/i)).toBeInTheDocument()
+    expect(screen.getByText('€1.50')).toBeInTheDocument()
+    expect(screen.getByText('SuperMart')).toBeInTheDocument()
+  })
+
+  it('handles add item with photo upload and removal', async () => {
     server.use(
       http.get('/api/shopping/items', () => {
         return HttpResponse.json({ _embedded: { items: [] }, page: { size: 20, totalElements: 0, totalPages: 0, number: 0 } })
@@ -80,20 +119,25 @@ describe('ShoppingItemsPage', () => {
 
     fireEvent.change(await screen.findByLabelText(/Name/i), { target: { value: 'Eggs' } })
     
-    // Select category
+    // Select category - use placeholder
     fireEvent.click(screen.getByPlaceholderText(/Select category/i))
     fireEvent.click(await screen.findByRole('option', { name: 'Dairy' }))
     
     // Mock file upload
     const file = new File(['dummy content'], 'test.png', { type: 'image/png' })
-    const uploadBtn = screen.getByText(/Upload Photo/i).closest('button')
-    fireEvent.change(uploadBtn!.previousSibling as HTMLInputElement, { target: { files: [file] } })
+    const fileInput = document.querySelector('input[type="file"]')!
+    fireEvent.change(fileInput, { target: { files: [file] } })
+
+    // Wait for preview and then remove
+    await waitFor(() => expect(screen.getByRole('img')).toBeInTheDocument())
+    fireEvent.click(screen.getByRole('button', { name: /Remove/i }))
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
 
     const submitBtn = screen.getByRole('button', { name: /^Create Item$/i })
     fireEvent.click(submitBtn)
 
     await waitFor(() => {
-      expect(screen.queryByText('Create Item')).not.toBeInTheDocument()
+      expect(notifications.show).toHaveBeenCalledWith(expect.objectContaining({ message: 'Item created successfully' }))
     })
   })
 
@@ -146,10 +190,15 @@ describe('ShoppingItemsPage', () => {
     fireEvent.click(screen.getAllByRole('button').find(b => b.querySelector('.tabler-icon-edit'))!)
     fireEvent.change(await screen.findByLabelText(/Name/i), { target: { value: 'Organic Milk' } })
     fireEvent.click(screen.getByRole('button', { name: /^Save Changes$/i }))
-    await waitFor(() => expect(screen.queryByText('Edit Item')).not.toBeInTheDocument())
+    await waitFor(() => {
+      expect(notifications.show).toHaveBeenCalledWith(expect.objectContaining({ message: 'Item updated successfully' }))
+    })
 
     // Delete
     fireEvent.click(screen.getAllByRole('button').find(b => b.querySelector('.tabler-icon-trash'))!)
     expect(window.confirm).toHaveBeenCalled()
+    await waitFor(() => {
+      expect(notifications.show).toHaveBeenCalledWith(expect.objectContaining({ message: 'Item deleted successfully' }))
+    })
   })
 })

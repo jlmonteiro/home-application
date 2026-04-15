@@ -25,7 +25,7 @@ export function EditItemModal({
       storeId: '',
       quantity: 1,
       unit: 'pcs',
-      price: 0 as number | undefined,
+      price: '' as string | number,
     },
   })
 
@@ -36,7 +36,7 @@ export function EditItemModal({
         storeId: item.store?.id?.toString() || '',
         quantity: item.quantity,
         unit: item.unit,
-        price: item.price || 0,
+        price: item.price ?? '',
       })
     } else {
       form.reset()

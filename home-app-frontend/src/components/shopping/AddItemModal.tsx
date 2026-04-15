@@ -58,7 +58,7 @@ export function AddItemModal({
       storeId: '',
       quantity: 1,
       unit: 'pcs',
-      price: undefined as number | undefined,
+      price: '' as string | number,
     },
     validate: {
       itemId: (v) => (!v ? 'Select an item' : null),
@@ -75,7 +75,7 @@ export function AddItemModal({
     if (form.values.itemId) {
       const storeId = form.values.storeId ? parseInt(form.values.storeId) : undefined
       fetchSuggestedPrice(parseInt(form.values.itemId), storeId).then((price) => {
-        if (price) form.setFieldValue('price', price)
+        if (typeof price === 'number') form.setFieldValue('price', price)
       })
     }
   }, [form.values.itemId, form.values.storeId])

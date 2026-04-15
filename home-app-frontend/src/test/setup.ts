@@ -29,6 +29,9 @@ class ResizeObserver {
 
 global.ResizeObserver = ResizeObserver
 
+// Mock scrollIntoView
+window.HTMLElement.prototype.scrollIntoView = vi.fn()
+
 vi.mock('react-barcode', () => ({
   default: () => null
 }))
