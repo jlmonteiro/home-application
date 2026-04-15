@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, fireEvent } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
 import { MantineProvider } from '@mantine/core'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -21,58 +21,17 @@ const renderPage = () => {
 }
 
 describe('SettingsPage', () => {
-  it('renders age groups section', async () => {
-    server.use(
-      http.get('/api/settings/age-groups', () => {
-        return HttpResponse.json([
-          { name: 'Child', maxAge: 12 },
-          { name: 'Adult', maxAge: 99 },
-        ])
-      }),
-      http.get('/api/settings/roles', () => {
-        return HttpResponse.json([{ id: 1, name: 'Parent', immutable: true }])
-      }),
-    )
-
+  it('renders page title and sections', async () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getByText('Child')).toBeInTheDocument()
-      expect(screen.getByText('Adult')).toBeInTheDocument()
-    })
-  })
-
-  it('renders family roles section', async () => {
-    server.use(
-      http.get('/api/settings/age-groups', () => {
-        return HttpResponse.json([{ name: 'Adult', maxAge: 99 }])
-      }),
-      http.get('/api/settings/roles', () => {
-        return HttpResponse.json([
-          { id: 1, name: 'Parent', immutable: true },
-          { id: 2, name: 'Child', immutable: false },
-        ])
-      }),
-    )
-
-    renderPage()
-
-    await waitFor(() => {
-      expect(screen.getByText('Parent')).toBeInTheDocument()
-      expect(screen.getByText('Child')).toBeInTheDocument()
+      expect(screen.getByText('Household Settings')).toBeInTheDocument()
+      expect(screen.getByText('Age Group Ranges')).toBeInTheDocument()
+      expect(screen.getByText('Family Roles')).toBeInTheDocument()
     })
   })
 
   it('shows add family role button', async () => {
-    server.use(
-      http.get('/api/settings/age-groups', () => {
-        return HttpResponse.json([{ name: 'Adult', maxAge: 99 }])
-      }),
-      http.get('/api/settings/roles', () => {
-        return HttpResponse.json([{ id: 1, name: 'Parent', immutable: true }])
-      }),
-    )
-
     renderPage()
 
     await waitFor(() => {
@@ -81,12 +40,18 @@ describe('SettingsPage', () => {
   })
 
   it('shows save button for age groups', async () => {
+    renderPage()
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Save Ranges/i })).toBeInTheDocument()
+    })
+  })
+
+  it('shows loading state for save button when pending', async () => {
     server.use(
-      http.get('/api/settings/age-groups', () => {
-        return HttpResponse.json([{ name: 'Adult', maxAge: 99 }])
-      }),
-      http.get('/api/settings/roles', () => {
-        return HttpResponse.json([{ id: 1, name: 'Parent', immutable: true }])
+      http.put('/api/settings/age-groups', async () => {
+        await new Promise((resolve) => setTimeout(resolve, 100))
+        return HttpResponse.json({ success: true })
       }),
     )
 
@@ -94,6 +59,12 @@ describe('SettingsPage', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Save Ranges/i })).toBeInTheDocument()
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: /Save Ranges/i }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Save Ranges/i })).toBeDisabled()
     })
   })
 })

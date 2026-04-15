@@ -85,9 +85,21 @@ export const handlers = [
   // --- Family Roles ---
   http.get(`${API_BASE}/settings/roles`, () => {
     return HttpResponse.json([
-      { id: 1, name: 'Admin', version: 1 },
-      { id: 2, name: 'Member', version: 1 },
+      { id: 1, name: 'Admin', immutable: true, version: 1 },
+      { id: 2, name: 'Member', immutable: false, version: 1 },
     ])
+  }),
+
+  // --- Age Groups ---
+  http.get(`${API_BASE}/settings/age-groups`, () => {
+    return HttpResponse.json([
+      { id: 1, name: 'Child', minAge: 0, maxAge: 12 },
+      { id: 2, name: 'Adult', minAge: 13, maxAge: 99 },
+    ])
+  }),
+
+  http.put(`${API_BASE}/settings/age-groups`, async ({ request }) => {
+    return HttpResponse.json({ success: true })
   }),
 
   // --- Profile Update ---
