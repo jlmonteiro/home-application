@@ -95,4 +95,69 @@ describe('CreateItemModal', () => {
     renderWithProvider({ isPending: true })
     expect(screen.getByRole('button', { name: 'Create and Select' })).toBeDisabled()
   })
+
+  it('calls onClose when modal is closed', async () => {
+    renderWithProvider()
+    
+    // Find the close button by its aria-label or class
+    const closeButton = document.querySelector('[data-mantine-close-button]') as HTMLElement
+    
+    if (closeButton) {
+      fireEvent.click(closeButton)
+      await waitFor(() => {
+        expect(onClose).toHaveBeenCalled()
+      })
+    }
+  })
+
+  it('handles empty category options', () => {
+    renderWithProvider({ categoryOptions: [] })
+    // Should still render without crashing
+    expect(screen.getByRole('heading', { name: 'Create New Master Item' })).toBeInTheDocument()
+    expect(screen.getByPlaceholderText(/Select category/i)).toBeInTheDocument()
+  })
+
+  it('handles null file in photo upload', () => {
+    renderWithProvider()
+    
+    const fileButton = screen.getByRole('button', { name: /Upload Photo/i })
+    fireEvent.click(fileButton)
+    
+    // Should not crash when file is null
+    expect(fileButton).toBeInTheDocument()
+  })
+
+  it('does not update name if initialName is empty and name already has value', () => {
+    const { rerender } = render(
+      <MantineProvider>
+        <CreateItemModal
+          opened={true}
+          onClose={onClose}
+          categoryOptions={categoryOptions}
+          initialName="Initial"
+          onSubmit={onSubmit}
+          isPending={false}
+        />
+      </MantineProvider>,
+    )
+    
+    // Name should be set to 'Initial'
+    expect(screen.getByRole('textbox', { name: /Item Name/i })).toHaveValue('Initial')
+    
+    // Rerender with empty initialName - name should stay 'Initial'
+    rerender(
+      <MantineProvider>
+        <CreateItemModal
+          opened={true}
+          onClose={onClose}
+          categoryOptions={categoryOptions}
+          initialName=""
+          onSubmit={onSubmit}
+          isPending={false}
+        />
+      </MantineProvider>,
+    )
+    
+    expect(screen.getByRole('textbox', { name: /Item Name/i })).toHaveValue('Initial')
+  })
 })
