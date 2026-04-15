@@ -30,8 +30,8 @@ jobs:
       run: npx playwright install --with-deps
       working-directory: home-app-frontend
 
-    - name: Run E2E Tests
-      run: npm run test:e2e
+    - name: Run E2E Tests (with MSW mocks)
+      run: npm run test:e2e:mock
       working-directory: home-app-frontend
 
     - name: Upload Test Report
