@@ -5,6 +5,7 @@ copyright: Copyright &copy; 2024 Home Application
 
 repo_name: jlmonteiro/home-application
 repo_url: https://github.com/jlmonteiro/home-application
+site_url: https://jlmonteiro.github.io/home-application/
 edit_uri: blob/main/docs/
 
 theme:

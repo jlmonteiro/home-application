@@ -1,0 +1,17 @@
+name: Documentation CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build and Validate
+        uses: squidfunk/mkdocs-material@9.6.7
+        with:
+          args: build --strict
