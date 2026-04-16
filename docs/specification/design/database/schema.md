@@ -6,13 +6,16 @@ This document details the PostgreSQL 17 database schema, table relationships, an
 
 ## Schemas
 
-The database is organized into two distinct logical schemas:
+The database is organized into five distinct logical schemas:
 - `profiles` - Identity, authentication, and family structure.
 - `shopping` - Collaborative shopping lists, master catalog, and store-related data.
+- `recipes` - Family cookbook: recipes, photos, labels, ingredients, steps, comments, ratings, and nutrition.
+- `meals` - Meal time configuration, weekly meal plans, and approval workflows.
+- `notifications` - In-app notifications and direct messaging.
 
 ### System ER Overview
 
-This diagram illustrates the high-level grouping and relationships between the `profiles` and `shopping` schemas.
+This diagram illustrates the high-level grouping and relationships between all schemas.
 
 ```mermaid
 flowchart TB
@@ -51,11 +54,60 @@ flowchart TB
         SHOPPING_STORES --- SHOPPING_ITEM_PRICE_HISTORY
     end
 
-    %% Cross-schema relationship
+    subgraph recipes_schema [recipes Schema]
+        direction TB
+        RECIPES
+        RECIPE_PHOTOS
+        LABELS
+        RECIPE_INGREDIENTS
+        RECIPE_STEPS
+        RECIPE_COMMENTS
+        RECIPE_RATINGS
+        NUTRITION_ENTRIES
+
+        RECIPES --- RECIPE_PHOTOS
+        RECIPES --- RECIPE_INGREDIENTS
+        RECIPES --- RECIPE_STEPS
+        RECIPES --- RECIPE_COMMENTS
+        RECIPES --- RECIPE_RATINGS
+        SHOPPING_ITEMS --- NUTRITION_ENTRIES
+    end
+
+    subgraph meals_schema [meals Schema]
+        direction TB
+        MEAL_TIMES
+        MEAL_TIME_SCHEDULES
+        MEAL_PLANS
+        MEAL_PLAN_ENTRIES
+        MEAL_PLAN_ENTRY_RECIPES
+        MEAL_PLAN_ENTRY_MEMBERS
+
+        MEAL_TIMES --- MEAL_TIME_SCHEDULES
+        MEAL_PLANS --- MEAL_PLAN_ENTRIES
+        MEAL_PLAN_ENTRIES --- MEAL_PLAN_ENTRY_RECIPES
+        MEAL_PLAN_ENTRIES --- MEAL_PLAN_ENTRY_MEMBERS
+    end
+
+    subgraph notifications_schema [notifications Schema]
+        direction TB
+        NOTIFICATIONS
+        MESSAGES
+    end
+
+    %% Cross-schema relationships
     USER -- "creates" --- SHOPPING_LISTS
+    USER -- "creates" --- RECIPES
+    USER -- "creates" --- MEAL_PLANS
+    USER -- "receives" --- NOTIFICATIONS
+    USER -- "sends" --- MESSAGES
+    SHOPPING_ITEMS -- "ingredient_of" --- RECIPE_INGREDIENTS
+    RECIPES -- "assigned_to" --- MEAL_PLAN_ENTRY_RECIPES
 
     style profiles_schema fill:#f5f5f5,stroke:#333,stroke-width:2px
     style shopping_schema fill:#fffde7,stroke:#333,stroke-width:2px
+    style recipes_schema fill:#e8f5e9,stroke:#333,stroke-width:2px
+    style meals_schema fill:#e3f2fd,stroke:#333,stroke-width:2px
+    style notifications_schema fill:#fce4ec,stroke:#333,stroke-width:2px
 ```
 
 ---
@@ -265,6 +317,292 @@ erDiagram
 | `loyalty_cards` | Digital storage for store cards with Barcode/QR support. |
 | `coupons` | Store-specific discounts with expiration tracking. |
 | `shopping_item_price_history` | Historical price data used for intelligent suggestions. |
+
+---
+
+## recipes Schema
+
+This schema manages the family cookbook: recipes, photos, labels, ingredients, preparation steps, comments, ratings, and nutrition data.
+
+### Detailed Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    RECIPES ||--o{ RECIPE_PHOTOS : "has"
+    RECIPES ||--o{ RECIPE_LABELS : "tagged_with"
+    LABELS ||--o{ RECIPE_LABELS : "applied_to"
+    RECIPES ||--o{ RECIPE_INGREDIENTS : "contains"
+    RECIPES ||--o{ RECIPE_STEPS : "has"
+    RECIPES ||--o{ RECIPE_COMMENTS : "has"
+    RECIPES ||--o{ RECIPE_RATINGS : "rated_by"
+    SHOPPING_ITEMS ||--o{ RECIPE_INGREDIENTS : "used_in"
+    SHOPPING_ITEMS ||--o{ NUTRITION_ENTRIES : "has"
+    USER ||--o{ RECIPES : "creates"
+    USER ||--o{ RECIPE_COMMENTS : "writes"
+    USER ||--o{ RECIPE_RATINGS : "rates"
+
+    RECIPES {
+        bigint id PK
+        varchar name
+        text description
+        integer servings
+        text source_link
+        text video_link
+        integer prep_time_minutes
+        bigint default_photo_id FK
+        bigint created_by FK
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECIPE_PHOTOS {
+        bigint id PK
+        bigint recipe_id FK
+        text photo
+        integer sort_order
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    LABELS {
+        bigint id PK
+        varchar name UK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECIPE_LABELS {
+        bigint recipe_id PK_FK
+        bigint label_id PK_FK
+    }
+
+    RECIPE_INGREDIENTS {
+        bigint id PK
+        bigint recipe_id FK
+        bigint item_id FK
+        decimal quantity
+        varchar unit
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECIPE_STEPS {
+        bigint id PK
+        bigint recipe_id FK
+        text instruction
+        integer time_minutes
+        integer sort_order
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECIPE_COMMENTS {
+        bigint id PK
+        bigint recipe_id FK
+        bigint user_id FK
+        text content
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECIPE_RATINGS {
+        bigint id PK
+        bigint recipe_id FK
+        bigint user_id FK
+        integer score
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    NUTRITION_ENTRIES {
+        bigint id PK
+        bigint item_id FK
+        varchar nutrient_key
+        decimal value
+        varchar unit
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+```
+
+### Table Definitions
+
+| Table | Description |
+|-------|-------------|
+| `recipes` | Core recipe records with metadata, markdown description, and creator reference. |
+| `recipe_photos` | Base64-encoded photos with sort order. One can be designated as default via `recipes.default_photo_id`. |
+| `labels` | Dynamic label catalog. Created on demand, auto-deleted when no recipe references them. |
+| `recipe_labels` | Junction table linking recipes to labels (many-to-many). |
+| `recipe_ingredients` | Links shopping items as recipe ingredients with quantity and unit (same enum as shopping: KG, G, L, ML, PACK, UNIT). |
+| `recipe_steps` | Ordered preparation steps with markdown instructions and optional time. `sort_order` determines display order. |
+| `recipe_comments` | User comments on recipes with author and timestamp. |
+| `recipe_ratings` | Individual 1-5 star ratings per user per recipe (unique constraint on recipe_id + user_id). Average computed on-the-fly. |
+| `nutrition_entries` | Flexible key-value-unit nutrition data per shopping item (0:N). e.g., `fat: 2.3 g`, `protein: 23.4 g`. Used for on-the-fly recipe nutrition calculation. |
+
+### Cross-Schema References
+
+| Column | References | On Delete |
+|--------|-----------|-----------|
+| `recipes.created_by` | `profiles.user(id)` | RESTRICT |
+| `recipe_comments.user_id` | `profiles.user(id)` | CASCADE |
+| `recipe_ratings.user_id` | `profiles.user(id)` | CASCADE |
+| `recipe_ingredients.item_id` | `shopping.shopping_items(id)` | RESTRICT |
+| `nutrition_entries.item_id` | `shopping.shopping_items(id)` | CASCADE |
+
+---
+
+## meals Schema
+
+This schema manages meal time configuration, weekly meal plans, and the approval/feedback workflow.
+
+### Detailed Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    MEAL_TIMES ||--o{ MEAL_TIME_SCHEDULES : "scheduled_at"
+    MEAL_PLANS ||--o{ MEAL_PLAN_ENTRIES : "contains"
+    MEAL_PLAN_ENTRIES }o--|| MEAL_TIMES : "for"
+    MEAL_PLAN_ENTRIES ||--o{ MEAL_PLAN_ENTRY_RECIPES : "includes"
+    MEAL_PLAN_ENTRIES ||--o{ MEAL_PLAN_ENTRY_MEMBERS : "assigned_to"
+    RECIPES ||--o{ MEAL_PLAN_ENTRY_RECIPES : "used_in"
+    USER ||--o{ MEAL_PLANS : "creates"
+    USER ||--o{ MEAL_PLAN_ENTRY_RECIPES : "assigned_to"
+    USER ||--o{ MEAL_PLAN_ENTRY_MEMBERS : "responds"
+
+    MEAL_TIMES {
+        bigint id PK
+        varchar name
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MEAL_TIME_SCHEDULES {
+        bigint id PK
+        bigint meal_time_id FK
+        integer day_of_week
+        time time_of_day
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MEAL_PLANS {
+        bigint id PK
+        date week_start_date UK
+        bigint created_by FK
+        varchar status
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MEAL_PLAN_ENTRIES {
+        bigint id PK
+        bigint meal_plan_id FK
+        bigint meal_time_id FK
+        integer day_of_week
+        boolean is_done
+        integer reminder_offset_minutes
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MEAL_PLAN_ENTRY_RECIPES {
+        bigint id PK
+        bigint entry_id FK
+        bigint recipe_id FK
+        bigint user_id FK
+        timestamp created_at
+    }
+
+    MEAL_PLAN_ENTRY_MEMBERS {
+        bigint id PK
+        bigint entry_id FK
+        bigint user_id FK
+        varchar status
+        boolean vote
+        timestamp created_at
+        timestamp updated_at
+    }
+```
+
+### Table Definitions
+
+| Table | Description |
+|-------|-------------|
+| `meal_times` | Named meal occasions (e.g., Breakfast, Lunch, Dinner). |
+| `meal_time_schedules` | Per-day-of-week time configuration for each meal time. `day_of_week` uses ISO 8601 (1=Monday, 7=Sunday). |
+| `meal_plans` | Weekly plans with a unique `week_start_date` (Monday). Status: `DRAFT` or `PUBLISHED`. |
+| `meal_plan_entries` | Individual meal slots: a specific meal time on a specific day. Supports `is_done` flag and optional `reminder_offset_minutes`. |
+| `meal_plan_entry_recipes` | Recipes assigned to an entry. `user_id` is nullable — null means "for everyone". Supports multi-recipe meals. |
+| `meal_plan_entry_members` | Tracks each member's response (`PENDING`, `ACCEPTED`, `CHANGED`) and optional thumbs up/down `vote`. |
+
+### Cross-Schema References
+
+| Column | References | On Delete |
+|--------|-----------|-----------|
+| `meal_plans.created_by` | `profiles.user(id)` | RESTRICT |
+| `meal_plan_entry_recipes.recipe_id` | `recipes.recipes(id)` | RESTRICT |
+| `meal_plan_entry_recipes.user_id` | `profiles.user(id)` | CASCADE |
+| `meal_plan_entry_members.user_id` | `profiles.user(id)` | CASCADE |
+
+---
+
+## notifications Schema
+
+This schema manages in-app notifications and direct messaging between household members.
+
+### Detailed Entity Relationship Diagram
+
+```mermaid
+erDiagram
+    USER ||--o{ NOTIFICATIONS : "receives"
+    USER ||--o{ MESSAGES : "sends"
+    USER ||--o{ MESSAGES : "receives"
+
+    NOTIFICATIONS {
+        bigint id PK
+        bigint user_id FK
+        varchar type
+        varchar title
+        text message
+        bigint reference_id
+        varchar reference_type
+        boolean read
+        timestamp created_at
+    }
+
+    MESSAGES {
+        bigint id PK
+        bigint sender_id FK
+        bigint recipient_id FK
+        text content
+        boolean read
+        timestamp created_at
+    }
+```
+
+### Table Definitions
+
+| Table | Description |
+|-------|-------------|
+| `notifications` | Typed notifications with polymorphic reference (`reference_id` + `reference_type`) to source entities. Types: `MEAL_PLAN_PUBLISHED`, `MEAL_REMINDER`, `MEAL_SUGGESTION_MADE`, `NEW_RECIPE_COMMENT`, `NEW_MESSAGE`. |
+| `messages` | Direct messages between household members with read status tracking. |
+
+### Cross-Schema References
+
+| Column | References | On Delete |
+|--------|-----------|-----------|
+| `notifications.user_id` | `profiles.user(id)` | CASCADE |
+| `messages.sender_id` | `profiles.user(id)` | CASCADE |
+| `messages.recipient_id` | `profiles.user(id)` | CASCADE |
 
 ---
 

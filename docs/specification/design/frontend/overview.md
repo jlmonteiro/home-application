@@ -62,6 +62,9 @@ The Home Application frontend is a modern, responsive Single Page Application (S
     - :material-menu: **[FR-14: Module Navigation](../../requirements/shared.md#fr-14)**: Nested menus and sidebar persistence.
     - :material-gesture-tap: **[NFR-4: Accessibility & UX](../../requirements/shopping-list.md#nfr-4)**: Mobile-first design and 44x44px tap targets.
     - :material-wifi-off: **[NFR-3: Reliability & Sync](../../requirements/shopping-list.md#nfr-3)**: Offline support and automatic synchronization.
+    - :material-chef-hat: **[FR-23: Recipe Management](../../requirements/recipes-meals.md#fr-23)**: Recipe CRUD with markdown, labels, and photos.
+    - :material-calendar-week: **[FR-31: Weekly Meal Plan](../../requirements/recipes-meals.md#fr-31)**: Meal planner with multi-recipe meals and member assignments.
+    - :material-bell: **[FR-38: In-App Notifications](../../requirements/notifications.md#fr-38)**: Notification bell in header with unread count.
 
 ---
 

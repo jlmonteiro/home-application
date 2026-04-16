@@ -261,6 +261,239 @@
     - [FR-20: Integrated Documentation Build (MkDocs)](../../requirements/documentation.md#fr-20)
     - [FR-21: Gradle Integration](../../requirements/documentation.md#fr-21)
 
+## Recipes Module Scenarios
+
+### TS-30B: Recipe CRUD with Photos :material-check-circle: {: #ts-30b }
+- :material-arrow-right-circle: **Given**: An authenticated user.
+- :material-play-circle: **When**: The user creates a recipe with a name, markdown description, two photos, and sets one as default.
+- :material-check-all: **Then**: The system SHALL persist the recipe and photos, and the recipes list SHALL display the default photo.
+
+!!! info "Validates"
+    - [FR-23: Recipe Management](../../requirements/recipes-meals.md#fr-23)
+    - [FR-24: Recipe Photos](../../requirements/recipes-meals.md#fr-24)
+
+### TS-31B: Dynamic Label Lifecycle :material-check-circle: {: #ts-31b }
+- :material-arrow-right-circle: **Given**: An authenticated user creating a recipe.
+- :material-play-circle: **When**: The user types "Italian" (new label) and "Comfort Food" (existing label).
+- :material-check-all: **Then**: The system SHALL create "Italian" in the labels table and link both labels to the recipe.
+- :material-play-circle: **When**: The user later removes "Italian" from the only recipe that uses it.
+- :material-check-all: **Then**: The system SHALL delete "Italian" from the labels table.
+
+!!! info "Validates"
+    - [FR-23: Recipe Management](../../requirements/recipes-meals.md#fr-23)
+
+### TS-32: Ingredient Linking with Unit Validation :material-check-circle: {: #ts-32 }
+- :material-arrow-right-circle: **Given**: A recipe and a shopping item "Chicken Breast" in the catalog.
+- :material-play-circle: **When**: The user adds "Chicken Breast" as an ingredient with quantity 500 and unit G.
+- :material-check-all: **Then**: The system SHALL persist the ingredient with the same unit enum used by the Shopping module.
+
+!!! info "Validates"
+    - [FR-25: Recipe Ingredients](../../requirements/recipes-meals.md#fr-25)
+
+### TS-33: Step Reordering :material-check-circle: {: #ts-33 }
+- :material-arrow-right-circle: **Given**: A recipe with 3 preparation steps in order [A, B, C].
+- :material-play-circle: **When**: The user drags step C to position 1.
+- :material-check-all: **Then**: The system SHALL update sort_order values so the order becomes [C, A, B] in a single transaction.
+
+!!! info "Validates"
+    - [FR-27: Preparation Steps](../../requirements/recipes-meals.md#fr-27)
+
+### TS-34: On-the-Fly Nutrition Calculation :material-check-circle: {: #ts-34 }
+- :material-arrow-right-circle: **Given**: A recipe with 2 ingredients: "Rice" (200g, nutrition entries: [calories: 130 kcal, protein: 2.7 g]) and "Chicken" (300g, nutrition entries: [calories: 165 kcal, protein: 31 g]).
+- :material-play-circle: **When**: The user views the recipe detail.
+- :material-check-all: **Then**: The system SHALL display aggregated totals grouped by nutrient key: [calories: 295 kcal, protein: 14.7 g], computed on-the-fly.
+
+!!! info "Validates"
+    - [FR-26: Nutrition Data](../../requirements/recipes-meals.md#fr-26)
+
+### TS-35: Nutrition Calculation with Missing Data :material-alert-circle: {: #ts-35 }
+- :material-arrow-right-circle: **Given**: A recipe with 2 ingredients, one with nutrition entries and one without.
+- :material-play-circle: **When**: The user views the recipe detail.
+- :material-check-all: **Then**: The system SHALL calculate totals from the ingredient with entries and indicate which ingredient is missing nutrition data.
+
+!!! info "Validates"
+    - [FR-26: Nutrition Data](../../requirements/recipes-meals.md#fr-26)
+
+### TS-36: Rating Average with Individual Votes :material-check-circle: {: #ts-36 }
+- :material-arrow-right-circle: **Given**: User A rates a recipe 4 stars, User B rates it 5 stars.
+- :material-play-circle: **When**: Any user views the recipe.
+- :material-check-all: **Then**: The system SHALL display an average of 4.5 and, when expanded, show User A (4 stars) and User B (5 stars) with timestamps.
+
+!!! info "Validates"
+    - [FR-29: Recipe Ratings](../../requirements/recipes-meals.md#fr-29)
+
+### TS-37: Rating Uniqueness :material-alert-circle: {: #ts-37 }
+- :material-arrow-right-circle: **Given**: User A has already rated a recipe 3 stars.
+- :material-play-circle: **When**: User A submits a new rating of 5 stars.
+- :material-check-all: **Then**: The system SHALL update the existing rating to 5 (not create a duplicate).
+
+!!! info "Validates"
+    - [FR-29: Recipe Ratings](../../requirements/recipes-meals.md#fr-29)
+
+### TS-38: Recipe Comment Notification :material-check-circle: {: #ts-38 }
+- :material-arrow-right-circle: **Given**: User A created a recipe.
+- :material-play-circle: **When**: User B adds a comment to the recipe.
+- :material-check-all: **Then**: The system SHALL create a `NEW_RECIPE_COMMENT` notification for User A.
+
+!!! info "Validates"
+    - [FR-28: Recipe Comments](../../requirements/recipes-meals.md#fr-28)
+
+### TS-39: Recipe Deletion RESTRICT :material-alert-circle: {: #ts-39 }
+- :material-arrow-right-circle: **Given**: A recipe referenced in an active meal plan.
+- :material-play-circle: **When**: A user attempts to delete the recipe.
+- :material-check-all: **Then**: The system SHALL return a validation error and prevent deletion.
+
+!!! info "Validates"
+    - [FR-23: Recipe Management](../../requirements/recipes-meals.md#fr-23)
+
+## Meals Module Scenarios
+
+### TS-40: Meal Time Configuration :material-check-circle: {: #ts-40 }
+- :material-arrow-right-circle: **Given**: An authenticated user.
+- :material-play-circle: **When**: The user creates "Lunch" with time 12:00 on weekdays and 13:00 on weekends.
+- :material-check-all: **Then**: The system SHALL persist the meal time with 7 schedule entries.
+
+!!! info "Validates"
+    - [FR-30: Meal Time Configuration](../../requirements/recipes-meals.md#fr-30)
+
+### TS-41: Meal Plan Creation (Week Boundary) :material-check-circle: {: #ts-41 }
+- :material-arrow-right-circle: **Given**: An authenticated user.
+- :material-play-circle: **When**: The user creates a meal plan for the week of Monday April 13, 2026.
+- :material-check-all: **Then**: The system SHALL create a plan with `week_start_date = 2026-04-13`.
+
+!!! info "Validates"
+    - [FR-31: Weekly Meal Plan](../../requirements/recipes-meals.md#fr-31)
+
+### TS-42: Duplicate Week Plan :material-alert-circle: {: #ts-42 }
+- :material-arrow-right-circle: **Given**: A meal plan already exists for week of April 13, 2026.
+- :material-play-circle: **When**: A user attempts to create another plan for the same week.
+- :material-check-all: **Then**: The system SHALL return a validation error due to the unique constraint on `week_start_date`.
+
+!!! info "Validates"
+    - [FR-31: Weekly Meal Plan](../../requirements/recipes-meals.md#fr-31)
+
+### TS-43: Multi-Recipe Meal Assignment :material-check-circle: {: #ts-43 }
+- :material-arrow-right-circle: **Given**: A meal plan with a Monday dinner entry.
+- :material-play-circle: **When**: The user assigns "Grilled Chicken" and "Caesar Salad" to the entry for the entire household.
+- :material-check-all: **Then**: The system SHALL create two `meal_plan_entry_recipes` records with null `user_id`.
+
+!!! info "Validates"
+    - [FR-31: Weekly Meal Plan](../../requirements/recipes-meals.md#fr-31)
+
+### TS-44: Per-Member Assignment :material-check-circle: {: #ts-44 }
+- :material-arrow-right-circle: **Given**: A meal plan with a Monday breakfast entry.
+- :material-play-circle: **When**: The user assigns "Scrambled Eggs" to Jorge and "Toast" to Fernanda.
+- :material-check-all: **Then**: The system SHALL create separate `meal_plan_entry_recipes` records with the respective `user_id` values.
+
+!!! info "Validates"
+    - [FR-31: Weekly Meal Plan](../../requirements/recipes-meals.md#fr-31)
+
+### TS-45: Meal Plan Publish & Notify :material-check-circle: {: #ts-45 }
+- :material-arrow-right-circle: **Given**: A DRAFT meal plan with entries.
+- :material-play-circle: **When**: The creator clicks "Notify Household".
+- :material-check-all: **Then**: The system SHALL set status to `PUBLISHED` and create `MEAL_PLAN_PUBLISHED` notifications for all household members.
+
+!!! info "Validates"
+    - [FR-32: Meal Plan Approval Workflow](../../requirements/recipes-meals.md#fr-32)
+
+### TS-46: Member Accepts Meal :material-check-circle: {: #ts-46 }
+- :material-arrow-right-circle: **Given**: A published meal plan with a PENDING entry for User B.
+- :material-play-circle: **When**: User B accepts the entry.
+- :material-check-all: **Then**: The system SHALL set User B's status to `ACCEPTED`.
+
+!!! info "Validates"
+    - [FR-32: Meal Plan Approval Workflow](../../requirements/recipes-meals.md#fr-32)
+
+### TS-47: Member Suggests Change (Auto-Replace) :material-check-circle: {: #ts-47 }
+- :material-arrow-right-circle: **Given**: A published meal plan with "Toast" assigned to Fernanda for Monday breakfast.
+- :material-play-circle: **When**: Fernanda suggests "Pancakes" instead.
+- :material-check-all: **Then**: The system SHALL replace Fernanda's assignment with "Pancakes", set her status to `CHANGED`, and create a `MEAL_SUGGESTION_MADE` notification for the plan creator.
+
+!!! info "Validates"
+    - [FR-32: Meal Plan Approval Workflow](../../requirements/recipes-meals.md#fr-32)
+
+### TS-48: Thumbs Up/Down on Meal :material-check-circle: {: #ts-48 }
+- :material-arrow-right-circle: **Given**: A meal entry marked as "done".
+- :material-play-circle: **When**: User A gives a thumbs-up.
+- :material-check-all: **Then**: The system SHALL set `vote = true` on User A's `meal_plan_entry_members` record.
+
+!!! info "Validates"
+    - [FR-37: Meal Thumbs Up/Down](../../requirements/recipes-meals.md#fr-37)
+
+### TS-49: Meal Reminder Generation :material-check-circle: {: #ts-49 }
+- :material-arrow-right-circle: **Given**: A meal entry for Monday lunch at 12:00 with `reminder_offset_minutes = 60`.
+- :material-play-circle: **When**: The reminder check task runs at 11:00.
+- :material-check-all: **Then**: The system SHALL create `MEAL_REMINDER` notifications for all assigned members.
+
+!!! info "Validates"
+    - [FR-33: Meal Preparation Reminders](../../requirements/recipes-meals.md#fr-33)
+
+### TS-50: Meal Plan Retention :material-check-circle: {: #ts-50 }
+- :material-arrow-right-circle: **Given**: A meal plan with `week_start_date` 11 weeks ago.
+- :material-play-circle: **When**: The daily retention task executes at 03:00 AM.
+- :material-check-all: **Then**: The system SHALL permanently delete the plan and all associated entries, recipes, and member records.
+
+!!! info "Validates"
+    - [FR-34: Meal Plan Data Retention](../../requirements/recipes-meals.md#fr-34)
+
+### TS-51: Shopping List Export Preview :material-check-circle: {: #ts-51 }
+- :material-arrow-right-circle: **Given**: A meal plan with recipes requiring "Eggs" (6 UNIT) and "Milk" (1 L). An existing shopping list already has "Eggs" (3 UNIT).
+- :material-play-circle: **When**: The user requests an export preview targeting the existing list.
+- :material-check-all: **Then**: The system SHALL return: existing items = [Eggs: 3→9 UNIT], new items = [Milk: 1 L].
+
+!!! info "Validates"
+    - [FR-36: Shopping List Integration](../../requirements/recipes-meals.md#fr-36)
+
+### TS-52: Shopping List Export Confirm :material-check-circle: {: #ts-52 }
+- :material-arrow-right-circle: **Given**: A confirmed export preview.
+- :material-play-circle: **When**: The user confirms the export.
+- :material-check-all: **Then**: The system SHALL increase "Eggs" quantity to 9 and add "Milk" (1 L) with no store assigned.
+
+!!! info "Validates"
+    - [FR-36: Shopping List Integration](../../requirements/recipes-meals.md#fr-36)
+
+### TS-53: Mark Meal as Done :material-check-circle: {: #ts-53 }
+- :material-arrow-right-circle: **Given**: A meal plan entry that is not done.
+- :material-play-circle: **When**: A user marks it as done.
+- :material-check-all: **Then**: The system SHALL set `is_done = true`.
+
+!!! info "Validates"
+    - [FR-31: Weekly Meal Plan](../../requirements/recipes-meals.md#fr-31)
+
+## Notifications & Messaging Scenarios
+
+### TS-54: Notification Delivery & Unread Count :material-check-circle: {: #ts-54 }
+- :material-arrow-right-circle: **Given**: User A has 3 unread notifications.
+- :material-play-circle: **When**: User A queries the unread count endpoint.
+- :material-check-all: **Then**: The system SHALL return `{ count: 3 }`.
+
+!!! info "Validates"
+    - [FR-38: In-App Notifications](../../requirements/notifications.md#fr-38)
+
+### TS-55: Mark Notification as Read :material-check-circle: {: #ts-55 }
+- :material-arrow-right-circle: **Given**: An unread notification for User A.
+- :material-play-circle: **When**: User A marks it as read.
+- :material-check-all: **Then**: The system SHALL set `read = true` and the unread count SHALL decrease by 1.
+
+!!! info "Validates"
+    - [FR-38: In-App Notifications](../../requirements/notifications.md#fr-38)
+
+### TS-56: Send and Receive Message :material-check-circle: {: #ts-56 }
+- :material-arrow-right-circle: **Given**: User A and User B in the same household.
+- :material-play-circle: **When**: User A sends a message to User B.
+- :material-check-all: **Then**: The system SHALL persist the message, create a `NEW_MESSAGE` notification for User B, and the message SHALL appear in both users' conversation view.
+
+!!! info "Validates"
+    - [FR-39: User Messaging](../../requirements/notifications.md#fr-39)
+
+### TS-57: Message Read Status :material-check-circle: {: #ts-57 }
+- :material-arrow-right-circle: **Given**: User B has an unread message from User A.
+- :material-play-circle: **When**: User B opens the conversation with User A.
+- :material-check-all: **Then**: The system SHALL mark the message as read.
+
+!!! info "Validates"
+    - [FR-39: User Messaging](../../requirements/notifications.md#fr-39)
+
 ## Summary & Environment
 
 - **Testcontainers:** Used for PostgreSQL 17 integration.

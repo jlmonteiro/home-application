@@ -57,8 +57,8 @@ graph TD
     Router["<b>React Router</b><br/>Routes & Outlets"]
     Layout["<b>Layout.tsx</b><br/>Main Shell"]
     Sidebar["<b>Sidebar.tsx</b><br/>Nav (FR-14)"]
-    Header["<b>Header.tsx</b><br/>Profile (FR-3)"]
-    Page["<b>Feature Page</b><br/>(Lists, Stores, etc.)"]
+    Header["<b>Header.tsx</b><br/>Profile (FR-3) + NotificationBell (FR-38)"]
+    Page["<b>Feature Page</b><br/>(Lists, Stores, Recipes, Meals, etc.)"]
     Shared["<b>Common/</b><br/>Reusable UI"]
 
     Root --> App
@@ -79,13 +79,28 @@ src/
 ├── components/          # Reusable components
 │   ├── Layout.tsx       # Main layout wrapper
 │   ├── Sidebar.tsx      # Navigation (FR-14)
-│   └── shopping/        # Domain-specific UI
+│   ├── shopping/        # Shopping domain UI
+│   ├── recipes/         # Recipe domain UI (photos, steps, ingredients)
+│   ├── meals/           # Meal planning UI (planner grid, entry cards)
+│   └── notifications/   # Notification bell, notification list
 ├── context/             # React Context (Auth)
-├── hooks/               # Custom hooks (useStore, useList)
+├── hooks/               # Custom hooks (useStore, useList, useRecipes, useMealPlan)
 ├── pages/               # Route-level components
+│   ├── dashboard/       # Dashboard with widgets
+│   ├── shopping/        # Shopping pages
+│   ├── recipes/         # RecipesListPage, RecipeDetailPage, RecipeFormPage
+│   ├── meals/           # MealTimesConfigPage, MealPlannerPage, MealsThisWeekPage
+│   ├── notifications/   # NotificationsPage
+│   ├── settings/        # Settings pages
+│   ├── user/            # Profile pages
+│   └── auth/            # Login page
 ├── services/
 │   └── api.ts           # Fetch client with CSRF support
 ├── types/               # TypeScript interfaces
+│   ├── shopping.ts
+│   ├── recipes.ts       # Recipe, Ingredient, Step, Comment, Rating, Label, NutritionData
+│   ├── meals.ts         # MealTime, MealPlan, MealPlanEntry, MealPlanResponse
+│   └── notifications.ts # Notification, Message, Conversation
 └── utils/               # Formatting & calculations
 ```
 
@@ -234,6 +249,43 @@ const isUrgent = (dueDate: string): boolean => {
 - **Bundler:** Vite 6 for rapid HMR (Hot Module Replacement).
 - **Gradle Integration:** The frontend build is wrapped in a Gradle task (`:home-app-frontend:build`) to ensure it runs during CI.
 - **Linting:** Strict ESLint configuration using `eslint-plugin-react-refresh`.
+
+---
+
+## Recipes & Meals UI
+
+### Recipe Step Drag-and-Drop
+
+!!! note "[:material-format-list-numbered: FR-27: Preparation Steps](../../requirements/recipes-meals.md#fr-27)"
+
+    Recipe steps support drag-and-drop reordering via `@dnd-kit/core`. When a user drops a step in a new position, the UI sends a reorder request with the new step ID sequence.
+
+### Markdown Editing
+
+Recipe descriptions and step instructions support **markdown** content. The existing `MarkdownContent.tsx` component handles rendering. For editing, a textarea with markdown preview toggle is used.
+
+### Notification Bell
+
+!!! note "[:material-bell: FR-38: In-App Notifications](../../requirements/notifications.md#fr-38)"
+
+    The `Header.tsx` component includes a `NotificationBell` that displays an unread count badge. Clicking opens a dropdown with recent notifications. The count is polled via TanStack Query.
+
+### Meals This Week Dashboard Widget
+
+!!! note "[:material-view-week: FR-35: Meals This Week](../../requirements/recipes-meals.md#fr-35)"
+
+    The Dashboard includes a "Meals This Week" card showing today's planned meals with recipe names and assigned members. A "View Full Week" link navigates to the dedicated `MealsThisWeekPage`.
+
+### Navigation
+
+The sidebar adds a **Recipes & Meals** parent menu with sub-items:
+
+- :material-chef-hat: Recipes
+- :material-clock-edit: Meal Times
+- :material-calendar-week: Meal Planner
+- :material-view-week: Meals This Week
+
+Notifications are accessed via the **bell icon** in the header, not the sidebar.
 
 ---
 

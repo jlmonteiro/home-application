@@ -909,6 +909,952 @@ paths:
                 type: number
                 format: decimal
 
+  # ==================== NUTRITION DATA ====================
+  /shopping/items/{id}/nutrition:
+    get:
+      summary: Get nutrition entries for a shopping item
+      tags: [Nutrition]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NutritionEntryDTO'
+    put:
+      summary: Replace all nutrition entries for a shopping item
+      tags: [Nutrition]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/NutritionEntryDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NutritionEntryDTO'
+
+  # ==================== RECIPES ====================
+  /recipes:
+    get:
+      summary: List all recipes (paginated)
+      tags: [Recipes]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/PagedRecipeResource'
+    post:
+      summary: Create a new recipe
+      tags: [Recipes]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeDTO'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/RecipeResource'
+
+  /recipes/{id}:
+    get:
+      summary: Get recipe by ID (includes computed nutrition totals and average rating)
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/RecipeDetailResource'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/RecipeResource'
+    delete:
+      summary: Delete a recipe (RESTRICT if referenced in meal plans)
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Recipe deleted successfully
+        '409':
+          description: Recipe is referenced by meal plans and cannot be deleted
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+
+  /recipes/{id}/photos:
+    post:
+      summary: Upload a photo to a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipePhotoDTO'
+      responses:
+        '201':
+          description: Photo uploaded
+
+  /recipes/{id}/photos/{photoId}:
+    delete:
+      summary: Delete a recipe photo
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: photoId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Photo deleted
+
+  /recipes/{id}/photos/{photoId}/default:
+    put:
+      summary: Set a photo as the default for the recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: photoId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Default photo updated
+
+  /recipes/{id}/ingredients:
+    get:
+      summary: List ingredients for a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipeIngredientDTO'
+    post:
+      summary: Add an ingredient to a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeIngredientDTO'
+      responses:
+        '201':
+          description: Ingredient added
+
+  /recipes/{id}/ingredients/{ingredientId}:
+    delete:
+      summary: Remove an ingredient from a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: ingredientId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Ingredient removed
+
+  /recipes/{id}/steps:
+    get:
+      summary: List preparation steps for a recipe (ordered by sort_order)
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipeStepDTO'
+    post:
+      summary: Add a preparation step to a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeStepDTO'
+      responses:
+        '201':
+          description: Step added
+
+  /recipes/{id}/steps/{stepId}:
+    put:
+      summary: Update a preparation step
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: stepId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeStepDTO'
+      responses:
+        '200':
+          description: Step updated
+    delete:
+      summary: Delete a preparation step
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: stepId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Step deleted
+
+  /recipes/{id}/steps/reorder:
+    put:
+      summary: Reorder preparation steps
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: Array of step IDs in the desired order
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: integer
+                format: int64
+      responses:
+        '200':
+          description: Steps reordered
+
+  /recipes/{id}/comments:
+    get:
+      summary: List comments for a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecipeCommentDTO'
+    post:
+      summary: Add a comment to a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeCommentDTO'
+      responses:
+        '201':
+          description: Comment added
+
+  /recipes/{id}/ratings:
+    post:
+      summary: Add or update the current user's rating for a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecipeRatingDTO'
+      responses:
+        '200':
+          description: Rating saved
+
+  /labels:
+    get:
+      summary: Search labels for autocomplete
+      tags: [Recipes]
+      parameters:
+        - name: q
+          in: query
+          required: false
+          description: Search query for label name
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LabelDTO'
+
+  # ==================== MEAL TIMES ====================
+  /meals/times:
+    get:
+      summary: List all meal times with schedules
+      tags: [Meals]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MealTimeDTO'
+    post:
+      summary: Create a meal time
+      tags: [Meals]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MealTimeDTO'
+      responses:
+        '201':
+          description: Meal time created
+
+  /meals/times/{id}:
+    put:
+      summary: Update a meal time and its schedules
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MealTimeDTO'
+      responses:
+        '200':
+          description: Meal time updated
+    delete:
+      summary: Delete a meal time
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Meal time deleted
+
+  # ==================== MEAL PLANS ====================
+  /meals/plans:
+    get:
+      summary: List meal plans (paginated)
+      tags: [Meals]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/PagedMealPlanResource'
+    post:
+      summary: Create a meal plan for a week
+      tags: [Meals]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MealPlanDTO'
+      responses:
+        '201':
+          description: Meal plan created
+
+  /meals/plans/{id}:
+    get:
+      summary: Get meal plan with all entries, recipes, and member statuses
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/MealPlanDetailResource'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update a meal plan
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MealPlanDTO'
+      responses:
+        '200':
+          description: Meal plan updated
+    delete:
+      summary: Delete a meal plan
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Meal plan deleted
+
+  /meals/plans/{id}/entries:
+    get:
+      summary: List entries for a meal plan
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MealPlanEntryDTO'
+    post:
+      summary: Add an entry to a meal plan
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MealPlanEntryDTO'
+      responses:
+        '201':
+          description: Entry added
+
+  /meals/plans/{id}/entries/{entryId}:
+    put:
+      summary: Update a meal plan entry
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MealPlanEntryDTO'
+      responses:
+        '200':
+          description: Entry updated
+    delete:
+      summary: Delete a meal plan entry
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Entry deleted
+
+  /meals/plans/{id}/notify:
+    post:
+      summary: Publish meal plan and notify household members
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Meal plan published and notifications sent
+
+  /meals/plans/{id}/entries/{entryId}/done:
+    patch:
+      summary: Mark a meal entry as done
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Entry marked as done
+
+  /meals/plans/{id}/entries/{entryId}/members/{userId}/respond:
+    post:
+      summary: Accept or suggest a change for a meal entry
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MealPlanResponseDTO'
+      responses:
+        '200':
+          description: Response recorded
+
+  /meals/plans/{id}/entries/{entryId}/members/{userId}/vote:
+    patch:
+      summary: Thumbs up or down on a served meal
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vote:
+                  type: boolean
+                  description: "true = thumbs up, false = thumbs down"
+      responses:
+        '200':
+          description: Vote recorded
+
+  /meals/this-week:
+    get:
+      summary: Get the current week's meal plan with all entries
+      tags: [Meals]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/MealPlanDetailResource'
+        '404':
+          description: No meal plan exists for the current week
+
+  # ==================== SHOPPING LIST INTEGRATION ====================
+  /meals/plans/{id}/export-to-list/preview:
+    post:
+      summary: Preview the merge of meal ingredients into a shopping list
+      tags: [Meals - Shopping Integration]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                listId:
+                  type: integer
+                  format: int64
+                  description: "Target list ID (null to create a new list)"
+      responses:
+        '200':
+          description: Merge preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MealExportPreviewDTO'
+
+  /meals/plans/{id}/export-to-list:
+    post:
+      summary: Export meal ingredients to a shopping list (after confirmation)
+      tags: [Meals - Shopping Integration]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                listId:
+                  type: integer
+                  format: int64
+                  description: "Target list ID (null to create a new list)"
+                confirmed:
+                  type: boolean
+                  description: "Must be true to proceed"
+      responses:
+        '200':
+          description: Items exported to shopping list
+
+  # ==================== NOTIFICATIONS ====================
+  /notifications:
+    get:
+      summary: List notifications for the current user (paginated)
+      tags: [Notifications]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificationDTO'
+
+  /notifications/unread-count:
+    get:
+      summary: Get unread notification count
+      tags: [Notifications]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    example: 5
+
+  /notifications/{id}/read:
+    patch:
+      summary: Mark a notification as read
+      tags: [Notifications]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Notification marked as read
+
+  # ==================== MESSAGES ====================
+  /messages:
+    get:
+      summary: List conversations for the current user
+      tags: [Notifications]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ConversationDTO'
+    post:
+      summary: Send a message to a household member
+      tags: [Notifications]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageDTO'
+      responses:
+        '201':
+          description: Message sent
+
+  /messages/{userId}:
+    get:
+      summary: Get conversation with a specific user
+      tags: [Notifications]
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MessageDTO'
+
 # ==================== COMPONENTS ====================
 components:
   securitySchemes:
@@ -1705,6 +2651,435 @@ components:
         _links:
           self:
             href: "http://localhost:8080/api/shopping/lists/items/1"
+
+    # Nutrition Data
+    NutritionEntryDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        itemId:
+          type: integer
+          format: int64
+        nutrientKey:
+          type: string
+          example: "protein"
+        value:
+          type: number
+          format: decimal
+          example: 23.4
+        unit:
+          type: string
+          example: "g"
+
+    # Recipes
+    RecipeDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+          maxLength: 200
+        description:
+          type: string
+          description: "Markdown content"
+        servings:
+          type: integer
+        sourceLink:
+          type: string
+        videoLink:
+          type: string
+        prepTimeMinutes:
+          type: integer
+        labels:
+          type: array
+          items:
+            type: string
+        defaultPhotoId:
+          type: integer
+          format: int64
+
+    RecipeResource:
+      allOf:
+        - $ref: '#/components/schemas/RecipeDTO'
+        - type: object
+          properties:
+            averageRating:
+              type: number
+              format: decimal
+            ratingCount:
+              type: integer
+            defaultPhotoUrl:
+              type: string
+            createdBy:
+              type: string
+
+    RecipeDetailResource:
+      allOf:
+        - $ref: '#/components/schemas/RecipeResource'
+        - type: object
+          properties:
+            photos:
+              type: array
+              items:
+                $ref: '#/components/schemas/RecipePhotoDTO'
+            ingredients:
+              type: array
+              items:
+                $ref: '#/components/schemas/RecipeIngredientDTO'
+            steps:
+              type: array
+              items:
+                $ref: '#/components/schemas/RecipeStepDTO'
+            nutritionTotals:
+              type: array
+              description: "Aggregated nutrition totals (key-value-unit) computed on-the-fly"
+              items:
+                $ref: '#/components/schemas/NutritionEntryDTO'
+            ratings:
+              type: array
+              items:
+                $ref: '#/components/schemas/RecipeRatingDTO'
+
+    PagedRecipeResource:
+      type: object
+      properties:
+        _embedded:
+          type: object
+          properties:
+            recipeList:
+              type: array
+              items:
+                $ref: '#/components/schemas/RecipeResource'
+        page:
+          type: object
+
+    RecipePhotoDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        photo:
+          type: string
+          description: "Base64-encoded photo"
+        sortOrder:
+          type: integer
+
+    RecipeIngredientDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        itemId:
+          type: integer
+          format: int64
+        itemName:
+          type: string
+        quantity:
+          type: number
+          format: decimal
+        unit:
+          type: string
+          enum: [KG, G, L, ML, PACK, UNIT]
+
+    RecipeStepDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        instruction:
+          type: string
+          description: "Markdown content"
+        timeMinutes:
+          type: integer
+        sortOrder:
+          type: integer
+
+    RecipeCommentDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        content:
+          type: string
+        authorName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    RecipeRatingDTO:
+      type: object
+      properties:
+        score:
+          type: integer
+          minimum: 1
+          maximum: 5
+        userName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    LabelDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+
+    # Meals
+    MealTimeDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        schedules:
+          type: array
+          items:
+            type: object
+            properties:
+              dayOfWeek:
+                type: integer
+                minimum: 1
+                maximum: 7
+                description: "ISO 8601: 1=Monday, 7=Sunday"
+              timeOfDay:
+                type: string
+                format: time
+                example: "12:00"
+
+    MealPlanDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        weekStartDate:
+          type: string
+          format: date
+          description: "Monday of the week (ISO 8601)"
+        status:
+          type: string
+          enum: [DRAFT, PUBLISHED]
+
+    MealPlanDetailResource:
+      allOf:
+        - $ref: '#/components/schemas/MealPlanDTO'
+        - type: object
+          properties:
+            createdBy:
+              type: string
+            entries:
+              type: array
+              items:
+                $ref: '#/components/schemas/MealPlanEntryDTO'
+
+    PagedMealPlanResource:
+      type: object
+      properties:
+        _embedded:
+          type: object
+          properties:
+            mealPlanList:
+              type: array
+              items:
+                $ref: '#/components/schemas/MealPlanDTO'
+        page:
+          type: object
+
+    MealPlanEntryDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        mealTimeId:
+          type: integer
+          format: int64
+        mealTimeName:
+          type: string
+        dayOfWeek:
+          type: integer
+          minimum: 1
+          maximum: 7
+        isDone:
+          type: boolean
+        reminderOffsetMinutes:
+          type: integer
+          nullable: true
+        recipes:
+          type: array
+          items:
+            type: object
+            properties:
+              recipeId:
+                type: integer
+                format: int64
+              recipeName:
+                type: string
+              userId:
+                type: integer
+                format: int64
+                nullable: true
+                description: "null = for everyone"
+        members:
+          type: array
+          items:
+            type: object
+            properties:
+              userId:
+                type: integer
+                format: int64
+              userName:
+                type: string
+              status:
+                type: string
+                enum: [PENDING, ACCEPTED, CHANGED]
+              vote:
+                type: boolean
+                nullable: true
+
+    MealPlanResponseDTO:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ACCEPTED, CHANGED]
+        recipeIds:
+          type: array
+          items:
+            type: integer
+            format: int64
+          description: "Required when status is CHANGED"
+
+    MealExportPreviewDTO:
+      type: object
+      properties:
+        newItems:
+          type: array
+          items:
+            type: object
+            properties:
+              itemId:
+                type: integer
+                format: int64
+              itemName:
+                type: string
+              quantity:
+                type: number
+                format: decimal
+              unit:
+                type: string
+        existingItems:
+          type: array
+          items:
+            type: object
+            properties:
+              itemId:
+                type: integer
+                format: int64
+              itemName:
+                type: string
+              currentQuantity:
+                type: number
+                format: decimal
+              addedQuantity:
+                type: number
+                format: decimal
+              unit:
+                type: string
+
+    # Notifications
+    NotificationDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        type:
+          type: string
+          enum: [MEAL_PLAN_PUBLISHED, MEAL_REMINDER, MEAL_SUGGESTION_MADE, NEW_RECIPE_COMMENT, NEW_MESSAGE]
+        title:
+          type: string
+        message:
+          type: string
+        referenceId:
+          type: integer
+          format: int64
+        referenceType:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    MessageDTO:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        senderId:
+          type: integer
+          format: int64
+        senderName:
+          type: string
+        recipientId:
+          type: integer
+          format: int64
+        recipientName:
+          type: string
+        content:
+          type: string
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+
+    ConversationDTO:
+      type: object
+      properties:
+        userId:
+          type: integer
+          format: int64
+        userName:
+          type: string
+        lastMessage:
+          type: string
+        lastMessageAt:
+          type: string
+          format: date-time
+        unreadCount:
+          type: integer
+
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        status:
+          type: integer
+        detail:
+          type: string
+        instance:
+          type: string
 
   # Error Responses
   responses:

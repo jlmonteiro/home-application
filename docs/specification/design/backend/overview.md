@@ -52,6 +52,8 @@ com.jorgemonteiro.home_app/
 └── config/                 # Security & Beans
 ```
 
+Schemas: `profiles`, `shopping`, `recipes`, `meals`, `notifications`.
+
 ---
 
 ## Security Architecture
@@ -88,7 +90,7 @@ graph TD
 
 Spring Boot provides built-in scheduling support via `@Scheduled`.
 
-### Data Retention
+### Data Retention (Shopping)
 
 !!! note "[:octicons-clock-24: FR-11: Automatic Data Retention](../../requirements/shopping-list.md#fr-11)"
 
@@ -102,6 +104,40 @@ Runs daily at **02:00 AM**.
 public void purgeOldLists() {
     LocalDateTime threshold = LocalDateTime.now().minusMonths(3);
     shoppingListRepository.deleteByCompletedAtBefore(threshold);
+}
+```
+
+### Data Retention (Meals)
+
+!!! note "[:octicons-clock-24: FR-34: Meal Plan Data Retention](../../requirements/recipes-meals.md#fr-34)"
+
+    System MUST permanently delete meal plans older than 10 weeks, including all associated entries, recipes, and member records.
+
+Runs daily at **03:00 AM**.
+
+```java
+@Scheduled(cron = "0 0 3 * * ?")
+@Transactional
+public void purgeOldMealPlans() {
+    LocalDate threshold = LocalDate.now().minusWeeks(10);
+    mealPlanRepository.deleteByWeekStartDateBefore(threshold);
+}
+```
+
+### Meal Reminder Check
+
+!!! note "[:material-bell-ring: FR-33: Meal Preparation Reminders](../../requirements/recipes-meals.md#fr-33)"
+
+    System checks for upcoming meals with configured reminders and creates `MEAL_REMINDER` notifications.
+
+Runs every **15 minutes**. Queries `meal_plan_entries` with `reminder_offset_minutes` set, creates notifications for meals where `(meal_time - reminder_offset)` falls within the next 15-minute window.
+
+```java
+@Scheduled(cron = "0 */15 * * * ?")
+@Transactional
+public void checkMealReminders() {
+    // Query entries with reminders due in the next 15 minutes
+    // Create MEAL_REMINDER notifications for assigned members
 }
 ```
 
@@ -125,6 +161,12 @@ Runs daily at **00:01 AM** or upon user login.
 - `users(email)`: Unique lookup for auth.
 - `shopping_list_items(item_id, store_id, created_at DESC)`: Rapid price suggestions.
 - `shopping_coupons(used, due_date)`: Efficient dashboard widgets.
+- `recipe_ratings(recipe_id)`: Fast average rating calculation.
+- `recipe_ingredients(recipe_id)`: Efficient ingredient listing.
+- `recipe_steps(recipe_id, sort_order)`: Ordered step retrieval.
+- `meal_plans(week_start_date)`: Quick week lookup.
+- `meal_plan_entries(meal_plan_id)`: Efficient plan loading.
+- `notifications(user_id, read, created_at DESC)`: Fast unread notification queries.
 
 ---
 

@@ -32,6 +32,7 @@ These modules are currently defined and follow the sequential rollout plan:
 | **01**    | [**User Profile Updates**](01-update-user-profile.tasks.md) | :material-check-circle: Completed |
 | **02**    | [**Shopping List Module**](02-shopping-list.tasks.md)       | :material-check-circle: Completed |
 | **03**    | [**Family Hierarchy**](03-family-hierarchy.tasks.md)        | :material-check-circle: Completed |
+| **04**    | [**Recipes & Meals**](04-recipes-meals.tasks.md)            | :material-clock-outline: Planned   |
 
 ---
 
@@ -53,9 +54,6 @@ These are candidate features that have been identified for future implementation
 
 !!! info "Travel Management"
     A coordination hub for family trips, including itinerary planning, document storage (passports, tickets), and shared packing lists.
-
-!!! info "Meal Planner"
-    A weekly meal scheduling system with recipe management and direct integration into the shopping list module.
 
 !!! info "Licenses & Warranty Database"
     A secure vault for tracking software licenses, appliance warranties, and subscription renewal dates.

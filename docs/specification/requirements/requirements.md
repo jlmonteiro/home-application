@@ -71,6 +71,9 @@ The Home Application project utilizes the **EARS (Easy Approach to Requirements 
 | [**UJ-3**](shopping-list.md#uj-3) | :material-cart-arrow-right: Collaborative Shopping | Multiple users updating a shared list in real-time. |
 | [**UJ-4**](shopping-list.md#uj-4) | :material-barcode-scan: Checkout Optimization | Using digital cards and coupons at the store. |
 | [**UJ-5**](settings.md#uj-5) | :material-account-group-outline: Family Setup | Configuring age ranges and household roles. |
+| [**UJ-6**](recipes-meals.md#uj-6) | :material-chef-hat: Recipe Creation | Creating a recipe with photos, ingredients, and steps. |
+| [**UJ-7**](recipes-meals.md#uj-7) | :material-calendar-week: Weekly Meal Planning | Planning meals for the week and notifying the household. |
+| [**UJ-8**](recipes-meals.md#uj-8) | :material-cart-arrow-down: Meal-to-Shopping-List | Exporting meal ingredients to a shopping list. |
 
 ---
 
@@ -117,20 +120,82 @@ The Home Application project utilizes the **EARS (Easy Approach to Requirements 
 
 ---
 
-## 6. Glossary
+## 6. Recipes & Meals Module
 
-| Term | Definition |
-| :--- | :--- |
-| **HATEOAS** | Hypermedia as the Engine of Application State. |
-| **RFC 7807** | Standard for Problem Details for HTTP APIs. |
-| **Global Last Price** | The most recent price recorded for an item across all stores. |
+| ID | Requirement | Description |
+| :--- | :--- | :--- |
+| [**FR-23**](recipes-meals.md#fr-23) | :material-chef-hat: Recipe Management | CRUD for recipes with markdown, labels, and metadata. |
+| [**FR-24**](recipes-meals.md#fr-24) | :material-image-multiple: Recipe Photos | Multi-photo upload with default photo selection. |
+| [**FR-25**](recipes-meals.md#fr-25) | :material-food-apple: Recipe Ingredients | Link shopping items as ingredients with quantities. |
+| [**FR-26**](recipes-meals.md#fr-26) | :material-nutrition: Nutrition Data | Per-item nutrition with on-the-fly recipe totals. |
+| [**FR-27**](recipes-meals.md#fr-27) | :material-format-list-numbered: Preparation Steps | Ordered steps with drag-and-drop reordering. |
+| [**FR-28**](recipes-meals.md#fr-28) | :material-comment-text: Recipe Comments | Household members can comment on recipes. |
+| [**FR-29**](recipes-meals.md#fr-29) | :material-star: Recipe Ratings | 1-5 star ratings with average and individual votes. |
+| [**FR-30**](recipes-meals.md#fr-30) | :material-clock-edit: Meal Time Configuration | Configurable meal times with per-day schedules. |
+| [**FR-31**](recipes-meals.md#fr-31) | :material-calendar-week: Weekly Meal Plan | Monday–Sunday planner with multi-recipe meals. |
+| [**FR-32**](recipes-meals.md#fr-32) | :material-check-decagram: Meal Plan Approval | Notify, accept, or suggest changes workflow. |
+| [**FR-33**](recipes-meals.md#fr-33) | :material-bell-ring: Meal Reminders | Per-assignment preparation reminders. |
+| [**FR-34**](recipes-meals.md#fr-34) | :material-delete-sweep: Meal Plan Retention | Auto-purge plans older than 10 weeks. |
+| [**FR-35**](recipes-meals.md#fr-35) | :material-view-week: Meals This Week | Dashboard widget and dedicated weekly view. |
+| [**FR-36**](recipes-meals.md#fr-36) | :material-cart-arrow-down: Shopping List Integration | Export meal ingredients to shopping lists. |
+| [**FR-37**](recipes-meals.md#fr-37) | :material-thumb-up: Meal Thumbs Up/Down | Quick feedback on served meals. |
 
 ---
 
-## 7. Architectural Decision Records (ADRs)
+## 7. Notifications & Messaging
 
-!!! abstract "ADR-1: HATEOAS for REST API" {: #adr-1 }
+| ID | Requirement | Description |
+| :--- | :--- | :--- |
+| [**FR-38**](notifications.md#fr-38) | :material-bell: In-App Notifications | Notification bell with typed events and unread count. |
+| [**FR-39**](notifications.md#fr-39) | :material-message-text: User Messaging | Direct messaging between household members. |
+
+---
+
+## 8. Glossary
+
+| Term                  | Definition                                                                                                                         |
+|:----------------------|:-----------------------------------------------------------------------------------------------------------------------------------|
+| **HATEOAS**           | Hypermedia as the Engine of Application State.                                                                                     |
+| **RFC 7807**          | Standard for Problem Details for HTTP APIs.                                                                                        |
+| **Global Last Price** | The most recent price recorded for an item across all stores.                                                                      |
+| **Meal Plan**         | A weekly schedule (Monday–Sunday) assigning recipes to meal times and household members.                                           |
+| **Nutrition Data**    | Flexible key-value-unit nutrition entries (e.g., `protein: 23.4 g`) associated with a shopping item. Supports any nutrient type.   |
+| **Recipe Label**      | A dynamic tag attached to recipes for categorization (e.g., "Vegetarian", "Quick"). Created on demand, auto-deleted when orphaned. |
+| **Meal Time**         | A named eating occasion (e.g., Breakfast, Lunch, Dinner) with configurable times per day of the week.                              |
+
+---
+
+## 9. Architectural Decision Records (ADRs)
+
+<span id="adr-1"></span>
+!!! abstract "ADR-1: HATEOAS for REST API"
+
     **Status:** Accepted. Uses Spring HATEOAS to ensure discoverability and decouple the client from hardcoded URI patterns.
 
-!!! abstract "ADR-2: Monorepo with Gradle" {: #adr-2 }
-    **Status:** Accepted. Uses a single repository to manage backend, frontend, and documentation for atomic releases and shared tooling.
+<span id="adr-2"></span>
+!!! abstract "ADR-2: Monorepo with Gradle"
+
+    **Status:** Accepted. 
+
+    Uses a single repository to manage backend, frontend, and documentation for atomic releases and shared tooling.
+
+<span id="adr-3"></span>
+!!! abstract "ADR-3: Multi-Recipe Meals"
+
+    **Status:** Accepted. 
+
+    A meal plan entry can combine multiple recipes (e.g., a protein recipe plus a salad recipe) to form a complete meal. This provides flexibility without requiring a separate "meal" abstraction layer.
+
+<span id="adr-4"></span>
+!!! abstract "ADR-4: Dynamic Labels with Auto-Cleanup"
+
+    **Status:** Accepted. 
+
+    Recipe labels are created on demand when a user types a new one, with autocomplete from existing labels. When a label is removed from a recipe and no other recipe references it, the label is automatically deleted. No predefined seed data.
+
+<span id="adr-5"></span>
+!!! abstract "ADR-5: On-the-Fly Nutrition Calculation"
+
+    **Status:** Accepted. 
+
+    Recipe nutrition totals are computed at query time by summing each ingredient's nutrition data multiplied by its quantity. This avoids denormalized storage and ensures totals are always accurate when nutrition data on items changes.

@@ -55,6 +55,7 @@ nav:
   - User Guide:
       - help/getting-started.md
       - help/shopping.md
+      - help/recipes-meals.md
       - help/profile.md
   - Development and Design Guidelines:
       - Overview: development/index.md
@@ -91,6 +92,8 @@ nav:
           - Authentication / Profile: specification/requirements/auth-profile.md
           - Settings: specification/requirements/settings.md
           - Shopping List: specification/requirements/shopping-list.md
+          - Recipes & Meals: specification/requirements/recipes-meals.md
+          - Notifications: specification/requirements/notifications.md
           - Documentation: specification/requirements/documentation.md
           - Common: specification/requirements/shared.md
 
@@ -99,6 +102,7 @@ nav:
           - "User Profile": specification/roadmap/01-update-user-profile.tasks.md
           - "Shopping List": specification/roadmap/02-shopping-list.tasks.md
           - "Family Hierarchy": specification/roadmap/03-family-hierarchy.tasks.md
+          - "Recipes & Meals": specification/roadmap/04-recipes-meals.tasks.md
 
 extra:
   social:

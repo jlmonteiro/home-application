@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-The Home Application is a household management platform with a **Spring Boot backend** and **React frontend**. It provides modular features for family members to collaborate on shared resources.
+The Home Application is a household management platform with a **Spring Boot backend** and **React frontend**. It provides modular features for family members to collaborate on shared resources including shopping, recipes, meal planning, and notifications.
 
 ### Core Principles
 
@@ -155,14 +155,20 @@ graph TD
 
 ### Database Schema
 
-The database uses **PostgreSQL 17+** with two logical schemas: `profiles` for user and authentication data, and `shopping` 
-for shopping-related data. 
+The database uses **PostgreSQL 17+** with five logical schemas: `profiles` for user and authentication data, `shopping` 
+for shopping-related data, `recipes` for the family cookbook and nutrition, `meals` for weekly meal planning, and `notifications` for in-app notifications and messaging.
 
 This separation provides clear domain boundaries and simplifies access control. 
 
 The `profiles` schema manages user accounts, extended profile data, family roles, and age group configurations. 
 
 The `shopping` schema handles shopping lists, items, categories, stores, loyalty cards, and coupons. 
+
+The `recipes` schema manages recipes, photos, dynamic labels, ingredients (linked to shopping items), preparation steps, comments, ratings, and per-item nutrition data.
+
+The `meals` schema handles meal time configuration with per-day schedules, weekly meal plans (Monday–Sunday), multi-recipe meal entries, member assignments, approval workflows, and thumbs up/down feedback.
+
+The `notifications` schema manages typed in-app notifications with polymorphic references and direct user-to-user messaging.
 
 All tables include audit columns (`created_at`, `updated_at`, `version`) for optimistic locking and data tracking.
 
@@ -185,6 +191,30 @@ graph TD
         shopping_coupons["shopping_coupons\nCoupons"]
     end
 
+    subgraph recipes
+        recipes_table["recipes\nCookbook"]
+        recipe_photos["recipe_photos\nPhotos"]
+        labels["labels\nDynamic tags"]
+        recipe_ingredients["recipe_ingredients\nIngredients"]
+        recipe_steps["recipe_steps\nSteps"]
+        recipe_comments["recipe_comments\nComments"]
+        recipe_ratings["recipe_ratings\nRatings"]
+        nutrition_entries["nutrition_entries\nNutrition"]
+    end
+
+    subgraph meals
+        meal_times["meal_times\nMeal occasions"]
+        meal_plans["meal_plans\nWeekly plans"]
+        meal_plan_entries["meal_plan_entries\nMeal slots"]
+        meal_plan_entry_recipes["meal_plan_entry_recipes\nAssigned recipes"]
+        meal_plan_entry_members["meal_plan_entry_members\nMember responses"]
+    end
+
+    subgraph notifications
+        notifications_table["notifications\nEvents"]
+        messages["messages\nDirect messages"]
+    end
+
     users --> user_profiles
     user_profiles --> family_roles
     user_profiles --> age_group_config
@@ -192,9 +222,21 @@ graph TD
     shopping_categories --> shopping_items
     shopping_stores --> shopping_loyalty_cards
     shopping_stores --> shopping_coupons
-    shopping_lists --> shopping_list_items
     shopping_items --> shopping_list_items
     shopping_stores --> shopping_list_items
+    recipes_table --> recipe_photos
+    recipes_table --> recipe_ingredients
+    recipes_table --> recipe_steps
+    recipes_table --> recipe_comments
+    recipes_table --> recipe_ratings
+    shopping_items --> recipe_ingredients
+    shopping_items --> nutrition_entries
+    meal_plans --> meal_plan_entries
+    meal_plan_entries --> meal_plan_entry_recipes
+    meal_plan_entries --> meal_plan_entry_members
+    recipes_table --> meal_plan_entry_recipes
+    users --> notifications_table
+    users --> messages
 ```
 
 [:material-arrow-right: Database Design](database/overview.md)
@@ -244,6 +286,9 @@ graph TD
 | Monorepo with Gradle               | Accepted | Shared tooling, atomic changes               |
 | PostgreSQL with schemas            | Accepted | Clear data separation                        |
 | Physical deletion (no soft delete) | Accepted | Simpler queries, [:octicons-clock-24: FR-11](../requirements/shopping-list.md#fr-11) retention policy      |
+| Multi-recipe meals                 | Accepted | A meal entry can combine multiple recipes (e.g., protein + salad) |
+| Dynamic labels with auto-cleanup   | Accepted | Labels created on demand, deleted when orphaned. No predefined set |
+| On-the-fly nutrition calculation   | Accepted | Recipe nutrition totals computed at query time, not stored. Always accurate |
 
 
 ## 5. Performance & Caching
@@ -256,8 +301,10 @@ graph TD
 
 - **Target:** 95% of requests < 150ms
 - **Indexes:** Optimized for price suggestions and coupon queries
-- **Retention Task:** Daily at 02:00 AM ([:octicons-clock-24: FR-11](../requirements/shopping-list.md#fr-11))
+- **Retention Task (Shopping):** Daily at 02:00 AM ([:octicons-clock-24: FR-11](../requirements/shopping-list.md#fr-11))
+- **Retention Task (Meals):** Daily at 03:00 AM ([:octicons-clock-24: FR-34](../requirements/recipes-meals.md#fr-34))
 - **Age Recalculation:** Daily at 00:01 AM ([:octicons-person-24: FR-16](../requirements/auth-profile.md#fr-16))
+- **Meal Reminder Check:** Every 15 minutes ([:material-bell-ring: FR-33](../requirements/recipes-meals.md#fr-33))
 
 ### Frontend
 

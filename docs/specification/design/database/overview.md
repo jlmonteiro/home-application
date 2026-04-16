@@ -2,13 +2,13 @@
 
 ## Overview
 
-The Home Application uses **PostgreSQL 17** as its primary data store. The database is organized into two distinct logical schemas to separate authentication and user concerns from application-specific shopping data.
+The Home Application uses **PostgreSQL 17** as its primary data store. The database is organized into five distinct logical schemas to separate domain concerns.
 
 <div class="grid cards" markdown>
 
 -   :material-database-lock: **Multi-Schema Design**
     
-    Uses `profiles` and `shopping` schemas to enforce domain boundaries and simplify access control.
+    Uses `profiles`, `shopping`, `recipes`, `meals`, and `notifications` schemas to enforce domain boundaries and simplify access control.
 
 -   :material-history: **Audit Tracking**
     
@@ -44,6 +44,38 @@ Contains all data related to the collaborative shopping experience.
 | **Stores** | Favorite shopping locations with associated metadata. |
 | **Loyalty & Coupons** | Digital representation of cards and expiration tracking. |
 
+### 3. Recipes Schema
+Manages the family cookbook and nutritional information.
+
+| Entity | Description |
+|--------|-------------|
+| **Recipes** | Core recipe records with markdown descriptions and metadata. |
+| **Photos** | Multiple Base64-encoded photos per recipe with default selection. |
+| **Labels** | Dynamic tags created on demand, auto-deleted when orphaned. |
+| **Ingredients** | Links to shopping items with quantity and unit. |
+| **Steps** | Ordered preparation instructions with optional time. |
+| **Comments & Ratings** | Collaborative feedback: comments and 1-5 star ratings. |
+| **Nutrition Data** | Per-item nutrition (1:1 with shopping items). |
+
+### 4. Meals Schema
+Handles weekly meal planning and the approval workflow.
+
+| Entity | Description |
+|--------|-------------|
+| **Meal Times** | Named meal occasions with per-day-of-week schedules. |
+| **Meal Plans** | Weekly plans (Monday–Sunday) with DRAFT/PUBLISHED status. |
+| **Entries** | Individual meal slots with done flag and reminder offset. |
+| **Entry Recipes** | Recipe assignments per entry, optionally per member. |
+| **Entry Members** | Member response tracking (PENDING/ACCEPTED/CHANGED) and thumbs up/down. |
+
+### 5. Notifications Schema
+Manages in-app notifications and direct messaging.
+
+| Entity | Description |
+|--------|-------------|
+| **Notifications** | Typed events with polymorphic reference to source entities. |
+| **Messages** | Direct messages between household members with read tracking. |
+
 ---
 
 ## Data Governance
@@ -53,6 +85,16 @@ Contains all data related to the collaborative shopping experience.
 !!! note "[:octicons-clock-24: FR-11: Automatic Data Retention](../../requirements/shopping-list.md#fr-11)"
 
     To maintain system performance and declutter the UI, the system automatically purges completed shopping lists and associated items older than 3 months.
+
+!!! note "[:octicons-clock-24: FR-34: Meal Plan Data Retention](../../requirements/recipes-meals.md#fr-34)"
+
+    Meal plans with a `week_start_date` older than 10 weeks are permanently deleted by a daily scheduled task at 03:00 AM, including all associated entries, recipes, and member records.
+
+### Label Auto-Cleanup
+
+!!! note "[:material-label: FR-23: Dynamic Labels](../../requirements/recipes-meals.md#fr-23)"
+
+    Labels are managed at the application level, not by a scheduled task. When a label is removed from a recipe and no other recipe references it, the service layer deletes the orphaned label immediately.
 
 ### Integrity & Security
 
