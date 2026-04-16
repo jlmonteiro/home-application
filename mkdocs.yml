@@ -61,6 +61,9 @@ nav:
       - Guidelines:
           - Java Guidelines: development/java-guidelines.md
           - Spock Tests: development/spock-tests-guidelines.md
+          - Frontend Guidelines: development/frontend-guidelines.md
+          - Frontend Tests: development/frontend-tests-guidelines.md
+          - Database Guidelines: development/database-guidelines.md
           - Documentation Guidelines: development/documentation/documentation-guidelines.md
       - SDD Methodology: development/documentation/sdd.md
 

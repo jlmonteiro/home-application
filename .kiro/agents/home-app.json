@@ -6,7 +6,54 @@
   "tools": ["fs_read", "fs_write", "execute_bash", "grep", "glob", "code", "use_aws"],
   "resources": [
     "file://docs/project-context.md",
-    "skill://.ai/skills/**/SKILL.md"
+    "skill://.ai/skills/**/SKILL.md",
+    {
+      "type": "knowledgeBase",
+      "source": "file://docs/development",
+      "name": "Backend-Java-Spring-Guidelines",
+      "description": "Java coding standards, Spring Boot 4.0 patterns, JPA entities, HATEOAS controllers, service layer conventions, error handling, and Spock test guidelines. Use when users ask about Java code, Spring Boot, backend architecture, or writing Spock tests.",
+      "indexType": "best",
+      "include": [
+        "java-guidelines.md",
+        "spock-tests-guidelines.md"
+      ],
+      "autoUpdate": true
+    },
+    {
+      "type": "knowledgeBase",
+      "source": "file://docs/development",
+      "name": "Frontend-React-Guidelines",
+      "description": "React 19 component architecture, Mantine UI patterns, TanStack Query conventions, TypeScript types, and frontend test guidelines with Vitest, Testing Library, MSW, and Playwright. Use when users ask about React components, frontend code, or writing frontend tests.",
+      "indexType": "best",
+      "include": [
+        "frontend-guidelines.md",
+        "frontend-tests-guidelines.md"
+      ],
+      "autoUpdate": true
+    },
+    {
+      "type": "knowledgeBase",
+      "source": "file://docs/development",
+      "name": "Database-PostgreSQL-Liquibase",
+      "description": "PostgreSQL schema design, Liquibase migration conventions, naming standards, indexing strategy, foreign key patterns, and data type rules. Use when users ask about database changes, migrations, SQL, or schema design.",
+      "indexType": "best",
+      "include": [
+        "database-guidelines.md"
+      ],
+      "autoUpdate": true
+    },
+    {
+      "type": "knowledgeBase",
+      "source": "file://docs/development/documentation",
+      "name": "Documentation-and-SDD",
+      "description": "MkDocs Material documentation standards, visual patterns, admonitions, and the Spec-Driven Development (SDD) methodology including EARS syntax and persistent anchors. Use when users ask about writing docs, updating MkDocs pages, or requirements syntax.",
+      "indexType": "best",
+      "include": [
+        "documentation-guidelines.md",
+        "sdd.md"
+      ],
+      "autoUpdate": true
+    }
   ],
   "mcpServers": {}
 }

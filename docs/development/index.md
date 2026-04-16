@@ -20,6 +20,10 @@ By formalizing these patterns, we enable a highly autonomous development workflo
     
     Guidelines for writing expressive BDD tests using Groovy, Testcontainers, and Mocking strategies.
 
+-   :simple-vitest: **[Frontend Tests](frontend-tests-guidelines.md)**
+    
+    Vitest unit tests with Testing Library and MSW, Playwright E2E with Page Object Model.
+
 -   :material-book-open-page-variant: **[Documentation Guidelines](documentation/documentation-guidelines.md)**
     
     Standards for MkDocs, visual patterns, and cross-linking rules.
@@ -28,13 +32,13 @@ By formalizing these patterns, we enable a highly autonomous development workflo
     
     The Spec-Driven Development way of working, EARS syntax, and persistent anchors.
 
--   :material-sync: **[Frontend Patterns](#)** (TBD)
+-   :fontawesome-brands-react: **[Frontend Guidelines](frontend-guidelines.md)**
     
-    React 19 conventions, Mantine UI usage, and TanStack Query state management.
+    React 19 conventions, Mantine UI usage, TanStack Query, and component architecture.
 
--   :material-database-sync: **[Database Migrations](#)** (TBD)
+-   :material-database-sync: **[Database Guidelines](database-guidelines.md)**
     
-    Liquibase best practices, naming conventions for SQL changesets, and schema design rules.
+    PostgreSQL schemas, Liquibase migrations, naming conventions, and data integrity patterns.
 
 </div>
 
