@@ -1,57 +1,93 @@
 # Home Application
 
+Welcome to the **Home Application**, a centralized platform designed to empower families with collaborative household management tools. Built with a focus on privacy, real-time synchronization, and professional engineering standards.
+
 <div class="grid cards" markdown>
 
--   :material-shopping: **Shopping Lists**
+-   :material-shopping: **Collaborative Shopping**
     
-    Create and manage shared shopping lists with your family
+    Shared lists, intelligent price suggestions, and digital loyalty asset management.
 
 -   :material-account-group: **Family Hierarchy**
     
-    Age-based classification and role management
+    Role-based permissions and automated age-group classification for household members.
 
--   :material-account: **User Profiles**
+-   :material-shield-lock: **Google-Powered Security**
     
-    Update and manage your profile information
+    Secure authentication via Google OAuth2 with a strict Zero-Trust API architecture.
 
--   :material-store: **Store Management**
+-   :material-responsive: **Modern SPA**
     
-    Track loyalty cards and coupons
+    A blazing-fast, mobile-first React experience optimized for in-store usage.
 
 </div>
 
-## Quick Start
+---
 
-!!! tip "Prerequisites"
-    - Java 25+
-    - Node.js 20+
-    - PostgreSQL 16+
+## Technical Ecosystem
 
-### Backend
+The project is architected as a **Gradle-managed monorepo**, ensuring atomic changes and high maintainability.
 
-```bash
-./gradlew :home-app-backend:bootRun
-```
+=== ":material-server: Backend"
 
-### Frontend
+    | Component | Technology |
+    | :--- | :--- |
+    | **Framework** | :simple-spring: Spring Boot 4.0 |
+    | **Language** | :fontawesome-brands-java: Java 25 |
+    | **Database** | :simple-postgresql: PostgreSQL 17 |
+    | **API Pattern** | :material-link-variant: REST + HATEOAS (HAL) |
+    | **Migrations** | :material-database-sync: Liquibase |
 
-```bash
-cd home-app-frontend
-npm install
-npm run dev
-```
+=== ":material-responsive: Frontend"
 
-## Tech Stack
+    | Component | Technology |
+    | :--- | :--- |
+    | **Library** | :fontawesome-brands-react: React 19 |
+    | **UI System** | :material-palette: Mantine 7 |
+    | **State** | :material-sync: TanStack Query v5 |
+    | **Build** | :simple-vite: Vite 6 |
+    | **Types** | :simple-typescript: TypeScript 5 |
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React 19 + Vite + Mantine 7 |
-| Backend | Spring Boot 4 + Java 25 |
-| Database | PostgreSQL 16+ |
-| Auth | Google OAuth2 |
+=== ":material-test-tube: Verification"
 
-## Documentation
+    | Layer | Framework |
+    | :--- | :--- |
+    | **Integration** | :material-test-tube: Spock (Groovy) |
+    | **Containers** | :simple-docker: Testcontainers |
+    | **E2E** | :material-play-circle: Playwright |
+    | **Mocks** | :material-network-outline: MSW / WireMock |
 
-- [User Guide](help/getting-started.md)
-- [API Documentation](specification/design/backend/api/index.md)
-- [Requirements](specification/requirements/requirements.md)
+---
+
+## Project Documentation
+
+Explore the comprehensive documentation to understand the "Why", "How", and "What" of the application.
+
+<div class="grid cards" markdown>
+
+-   :material-book-open-page-variant: **[User Guide](help/getting-started.md)**
+    
+    Environment setup, feature tutorials, and troubleshooting for users and developers.
+
+-   :material-file-document-edit: **[Requirements](specification/requirements/requirements.md)**
+    
+    The definitive source of truth using **EARS** syntax and traceable User Journeys.
+
+-   :material-pencil-ruler: **[Technical Design](specification/design/design.md)**
+    
+    Detailed architecture, ER diagrams, and frontend component patterns.
+
+-   :material-api: **[API Reference](specification/design/backend/api/index.md)**
+    
+    Complete REST contract with interactive testing via **ReDoc** integration.
+
+</div>
+
+---
+
+## Engineering Methodology
+
+!!! abstract "Spec-Driven Development (SDD)"
+    This project strictly follows the **SDD** philosophy. We formalize requirements and architectural design *before* implementation, ensuring every feature is transactional, verifiable, and directly linked to a business need.
+
+    [:material-arrow-right: Learn more about our SDD Workflow](specification/index.md)

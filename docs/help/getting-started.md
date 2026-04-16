@@ -1,58 +1,59 @@
 # Getting Started
 
-Welcome to the Home Application! This guide will help you set up your development environment.
+Welcome to the **Home Application**! This guide will walk you through setting up your development environment and running the application for the first time.
 
 ## Prerequisites
+
+Ensuring you have the correct versions of these tools is critical for a smooth setup.
 
 <div class="grid cards" markdown>
 
 -   :fontawesome-brands-java: **Java 25**
     
-    Required for Spring Boot 4.0
+    Required for the Spring Boot 4.0 backend.
 
--   :fontawesome-brands-node: **Node.js 22**
+-   :fontawesome-brands-node: **Node.js 22+**
     
-    Required for frontend build
+    Required for the React frontend and Vite build system.
 
--   :material-docker: **Docker**
+-   :material-docker: **Docker & Compose**
     
-    For PostgreSQL and docs build
+    Used for the PostgreSQL database and documentation build.
 
--   :material-database: **PostgreSQL 16+**
+-   :fontawesome-brands-google: **Google Cloud Console**
     
-    Can run via Docker Compose
-
--   :fontawesome-brands-google: **Google OAuth2**
-    
-    For authentication testing
+    Required to generate OAuth2 credentials for authentication.
 
 </div>
 
+---
+
 ## Quick Start
 
-### 1. Clone the Repository
-
+### 1. Clone & Enter
 ```bash
 git clone https://github.com/jlmonteiro/home-application.git
 cd home-application
 ```
 
-### 2. Start PostgreSQL
-
+### 2. Infrastructure
+Start the PostgreSQL database container:
 ```bash
 docker compose up -d postgres
 ```
 
-### 3. Configure Environment
+### 3. Environment Setup
+Create a `.env` file in the root directory. You MUST provide valid Google OAuth2 credentials to enable login.
 
-Create `.env` file in the project root:
+!!! warning "Security Notice"
+    Never commit your `.env` file to version control. It is already included in `.gitignore`.
 
 ```bash
-# Google OAuth2 credentials (required for login)
+# Google OAuth2 credentials
 export GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
 export GOOGLE_CLIENT_SECRET="your-client-secret"
 
-# Database (default for local dev)
+# Database (default settings)
 export DATABASE_URL="jdbc:postgresql://localhost:5432/homeapp"
 export DATABASE_USERNAME="homeapp"
 export DATABASE_PASSWORD="homeapp"
@@ -61,175 +62,87 @@ export DATABASE_PASSWORD="homeapp"
 export FRONTEND_URL="http://localhost:5173"
 ```
 
-### 4. Run Backend
+---
 
-```bash
-./gradlew :home-app-backend:bootRun
-```
+## Running the App
 
-The API will be available at `http://localhost:8080`
+=== ":material-server: Backend"
 
-### 5. Run Frontend
+    1.  **Launch the API:**
+        ```bash
+        ./gradlew :home-app-backend:bootRun
+        ```
+    2.  **Verify:**
+        Access the HATEOAS root at `http://localhost:8080/api`
 
-```bash
-cd home-app-frontend
-npm install
-npm run dev
-```
+=== ":material-responsive: Frontend"
 
-The app will be available at `http://localhost:5173`
+    1.  **Install & Start:**
+        ```bash
+        cd home-app-frontend
+        npm install
+        npm run dev
+        ```
+    2.  **Verify:**
+        Open `http://localhost:5173` in your browser.
 
-### 6. Login
+---
 
-Open `http://localhost:5173` and sign in with your Google account.
+## Development Workflow
 
-## Development Commands
+### Useful Commands
 
-### Frontend
+=== ":material-test-tube: Testing"
 
-```bash
-cd home-app-frontend
+    | Module | Command | Purpose |
+    | :--- | :--- | :--- |
+    | **Backend** | `./gradlew :home-app-backend:test` | Run Spock integration tests. |
+    | **Frontend** | `npm run test:unit` | Run Vitest unit tests. |
+    | **Frontend** | `npm run test:e2e:mock` | Run Playwright with MSW mocks. |
 
-# Install dependencies
-npm install
+=== ":material-chart-bar: Coverage"
 
-# Run development server
-npm run dev
+    | Module | Command | Purpose |
+    | :--- | :--- | :--- |
+    | **Backend** | `./gradlew :home-app-backend:jacocoTestReport` | Generate JaCoCo reports. |
+    | **Frontend** | `npm run test:coverage` | Generate Vitest coverage. |
 
-# Run unit tests
-npm run test:unit
+=== ":material-book-open-page-variant: Documentation"
 
-# Run with coverage
-npm run test:coverage
+    | Task | Command |
+    | :--- | :--- |
+    | **Build Site** | `./scripts/generate-docs.sh` |
+    | **Clean Build** | `rm -rf build/site` |
 
-# Run E2E tests (with MSW mocks)
-npm run test:e2e:mock
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-### Backend
-
-```bash
-# Run tests
-./gradlew :home-app-backend:test
-
-# Run with coverage
-./gradlew :home-app-backend:jacocoTestReport
-
-# Build JAR
-./gradlew :home-app-backend:bootJar
-
-# Run application
-./gradlew :home-app-backend:bootRun
-```
-
-### Documentation
-
-```bash
-# Build docs (Docker-based)
-./scripts/generate-docs.sh
-
-# Output: build/site/
-# View: open build/site/index.html
-```
+---
 
 ## Project Structure
 
-```
-home-application/
-├── home-app-backend/           # Spring Boot 4.0 API
-│   ├── src/main/java/          # Java source
-│   ├── src/main/resources/     # Config & migrations
-│   └── src/test/groovy/        # Spock tests
-├── home-app-frontend/          # React 19 SPA
-│   ├── src/                    # Source code
-│   │   ├── components/         # Reusable UI components
-│   │   ├── pages/              # Route-level components
-│   │   ├── services/           # API client
-│   │   ├── types/              # TypeScript types
-│   │   └── test/               # Tests (unit + E2E)
-│   ├── e2e/                    # Playwright E2E tests
-│   └── build/                  # Build output & reports
-├── docs/                       # MkDocs documentation
-│   ├── user/                   # User guides
-│   ├── technical/              # Developer docs
-│   └── specification/          # Requirements & design
-├── scripts/
-│   └── generate-docs.sh        # Docs build script
-├── compose.yaml                # Docker Compose
-└── mkdocs.yml                  # MkDocs config
-```
+!!! tip "Organization"
+    The project is a Gradle-managed monorepo, keeping frontend, backend, and documentation in a single atomic structure.
 
-## Testing
+-   :material-folder-cog: `home-app-backend/`: Spring Boot 4.0 API (Java 25).
+-   :material-folder-layers: `home-app-frontend/`: React 19 SPA (Vite).
+-   :material-folder-text: `docs/`: Markdown documentation source.
+-   :material-file-code: `mkdocs.yml`: Documentation site configuration.
 
-### Unit Tests (Frontend)
-
-```bash
-cd home-app-frontend
-npm run test:unit
-```
-
-### E2E Tests
-
-```bash
-cd home-app-frontend
-npm run test:e2e:mock  # Uses MSW mocks, no backend needed
-```
-
-### Backend Tests
-
-```bash
-./gradlew :home-app-backend:test
-```
+---
 
 ## Troubleshooting
 
-### Port Already in Use
+??? bug "Port 8080 or 5173 is already in use"
+    Use `lsof -i :8080` to find the process ID, then `kill -9 <PID>` to free the port.
 
-```bash
-# Find process using port
-lsof -i :8080
-lsof -i :5173
+??? bug "Database connection refused"
+    Ensure the Docker container is running: `docker compose ps`. If it's down, try `docker compose up -d`.
 
-# Kill process
-kill <PID>
-```
+??? bug "Google Login returns 'Redirect URI Mismatch'"
+    Ensure your Google Cloud Console project has `http://localhost:8080/login/oauth2/code/google` added to the Authorized redirect URIs.
 
-### Database Connection Issues
-
-```bash
-# Check PostgreSQL status
-docker compose ps postgres
-
-# View logs
-docker compose logs postgres
-
-# Restart PostgreSQL
-docker compose restart postgres
-```
-
-### Clear Gradle Cache
-
-```bash
-./gradlew clean
-rm -rf ~/.gradle/caches
-```
-
-### Clear Node Modules
-
-```bash
-cd home-app-frontend
-rm -rf node_modules package-lock.json
-npm install
-```
+---
 
 ## Next Steps
 
-- Read the [Architecture Overview](../specification/design/design.md)
-- Explore the [API Reference](../specification/design/backend/api/index.md)
-- Review the [Testing Strategy](../specification/design/test-strategy/architecture.md)
+-   [:material-sitemap: **Architecture Overview**](../specification/design/design.md)
+-   [:material-api: **API Design**](../specification/design/backend/api/index.md)
+-   [:material-test-tube: **Test Strategy**](../specification/design/test-strategy/architecture.md)

@@ -1,46 +1,18 @@
 # Spec-Driven Development (SDD)
 
-## The SDD Philosophy
+## Overview
 
-**Spec-Driven Development (SDD)** is a documentation-first methodology where requirements, architectural design, and implementation plans are formalized in structured markdown *before* any code is written.
+The Home Application ecosystem is built using the **Spec-Driven Development (SDD)** methodology. This documentation-first approach ensures that all features are thoroughly reasoned, formally defined, and verifiable before a single line of code is produced.
 
-<div class="grid cards" markdown>
+For a detailed breakdown of our **SDD Philosophy, Workflow, and Syntax Standards (EARS)**, please refer to the technical guidelines:
 
--   :material-magnify: **Traceability**
-    
-    Every single line of code, test case, and UI component is directly traceable to a verified requirement.
-
--   :material-school: **Rapid Onboarding**
-    
-    New team members can gain a complete understanding of the system's "Why" and "How" by reading the specification first.
-
--   :material-shield-check: **Scope Control**
-    
-    Explicitly defined boundaries prevent scope creep and ensure that every feature adds measurable value.
-
--   :material-history: **Living Documentation**
-    
-    Specifications are first-class artifacts that evolve alongside the code, providing a permanent audit trail of decisions.
-
-</div>
+[:material-arrow-right: **SDD Methodology & Standards**](../development/documentation/sdd.md)
 
 ---
 
-## Workflow Comparison
+## Specification Structure
 
-| Aspect | :material-file-document-edit: **SDD** | :material-lightning-bolt: **Vibe Coding** |
-| :--- | :--- | :--- |
-| **Start Point** | Requirements documentation | Raw idea or code |
-| **Artifacts** | Spec, Design, Tasks, Code | Code only |
-| **Review Process** | Logic & Impact validation | Syntactic correctness |
-| **Scalability** | High (Teams/Complex systems) | Low (Solo/Small projects) |
-| **Maintenance** | Proactive (Source of Truth) | Reactive (Reverse engineering) |
-
----
-
-## Document Structure
-
-The specification is organized into a hierarchical structure to ensure clarity and ease of navigation.
+The project specification is organized into a hierarchical structure to ensure clarity and ease of navigation.
 
 <div class="grid cards" markdown>
 
@@ -65,6 +37,8 @@ The specification is organized into a hierarchical structure to ensure clarity a
 ---
 
 ## SDD Lifecycle
+
+The following phases define the transactional lifecycle of every feature in the system:
 
 1.  :material-numeric-1-circle: **Init:** Establish the structure and inspect the baseline.
 2.  :material-numeric-2-circle: **Requirements:** Define exactly *What* needs to be built.

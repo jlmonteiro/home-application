@@ -55,6 +55,14 @@ nav:
       - help/getting-started.md
       - help/shopping.md
       - help/profile.md
+  - Development and Design Guidelines:
+      - Overview: development/index.md
+      - Guidelines:
+          - Java Guidelines: development/java-guidelines.md
+          - Spock Tests: development/spock-tests-guidelines.md
+          - Documentation Guidelines: development/documentation/documentation-guidelines.md
+      - SDD Methodology: development/documentation/sdd.md
+
   - Specifications:
       - Overview: specification/index.md
       - Design:
