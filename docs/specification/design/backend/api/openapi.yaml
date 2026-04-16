@@ -1,0 +1,1829 @@
+openapi: 3.0.3
+info:
+  title: Home Application API
+  description: |
+    REST API for the Home Application - a household management platform.
+
+    ## Features
+    - User profile management with Google OAuth2
+    - Shopping lists with collaborative updates
+    - Store management with loyalty cards and coupons
+    - Family hierarchy and age-based access control
+
+    ## Authentication
+    All endpoints require a valid Google OAuth2 access token in the Authorization header:
+    ```
+    Authorization: Bearer {access_token}
+    ```
+
+    ## Pagination
+    List endpoints use Spring Data's `Pageable` with query parameters:
+    - `page` - Page number (0-indexed)
+    - `size` - Page size (default 20)
+    - `sort` - Sort field (e.g., `name,asc`)
+
+    ## Error Handling
+    All errors follow RFC 7807 Problem Detail format.
+  version: 1.0.0
+  contact:
+    name: Home App Team
+    url: https://github.com/jlmonteiro/home-application
+
+servers:
+  - url: http://localhost:8080/api
+    description: Local development server
+
+security:
+  - OAuth2: []
+
+paths:
+  # ==================== USER PROFILES ====================
+  /user/me:
+    get:
+      summary: Get current user's profile
+      tags: [User Profiles]
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResource'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update current user's profile
+      tags: [User Profiles]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequest'
+      responses:
+        '200':
+          description: Profile updated successfully
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResource'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /user:
+    get:
+      summary: List all user profiles (paginated)
+      tags: [User Profiles]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: List of user profiles
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/PagedUserProfileResource'
+
+  /user/{id}:
+    get:
+      summary: Get user profile by ID
+      tags: [User Profiles]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResource'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      summary: Update user profile by ID
+      tags: [User Profiles]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdateRequest'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/UserProfileResource'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # ==================== USER PREFERENCES ====================
+  /user/preferences:
+    get:
+      summary: Get user preferences
+      tags: [User Preferences]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferenceDTO'
+    put:
+      summary: Update user preferences
+      tags: [User Preferences]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPreferenceDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPreferenceDTO'
+
+  # ==================== SETTINGS (Adults Only) ====================
+  /settings/age-groups:
+    get:
+      summary: Get age group configuration
+      tags: [Settings]
+      security:
+        - OAuth2: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgeGroupConfigDTO'
+        '403':
+          description: Only adults can access settings
+    put:
+      summary: Update age groups and trigger recalculation
+      tags: [Settings]
+      security:
+        - OAuth2: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AgeGroupConfigDTO'
+      responses:
+        '204':
+          description: Age groups updated successfully
+        '403':
+          description: Only adults can access settings
+
+  /settings/roles:
+    get:
+      summary: Get all family roles
+      tags: [Settings]
+      security:
+        - OAuth2: []
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FamilyRoleDTO'
+        '403':
+          description: Only adults can access settings
+    post:
+      summary: Create a new family role
+      tags: [Settings]
+      security:
+        - OAuth2: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyRoleDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyRoleDTO'
+        '403':
+          description: Only adults can access settings
+
+  /settings/roles/{id}:
+    put:
+      summary: Update a family role
+      tags: [Settings]
+      security:
+        - OAuth2: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyRoleDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyRoleDTO'
+        '403':
+          description: Only adults can access settings
+    delete:
+      summary: Delete a family role
+      tags: [Settings]
+      security:
+        - OAuth2: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Role deleted successfully
+        '403':
+          description: Only adults can access settings
+
+  # ==================== SHOPPING CATEGORIES ====================
+  /shopping/categories:
+    get:
+      summary: List all categories (paginated)
+      tags: [Shopping - Catalog]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/PagedShoppingCategoryResource'
+    post:
+      summary: Create a new category
+      tags: [Shopping - Catalog]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingCategoryDTO'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCategoryResource'
+
+  /shopping/categories/{id}:
+    get:
+      summary: Get category by ID
+      tags: [Shopping - Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCategoryResource'
+    put:
+      summary: Update a category
+      tags: [Shopping - Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingCategoryDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingCategoryResource'
+    delete:
+      summary: Delete a category
+      tags: [Shopping - Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Category deleted successfully
+
+  /shopping/categories/{id}/items:
+    get:
+      summary: List items in a category
+      tags: [Shopping - Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/PagedShoppingItemResource'
+
+  # ==================== SHOPPING ITEMS ====================
+  /shopping/items:
+    get:
+      summary: List all items (paginated)
+      tags: [Shopping - Catalog]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/PagedShoppingItemResource'
+    post:
+      summary: Create a new item
+      tags: [Shopping - Catalog]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingItemDTO'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingItemResource'
+
+  /shopping/items/{id}:
+    get:
+      summary: Get item by ID
+      tags: [Shopping - Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingItemResource'
+    put:
+      summary: Update an item
+      tags: [Shopping - Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingItemDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingItemResource'
+    delete:
+      summary: Delete an item
+      tags: [Shopping - Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Item deleted successfully
+
+  /shopping/items/{id}/price-history:
+    get:
+      summary: Get price history for an item
+      tags: [Shopping - Catalog]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShoppingItemPriceHistoryDTO'
+
+  # ==================== SHOPPING STORES ====================
+  /shopping/stores:
+    get:
+      summary: List all stores (paginated)
+      tags: [Shopping - Stores]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/PagedShoppingStoreResource'
+    post:
+      summary: Create a new store
+      tags: [Shopping - Stores]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingStoreDTO'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingStoreResource'
+
+  /shopping/stores/{id}:
+    get:
+      summary: Get store by ID
+      tags: [Shopping - Stores]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingStoreResource'
+    put:
+      summary: Update a store
+      tags: [Shopping - Stores]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingStoreDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingStoreResource'
+    delete:
+      summary: Delete a store
+      tags: [Shopping - Stores]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Store deleted successfully
+
+  # ==================== LOYALTY CARDS ====================
+  /shopping/stores/{id}/loyalty-cards:
+    get:
+      summary: List loyalty cards for a store
+      tags: [Shopping - Stores]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoyaltyCardResource'
+    post:
+      summary: Create a loyalty card for a store
+      tags: [Shopping - Stores]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyCardDTO'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyCardResource'
+
+  /shopping/loyalty-cards/{id}:
+    delete:
+      summary: Delete a loyalty card
+      tags: [Shopping - Stores]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Loyalty card deleted successfully
+
+  # ==================== COUPONS ====================
+  /shopping/stores/{id}/coupons:
+    get:
+      summary: List coupons for a store (paginated)
+      tags: [Shopping - Stores]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/PagedCouponResource'
+    post:
+      summary: Create a coupon for a store
+      tags: [Shopping - Stores]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponDTO'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/CouponResource'
+
+  /shopping/coupons/expiring:
+    get:
+      summary: List expiring coupons (due within 4 days)
+      tags: [Shopping - Stores]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CouponResource'
+
+  /shopping/coupons/{id}:
+    put:
+      summary: Update a coupon
+      tags: [Shopping - Stores]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/CouponResource'
+    delete:
+      summary: Delete a coupon
+      tags: [Shopping - Stores]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Coupon deleted successfully
+
+  # ==================== SHOPPING LISTS ====================
+  /shopping/lists:
+    get:
+      summary: List all shopping lists for current user
+      tags: [Shopping - Lists]
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShoppingListResource'
+    post:
+      summary: Create a new shopping list
+      tags: [Shopping - Lists]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingListDTO'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingListResource'
+
+  /shopping/lists/{id}:
+    get:
+      summary: Get shopping list by ID
+      tags: [Shopping - Lists]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingListResource'
+    put:
+      summary: Update a shopping list
+      tags: [Shopping - Lists]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingListDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingListResource'
+    delete:
+      summary: Delete a shopping list
+      tags: [Shopping - Lists]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: List deleted successfully
+
+  /shopping/lists/{id}/items:
+    post:
+      summary: Add item to shopping list
+      tags: [Shopping - Lists]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingListItemDTO'
+      responses:
+        '201':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingListItemResource'
+
+  /shopping/lists/items/{itemId}:
+    patch:
+      summary: Update list item (e.g., mark as bought)
+      tags: [Shopping - Lists]
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShoppingListItemDTO'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/hal+json:
+              schema:
+                $ref: '#/components/schemas/ShoppingListItemResource'
+    delete:
+      summary: Remove item from list
+      tags: [Shopping - Lists]
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Item removed successfully
+
+  /shopping/lists/suggest-price:
+    get:
+      summary: Get suggested price for an item
+      tags: [Shopping - Lists]
+      parameters:
+        - name: itemId
+          in: query
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: storeId
+          in: query
+          required: false
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: number
+                format: decimal
+
+# ==================== COMPONENTS ====================
+components:
+  securitySchemes:
+    OAuth2:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://accounts.google.com/o/oauth2/v2/auth
+          scopes:
+            openid: OpenID Connect
+            email: Access to email address
+            profile: Access to basic profile info
+            https://www.googleapis.com/auth/user.birthday.read: Access to birthdate
+
+  schemas:
+    # User Profiles
+    UserProfileDTO:
+      type: object
+      properties:
+        id:
+          description: "Unique identifier for the user profile"
+          type: integer
+          format: int64
+          example: 1
+        email:
+          description: "User email address (Google account)"
+          type: string
+          maxLength: 100
+          example: "john.doe@gmail.com"
+        firstName:
+          description: "User first name from Google account"
+          type: string
+          maxLength: 50
+          example: "John"
+        lastName:
+          description: "User last name from Google account"
+          type: string
+          maxLength: 50
+          example: "Doe"
+        enabled:
+          description: "Whether the user account is active"
+          type: boolean
+          example: true
+        birthdate:
+          description: "User birthdate in ISO 8601 format"
+          type: string
+          format: date
+          example: "1990-05-15"
+        familyRoleId:
+          description: "ID of the assigned family role"
+          type: integer
+          format: int64
+          example: 1
+        familyRoleName:
+          description: "Display name of the assigned family role"
+          type: string
+          example: "Parent"
+        ageGroupName:
+          description: "Calculated age group (Adult, Teenager, or Child)"
+          type: string
+          enum: [Adult, Teenager, Child]
+          example: "Adult"
+        photo:
+          description: "Base64-encoded profile photo"
+          type: string
+          example: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+        facebook:
+          description: "Facebook profile URL"
+          type: string
+          pattern: '^$|^https?://(www\\.)?facebook\\.com/.+'
+          example: "https://facebook.com/johndoe"
+        mobilePhone:
+          description: "Mobile phone number"
+          type: string
+          pattern: '^$|^\\+?[0-9\\s\\-()]{7,20}$'
+          example: "+1 (555) 123-4567"
+        instagram:
+          description: "Instagram profile URL"
+          type: string
+          pattern: '^$|^https?://(www\\.)?instagram\\.com/.+'
+          example: "https://instagram.com/johndoe"
+        linkedin:
+          description: "LinkedIn profile URL"
+          type: string
+          pattern: '^$|^https?://(www\\.)?linkedin\\.com/.+'
+          example: "https://linkedin.com/in/johndoe"
+
+    UserProfileUpdateRequest:
+      type: object
+      properties:
+        birthdate:
+          description: "User birthdate in ISO 8601 format"
+          type: string
+          format: date
+          example: "1990-05-15"
+        familyRoleId:
+          description: "ID of the assigned family role"
+          type: integer
+          format: int64
+          example: 1
+        photo:
+          description: "Base64-encoded profile photo"
+          type: string
+          example: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+        facebook:
+          description: "Facebook profile URL"
+          type: string
+          example: "https://facebook.com/johndoe"
+        mobilePhone:
+          description: "Mobile phone number"
+          type: string
+          example: "+1 (555) 123-4567"
+        instagram:
+          description: "Instagram profile URL"
+          type: string
+          example: "https://instagram.com/johndoe"
+        linkedin:
+          description: "LinkedIn profile URL"
+          type: string
+          example: "https://linkedin.com/in/johndoe"
+      example:
+        birthdate: "1990-05-15"
+        familyRoleId: 1
+        mobilePhone: "+1 (555) 123-4567"
+        facebook: "https://facebook.com/johndoe"
+
+    UserProfileResource:
+      allOf:
+        - $ref: '#/components/schemas/UserProfileDTO'
+        - type: object
+          properties:
+            self:
+              type: object
+              properties:
+                href:
+                  type: string
+                  example: "http://localhost:8080/api/user/1"
+      example:
+        id: 1
+        email: "john.doe@gmail.com"
+        firstName: "John"
+        lastName: "Doe"
+        enabled: true
+        birthdate: "1990-05-15"
+        familyRoleId: 1
+        familyRoleName: "Parent"
+        ageGroupName: "Adult"
+        photo: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+        mobilePhone: "+1 (555) 123-4567"
+        facebook: "https://facebook.com/johndoe"
+        _links:
+          self:
+            href: "http://localhost:8080/api/user/1"
+
+    PagedUserProfileResource:
+      type: object
+      properties:
+        _embedded:
+          description: "Container for embedded resources"
+          type: object
+          properties:
+            userProfileList:
+              type: array
+              items:
+                $ref: '#/components/schemas/UserProfileResource'
+        page:
+          description: "Pagination metadata"
+          type: object
+          properties:
+            size:
+              type: integer
+              example: 20
+            number:
+              type: integer
+              example: 0
+            totalElements:
+              type: integer
+              format: int64
+              example: 45
+            totalPages:
+              type: integer
+              example: 3
+      example:
+        _embedded:
+          userProfileList:
+            - id: 1
+              email: "john.doe@gmail.com"
+              firstName: "John"
+              lastName: "Doe"
+              ageGroupName: "Adult"
+              _links:
+                self:
+                  href: "http://localhost:8080/api/user/1"
+            - id: 2
+              email: "jane.doe@gmail.com"
+              firstName: "Jane"
+              lastName: "Doe"
+              ageGroupName: "Adult"
+              _links:
+                self:
+                  href: "http://localhost:8080/api/user/2"
+        page:
+          size: 20
+          number: 0
+          totalElements: 45
+          totalPages: 3
+
+    # User Preferences
+    UserPreferenceDTO:
+      type: object
+      properties:
+        showShoppingWidget:
+          description: "Whether to show shopping widget on dashboard"
+          type: boolean
+          example: true
+        showCouponsWidget:
+          description: "Whether to show coupons widget on dashboard"
+          type: boolean
+          example: true
+        version:
+          description: "Optimistic locking version for concurrent updates"
+          type: integer
+          format: int64
+          example: 0
+      example:
+        showShoppingWidget: true
+        showCouponsWidget: true
+        version: 0
+
+    # Settings
+    AgeGroupConfigDTO:
+      type: object
+      properties:
+        id:
+          description: "Unique identifier for the user profile"
+          type: integer
+          format: int64
+          example: 1
+        name:
+          description: 'Name of the configuration (e.g., "Adult", "Parent")'
+          type: string
+          example: "Adult"
+        minAge:
+          description: "Minimum age for this age group"
+          type: integer
+          example: 18
+        maxAge:
+          description: "Maximum age for this age group"
+          type: integer
+          example: 99
+      example:
+        - id: 1
+          name: "Child"
+          minAge: 0
+          maxAge: 12
+        - id: 2
+          name: "Teenager"
+          minAge: 13
+          maxAge: 17
+        - id: 3
+          name: "Adult"
+          minAge: 18
+          maxAge: 99
+
+    FamilyRoleDTO:
+      type: object
+      properties:
+        id:
+          description: "Unique identifier for the user profile"
+          type: integer
+          format: int64
+          example: 1
+        name:
+          description: 'Name of the configuration (e.g., "Adult", "Parent")'
+          type: string
+          example: "Parent"
+        immutable:
+          description: "Whether this role can be deleted"
+          type: boolean
+          example: true
+      example:
+        id: 1
+        name: "Parent"
+        immutable: true
+
+    # Shopping - Catalog
+    ShoppingCategoryDTO:
+      type: object
+      properties:
+        id:
+          description: "Unique identifier for the user profile"
+          type: integer
+          format: int64
+          example: 1
+        name:
+          description: "Name of the category"
+          type: string
+          example: "Dairy"
+        icon:
+          description: "Icon identifier for visual representation"
+          type: string
+          example: "cheese"
+      example:
+        id: 1
+        name: "Dairy"
+        description: "Milk, cheese, yogurt, and other dairy products"
+        icon: "cheese"
+
+    ShoppingCategoryResource:
+      allOf:
+        - $ref: '#/components/schemas/ShoppingCategoryDTO'
+        - type: object
+          properties:
+            _links:
+              description: "HATEOAS links for navigation"
+      example:
+        id: 1
+        name: "Dairy"
+        description: "Milk, cheese, yogurt, and other dairy products"
+        icon: "cheese"
+        _links:
+          self:
+            href: "http://localhost:8080/api/shopping/categories/1"
+          items:
+            href: "http://localhost:8080/api/shopping/categories/1/items"
+
+    PagedShoppingCategoryResource:
+      type: object
+      example:
+        _embedded:
+          shoppingCategoryList:
+            - id: 1
+              name: "Dairy"
+              description: "Milk, cheese, yogurt"
+              icon: "cheese"
+              _links:
+                self:
+                  href: "http://localhost:8080/api/shopping/categories/1"
+            - id: 2
+              name: "Fruits"
+              description: "Fresh fruits"
+              icon: "apple"
+              _links:
+                self:
+                  href: "http://localhost:8080/api/shopping/categories/2"
+        page:
+          size: 20
+          number: 0
+          totalElements: 5
+          totalPages: 1
+
+    ShoppingItemDTO:
+      type: object
+      properties:
+        id:
+          description: "Unique identifier for the user profile"
+          type: integer
+          format: int64
+          example: 1
+        name:
+          description: 'Name of the configuration (e.g., "Adult", "Parent")'
+          type: string
+          example: "Whole Milk"
+        photo:
+          description: "Base64-encoded profile photo"
+          type: string
+          example: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+        categoryId:
+          description: "ID of the parent category"
+          type: integer
+          format: int64
+          example: 1
+      example:
+        id: 1
+        name: "Whole Milk"
+        photo: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+        categoryId: 1
+
+    ShoppingItemResource:
+      allOf:
+        - $ref: '#/components/schemas/ShoppingItemDTO'
+        - type: object
+          properties:
+            _links:
+              description: "HATEOAS links for navigation"
+      example:
+        id: 1
+        name: "Whole Milk"
+        photo: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+        categoryId: 1
+        _links:
+          self:
+            href: "http://localhost:8080/api/shopping/items/1"
+          category:
+            href: "http://localhost:8080/api/shopping/categories/1"
+
+    PagedShoppingItemResource:
+      type: object
+      example:
+        _embedded:
+          shoppingItemList:
+            - id: 1
+              name: "Whole Milk"
+              categoryId: 1
+              _links:
+                self:
+                  href: "http://localhost:8080/api/shopping/items/1"
+            - id: 2
+              name: "Cheddar Cheese"
+              categoryId: 1
+              _links:
+                self:
+                  href: "http://localhost:8080/api/shopping/items/2"
+        page:
+          size: 20
+          number: 0
+          totalElements: 25
+          totalPages: 2
+
+    ShoppingItemPriceHistoryDTO:
+      type: object
+      properties:
+        id:
+          description: "Unique identifier for the user profile"
+          type: integer
+          format: int64
+          example: 1
+        itemId:
+          description: "ID of the shopping item"
+          type: integer
+          format: int64
+          example: 1
+        storeId:
+          description: "ID of the store"
+          type: integer
+          format: int64
+          example: 1
+        price:
+          description: "Price per unit in local currency"
+          type: number
+          format: decimal
+          example: 3.49
+        recordedAt:
+          description: "Timestamp when the price was recorded"
+          type: string
+          format: date-time
+          example: "2024-01-15T10:30:00"
+      example:
+        - id: 1
+          itemId: 1
+          storeId: 1
+          price: 3.49
+          recordedAt: "2024-01-15T10:30:00"
+        - id: 2
+          itemId: 1
+          storeId: 2
+          price: 3.29
+          recordedAt: "2024-01-14T14:15:00"
+
+    # Shopping - Stores
+    ShoppingStoreDTO:
+      type: object
+      properties:
+        id:
+          description: "Unique identifier for the user profile"
+          type: integer
+          format: int64
+          example: 1
+        name:
+          description: 'Name of the configuration (e.g., "Adult", "Parent")'
+          type: string
+          example: "Supermarket ABC"
+        icon:
+          description: "Icon identifier for visual representation"
+          type: string
+          example: "shopping-cart"
+        photo:
+          description: "Base64-encoded profile photo"
+          type: string
+          example: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+      example:
+        id: 1
+        name: "Supermarket ABC"
+        description: "Main supermarket near downtown"
+        icon: "shopping-cart"
+        photo: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+
+    ShoppingStoreResource:
+      allOf:
+        - $ref: '#/components/schemas/ShoppingStoreDTO'
+        - type: object
+          properties:
+            _links:
+              description: "HATEOAS links for navigation"
+      example:
+        id: 1
+        name: "Supermarket ABC"
+        description: "Main supermarket near downtown"
+        icon: "shopping-cart"
+        _links:
+          self:
+            href: "http://localhost:8080/api/shopping/stores/1"
+          loyalty-cards:
+            href: "http://localhost:8080/api/shopping/stores/1/loyalty-cards"
+          coupons:
+            href: "http://localhost:8080/api/shopping/stores/1/coupons"
+
+    PagedShoppingStoreResource:
+      type: object
+      example:
+        _embedded:
+          shoppingStoreList:
+            - id: 1
+              name: "Supermarket ABC"
+              description: "Main supermarket"
+              _links:
+                self:
+                  href: "http://localhost:8080/api/shopping/stores/1"
+        page:
+          size: 20
+          number: 0
+          totalElements: 3
+          totalPages: 1
+
+    LoyaltyCardDTO:
+      type: object
+      properties:
+        id:
+          description: "Unique identifier for the user profile"
+          type: integer
+          format: int64
+          example: 1
+        store:
+          description: "Parent store information"
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 1
+            name:
+              type: string
+              example: "Supermarket ABC"
+        name:
+          description: 'Name of the configuration (e.g., "Adult", "Parent")'
+          type: string
+          example: "My Rewards Card"
+        number:
+          description: "Current page number (0-indexed)"
+          type: string
+          example: "123456789012"
+        barcodeType:
+          description: "Barcode format (QR or CODE_128)"
+          type: string
+          enum: [QR, CODE_128]
+          example: "CODE_128"
+      example:
+        id: 1
+        store:
+          id: 1
+          name: "Supermarket ABC"
+        name: "My Rewards Card"
+        number: "123456789012"
+        barcodeType: "CODE_128"
+
+    LoyaltyCardResource:
+      allOf:
+        - $ref: '#/components/schemas/LoyaltyCardDTO'
+        - type: object
+          properties:
+            _links:
+              description: "HATEOAS links for navigation"
+      example:
+        id: 1
+        store:
+          id: 1
+          name: "Supermarket ABC"
+        name: "My Rewards Card"
+        number: "123456789012"
+        barcodeType: "CODE_128"
+        _links:
+          self:
+            href: "http://localhost:8080/api/shopping/loyalty-cards/1"
+
+    CouponDTO:
+      type: object
+      properties:
+        id:
+          description: "Unique identifier for the user profile"
+          type: integer
+          format: int64
+          example: 1
+        store:
+          description: "Parent store information"
+          type: object
+          properties:
+            id:
+              type: integer
+              format: int64
+              example: 1
+            name:
+              type: string
+              example: "Supermarket ABC"
+        name:
+          description: 'Name of the configuration (e.g., "Adult", "Parent")'
+          type: string
+          example: "20% Off Dairy"
+        value:
+          description: "Coupon value or discount description"
+          type: string
+          example: "20% OFF"
+        photo:
+          description: "Base64-encoded profile photo"
+          type: string
+          example: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+        dueDate:
+          description: "Coupon expiration date"
+          type: string
+          format: date
+          example: "2024-02-28"
+        used:
+          description: "Whether the coupon has been used"
+          type: boolean
+          example: false
+      example:
+        id: 1
+        store:
+          id: 1
+          name: "Supermarket ABC"
+        name: "20% Off Dairy"
+        description: "Get 20% off on all dairy products"
+        value: "20% OFF"
+        photo: "data:image/jpeg;base64,/9j/4AAQSkZJRg..."
+        dueDate: "2024-02-28"
+        used: false
+
+    CouponResource:
+      allOf:
+        - $ref: '#/components/schemas/CouponDTO'
+        - type: object
+          properties:
+            _links:
+              description: "HATEOAS links for navigation"
+      example:
+        id: 1
+        store:
+          id: 1
+          name: "Supermarket ABC"
+        name: "20% Off Dairy"
+        description: "Get 20% off on all dairy products"
+        value: "20% OFF"
+        dueDate: "2024-02-28"
+        used: false
+        _links:
+          self:
+            href: "http://localhost:8080/api/shopping/coupons/1"
+
+    PagedCouponResource:
+      type: object
+      example:
+        _embedded:
+          couponList:
+            - id: 1
+              store:
+                id: 1
+                name: "Supermarket ABC"
+              name: "20% Off Dairy"
+              value: "20% OFF"
+              dueDate: "2024-02-28"
+              used: false
+              _links:
+                self:
+                  href: "http://localhost:8080/api/shopping/coupons/1"
+        page:
+          size: 20
+          number: 0
+          totalElements: 5
+          totalPages: 1
+
+    # Shopping - Lists
+    ShoppingListDTO:
+      type: object
+      properties:
+        id:
+          description: "Unique identifier for the user profile"
+          type: integer
+          format: int64
+          example: 1
+        name:
+          description: 'Name of the configuration (e.g., "Adult", "Parent")'
+          type: string
+          example: "Weekly Groceries"
+        status:
+          description: "List status (ACTIVE or COMPLETED)"
+          type: string
+          enum: [ACTIVE, COMPLETED]
+          example: "ACTIVE"
+        createdBy:
+          description: "Email of the user who created the list"
+          type: string
+          example: "john.doe@gmail.com"
+        completedAt:
+          description: "Timestamp when the list was completed"
+          type: string
+          format: date-time
+          example: null
+      example:
+        id: 1
+        name: "Weekly Groceries"
+        status: "ACTIVE"
+        createdBy: "john.doe@gmail.com"
+        completedAt: null
+
+    ShoppingListResource:
+      allOf:
+        - $ref: '#/components/schemas/ShoppingListDTO'
+        - type: object
+          properties:
+            _links:
+              description: "HATEOAS links for navigation"
+      example:
+        id: 1
+        name: "Weekly Groceries"
+        status: "ACTIVE"
+        createdBy: "john.doe@gmail.com"
+        completedAt: null
+        _links:
+          self:
+            href: "http://localhost:8080/api/shopping/lists/1"
+          items:
+            href: "http://localhost:8080/api/shopping/lists/1/items"
+
+    ShoppingListItemDTO:
+      type: object
+      properties:
+        id:
+          description: "Unique identifier for the user profile"
+          type: integer
+          format: int64
+          example: 1
+        itemId:
+          description: "ID of the shopping item"
+          type: integer
+          format: int64
+          example: 1
+        storeId:
+          description: "ID of the store"
+          type: integer
+          format: int64
+          example: 1
+        quantity:
+          description: "Number of items to purchase"
+          type: number
+          format: decimal
+          example: 2
+        unit:
+          description: "Unit of measurement (KG, G, L, ML, PACK, UNIT)"
+          type: string
+          enum: [KG, G, L, ML, PACK, UNIT]
+          example: "UNIT"
+        price:
+          description: "Price per unit in local currency"
+          type: number
+          format: decimal
+          example: 3.49
+        bought:
+          description: "Whether the item has been purchased"
+          type: boolean
+          example: false
+      example:
+        id: 1
+        itemId: 1
+        storeId: 1
+        quantity: 2
+        unit: "UNIT"
+        price: 3.49
+        bought: false
+
+    ShoppingListItemResource:
+      allOf:
+        - $ref: '#/components/schemas/ShoppingListItemDTO'
+        - type: object
+          properties:
+            _links:
+              description: "HATEOAS links for navigation"
+      example:
+        id: 1
+        itemId: 1
+        storeId: 1
+        quantity: 2
+        unit: "UNIT"
+        price: 3.49
+        bought: false
+        _links:
+          self:
+            href: "http://localhost:8080/api/shopping/lists/items/1"
+
+  # Error Responses
+  responses:
+    Unauthorized:
+      description: Authentication required
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "https://api.homeapp.com/problems/authentication-required"
+              title:
+                type: string
+                example: "Unauthorized"
+              status:
+                type: integer
+                example: 401
+              detail:
+                type: string
+                example: "Authentication required. Please provide a valid OAuth2 token."
+              instance:
+                type: string
+                example: "/api/user/me"
+          example:
+            type: "https://api.homeapp.com/problems/authentication-required"
+            title: "Unauthorized"
+            status: 401
+            detail: "Authentication required. Please provide a valid OAuth2 token."
+            instance: "/api/user/me"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "https://api.homeapp.com/problems/resource-not-found"
+              title:
+                type: string
+                example: "Not Found"
+              status:
+                type: integer
+                example: 404
+              detail:
+                type: string
+                example: "User profile with ID 999 not found"
+              instance:
+                type: string
+                example: "/api/user/999"
+          example:
+            type: "https://api.homeapp.com/problems/resource-not-found"
+            title: "Not Found"
+            status: 404
+            detail: "User profile with ID 999 not found"
+            instance: "/api/user/999"
+
+    ValidationError:
+      description: Validation failed
+      content:
+        application/problem+json:
+          schema:
+            type: object
+            properties:
+              type:
+                type: string
+                example: "https://api.homeapp.com/problems/validation-failed"
+              title:
+                type: string
+                example: "Validation Failed"
+              status:
+                type: integer
+                example: 400
+              detail:
+                type: string
+                example: "One or more fields failed validation"
+              instance:
+                type: string
+                example: "/api/user/me"
+              errors:
+                type: object
+                additionalProperties:
+                  type: string
+          example:
+            type: "https://api.homeapp.com/problems/validation-failed"
+            title: "Validation Failed"
+            status: 400
+            detail: "One or more fields failed validation"
+            instance: "/api/user/me"
+            errors:
+              mobilePhone: "Invalid phone format"
+              facebook: "Facebook URL must start with https://facebook.com/"
+
+  # Parameters
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Page number (0-indexed)
+      schema:
+        type: integer
+        default: 0
+        example: 0
+    SizeParam:
+      name: size
+      in: query
+      description: Number of items per page
+      schema:
+        type: integer
+        default: 20
+        example: 20
+    SortParam:
+      name: sort
+      in: query
+      description: Sort field and direction (e.g., name,asc)
+      schema:
+        type: string
+        example: name,asc

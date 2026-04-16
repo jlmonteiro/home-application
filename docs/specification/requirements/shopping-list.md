@@ -1,99 +1,140 @@
 # Requirements: Shopping List Module
 
-## 1. User Journeys
-### UJ-3: Collaborative Shopping
-1. **User A** creates a "Weekly Groceries" shopping list and adds "Milk" and "Eggs".
-2. **User B** logs in from their mobile device and sees the "Weekly Groceries" list on the dashboard.
-3. **User B** adds "Bread" to the same list while at the office.
-4. **User A** goes to the store, opens the list, and marks "Milk" as bought.
-5. "Milk" moves to the bottom of the list with a strikethrough, visible to both users in real-time.
+!!! info "EARS Syntax Legend (Hover for trigger name)"
+    - :material-check-all:{ title="Ubiquitous" } **Ubiquitous:** "The system shall..." (Always true)
+    - :material-play-circle:{ title="Event-driven" } **Event-driven:** "When <trigger>, the system shall..."
+    - :material-alert-circle:{ title="Unwanted Behavior" } **Unwanted Behavior:** "If <condition>, then the system shall..."
+    - :material-clock-outline:{ title="State-driven" } **State-driven:** "While <state>, the system shall..."
+    - :material-plus-circle-outline:{ title="Optional" } **Optional:** "Where <feature exists>, the system shall..."
+    - :material-layers-outline:{ title="Complex" } **Complex:** Combinations of the above triggers.
 
-### UJ-4: Using Loyalty Cards & Coupons
-1. **User A** adds a "Dunnes Stores" loyalty card with number `123456789` and selects "Code 128".
-2. **User A** adds a "€5 Off Groceries" coupon for Dunnes with an expiration date in 3 days and a photo of the voucher.
-3. On the **Home Page**, a warning panel highlights that the "€5 Off" coupon is expiring soon.
-4. At the checkout, **User A** opens the Shopping List module, selects Dunnes, and shows the Code 128 barcode to the cashier.
-5. **User A** then opens the Coupons section, shows the voucher photo, and marks it as "Used" after the discount is applied.
+## 1. User Journeys
+
+### UJ-3: Collaborative Shopping {: #uj-3 }
+
+!!! info ""
+    1. **User A** creates a "Weekly Groceries" shopping list and adds "Milk" and "Eggs".
+    2. **User B** logs in from their mobile device and sees the "Weekly Groceries" list on the dashboard.
+    3. **User B** adds "Bread" to the same list while at the office.
+    4. **User A** goes to the store, opens the list, and marks "Milk" as bought.
+    5. "Milk" moves to the bottom of the list with a strikethrough, visible to both users in real-time.
+
+### UJ-4: Using Loyalty Cards & Coupons {: #uj-4 }
+
+!!! info ""
+    1. **User A** adds a "Dunnes Stores" loyalty card with number `123456789` and selects "Code 128".
+    2. **User A** adds a "€5 Off Groceries" coupon for Dunnes with an expiration date in 3 days and a photo of the voucher.
+    3. On the **Home Page**, a warning panel highlights that the "€5 Off" coupon is expiring soon.
+    4. At the checkout, **User A** opens the Shopping List module, selects Dunnes, and shows the Code 128 barcode to the cashier.
+    5. **User A** then opens the Coupons section, shows the voucher photo, and marks it as "Used" after the discount is applied.
+
+---
 
 ## 2. Functional Requirements
-### FR-5: Category & Item Management
-**So That** I can organize my needs, I want to manage shopping categories and master items.
-- **Acceptance Criteria:**
-    1. **Categories:** Users SHALL be able to create categories with a `name`, `description`, and an `icon` (selected from a system library).
-    2. **Items:** Users SHALL be able to create items with a `name` and either an `icon` (system library) or an `uploaded photo`.
-    3. **Categorization:** Every item MUST be linked to exactly one category.
 
-### FR-6: Store Management
-**So That** I can plan where to shop, I want to manage a list of favorite stores.
-- **Acceptance Criteria:**
-    1. Users SHALL be able to create stores with a `name`, `description`, and either an `icon` (system library) or an `uploaded photo`.
+### FR-5: Category & Item Management {: #fr-5 }
 
-### FR-7: Shopping List Creation & Collaboration
-**So That** our household is synchronized, I want to create shared shopping lists.
-- **Acceptance Criteria:**
-    1. **Sharing:** All shopping lists SHALL be shared with all members of the household.
-    2. **Ownership:** The system SHALL track and display the user who created the list.
-    3. **Modifications:** Any household member SHALL be able to add, edit, or remove items from any list.
-    4. **Completion:** Lists SHALL have a "Completed" status. Completed lists are hidden from the active view by default.
+!!! success "Acceptance Criteria"
+    1. :material-check-all:{ title="Ubiquitous" } The system shall allow users to create categories with a `name`, `description`, and a library icon.
+    2. :material-check-all:{ title="Ubiquitous" } The system shall allow users to create items with a `name` and either a library icon or an uploaded photo.
+    3. :material-check-all:{ title="Ubiquitous" } The system shall establish a link between every shopping item and exactly one category.
 
-### FR-8: List Items & Quantities
-**So That** I know exactly what to buy, I want to specify quantities and stores for list items.
-- **Acceptance Criteria:**
-    1. **Store Selection:** When adding an item to a list, users can select a specific store or "Any Place".
-    2. **Quantities:** Users SHALL select a quantity and a **Unit of Measure** from a pre-defined list (e.g., kg, L, Pack, Unit).
-    3. **Price Recording:** Users CAN provide a price for the item.
+!!! quote "Rationale"
+    **So That** I can organize my needs, I want to manage shopping categories and master items.
 
-### FR-9: Price History & Suggestions
-**So That** I can estimate my spending, I want the system to track prices and suggest them.
-- **Acceptance Criteria:**
-    1. **History:** The system SHALL save the price history per item and per store.
-    2. **Suggestions:** When adding an item to a list for a specific store, the system SHALL suggest the **last price** paid at that store.
-    3. **Global Suggestion:** If "Any Place" is selected, the system SHALL suggest the **Global Last Price** (most recent price paid regardless of store).
+### FR-6: Store Management {: #fr-6 }
 
-### FR-10: In-Store Progress Tracking
-**So That** I don't miss anything while shopping, I want to track what I've already put in my cart.
-- **Acceptance Criteria:**
-    1. **Check-off:** Users SHALL be able to mark individual items in a list as "Bought".
-    2. **Visual Feedback:** "Bought" items SHALL move to the end of the list and be displayed with a strikethrough.
+!!! success "Acceptance Criteria"
+    1. :material-check-all:{ title="Ubiquitous" } The system shall allow users to create stores with a `name`, `description`, and either a library icon or an uploaded photo.
 
-### FR-11: Automatic Data Retention
-**So That** the system remains performant and cluttered-free, old shopping lists should be removed automatically.
-- **Acceptance Criteria:**
-    1. **Retention Period:** The system SHALL identify shopping lists that are older than 3 months (based on completion date or creation date if incomplete).
-    2. **Automatic Deletion:** The system SHALL automatically and permanently delete these lists and their associated items.
-    3. **Background Processing:** This cleanup SHOULD occur as a scheduled background task.
+!!! quote "Rationale"
+    **So That** I can plan where to shop, I want to manage a list of favorite stores.
 
-#### FR-12: Loyalty Cards
-**So That** I don't have to carry physical cards, I want to store my loyalty card numbers in the app.
-- **Acceptance Criteria:**
-    1. **Data:** Users SHALL be able to add loyalty cards to a Store with a `name` and a `card number`.
-    2. **Sharing:** Loyalty cards SHALL be shared with all members of the household.
-    3. **Visual Representation:** The system SHALL be able to display the card number as either a **QR Code** or a **Code 128** barcode.
-    4. **Access:** Cards MUST be easily accessible from the Store details or the main Shopping List menu.
+### FR-7: Shopping List Creation & Collaboration {: #fr-7 }
 
-#### FR-13: Store Coupons
-**So That** I can save money, I want to manage my digital and physical coupons.
-- **Acceptance Criteria:**
-    1. **Data:** Coupons SHALL have a `name`, `description`, `value` (free-text), and a `photo` (of the physical or digital voucher).
-    2. **Validity:** Coupons MUST have a `due date`.
-    3. **Usage Tracking:** Users SHALL be able to mark a coupon as "Used".
-    4. **Filtering:** Used or expired coupons SHOULD be hidden from active views by default.
+!!! success "Acceptance Criteria"
+    1. :material-clock-outline:{ title="State-driven" } While a shopping list exists, the system shall share its visibility and edit permissions with all members of the household.
+    2. :material-check-all:{ title="Ubiquitous" } The system shall display the identity of the user who created the list.
+    3. :material-plus-circle-outline:{ title="Optional" } Where a list is marked as "Completed", the system shall hide it from the default active view.
 
-#### FR-15: Expiration Warning Panel (Dashboard)
-**So That** I don't forget to use my rewards, I want a prominent reminder of expiring coupons.
-- **Acceptance Criteria:**
-    1. **Location:** The user Home Page SHALL include a "Expiring Coupons" panel.
-    2. **Logic:** The panel SHALL display coupons that:
-        - Are NOT marked as "Used".
-        - Are NOT yet expired.
-        - Have a `due date` less than **4 days** in the future.
-    3. **Action:** Clicking a coupon in the panel SHALL navigate the user directly to the coupon's details.
+!!! quote "Rationale"
+    **So That** our household is synchronized, I want to create shared shopping lists.
+
+### FR-8: List Items & Quantities {: #fr-8 }
+
+!!! success "Acceptance Criteria"
+    1. :material-plus-circle-outline:{ title="Optional" } Where a user adds an item to a list, the system shall allow the selection of a specific store or the "Any Place" designation.
+    2. :material-check-all:{ title="Ubiquitous" } The system shall require the selection of a quantity and a Unit of Measure for each list item.
+    3. :material-plus-circle-outline:{ title="Optional" } Where a user provides a price, the system shall record it against the specific list item.
+
+!!! quote "Rationale"
+    **So That** I know exactly what to buy, I want to specify quantities and stores for list items.
+
+### FR-9: Price History & Suggestions {: #fr-9 }
+
+!!! success "Acceptance Criteria"
+    1. :material-play-circle:{ title="Event-driven" } When a price is recorded for an item at a store, the system shall save it to the permanent price history.
+    2. :material-plus-circle-outline:{ title="Optional" } Where a user adds an item for a specific store, the system shall suggest the last price paid for that item at that store.
+    3. :material-plus-circle-outline:{ title="Optional" } Where a user adds an item with the "Any Place" designation, the system shall suggest the most recent price paid for that item across all stores.
+
+!!! quote "Rationale"
+    **So That** I can estimate my spending, I want the system to track prices and suggest them.
+
+### FR-10: In-Store Progress Tracking {: #fr-10 }
+
+!!! success "Acceptance Criteria"
+    1. :material-play-circle:{ title="Event-driven" } When a user marks an item as "Bought", the system shall move the item to the end of the list and apply a strikethrough style to its name.
+
+!!! quote "Rationale"
+    **So That** I don't miss anything while shopping, I want to track what I've already put in my cart.
+
+### FR-11: Automatic Data Retention {: #fr-11 }
+
+!!! success "Acceptance Criteria"
+    1. :material-check-all:{ title="Ubiquitous" } The system shall identify shopping lists that are older than 3 months.
+    2. :material-play-circle:{ title="Event-driven" } When the daily retention task executes, the system shall permanently delete all shopping lists older than 3 months and their associated items.
+
+!!! quote "Rationale"
+    **So That** the system remains performant and cluttered-free, old shopping lists should be removed automatically.
+
+#### FR-12: Loyalty Cards {: #fr-12 }
+
+!!! success "Acceptance Criteria"
+    1. :material-check-all:{ title="Ubiquitous" } The system shall allow users to associate loyalty cards with specific stores.
+    2. :material-clock-outline:{ title="State-driven" } While a loyalty card exists, the system shall share it with all members of the household.
+    3. :material-check-all:{ title="Ubiquitous" } The system shall render loyalty card numbers as either a QR Code or a Code 128 barcode upon user request.
+
+!!! quote "Rationale"
+    **So That** I don't have to carry physical cards, I want to store my loyalty card numbers in the app.
+
+#### FR-13: Store Coupons {: #fr-13 }
+
+!!! success "Acceptance Criteria"
+    1. :material-check-all:{ title="Ubiquitous" } The system shall allow users to store coupons with a `name`, `description`, `value`, `photo`, and `due date`.
+    2. :material-play-circle:{ title="Event-driven" } When a user marks a coupon as "Used", the system shall hide it from all default active views.
+
+!!! quote "Rationale"
+    **So That** I can save money, I want to manage my digital and physical coupons.
+
+#### FR-15: Expiration Warning Panel (Dashboard) {: #fr-15 }
+
+!!! success "Acceptance Criteria"
+    1. :material-clock-outline:{ title="State-driven" } While a coupon is NOT marked as "Used" and its `due date` is within 4 days, the system shall display it in the "Expiring Coupons" dashboard panel.
+
+!!! quote "Rationale"
+    **So That** I don't forget to use my rewards, I want a prominent reminder of expiring coupons.
+
+---
 
 ## 3. Non-Functional Requirements
-### NFR-3: Reliability & Sync
-- **Acceptance Criteria:**
-    1. **Offline Support:** The mobile UI SHALL support offline viewing and checking of items, with automatic synchronization when the connection is restored.
 
-### NFR-4: Accessibility & UX
-- **Acceptance Criteria:**
-    1. **Mobile-First:** The shopping list interface MUST be optimized for one-handed use with large tap targets (minimum 44x44px).
+### NFR-3: Reliability & Sync {: #nfr-3 }
+
+!!! success "Acceptance Criteria"
+    1. :material-clock-outline:{ title="State-driven" } While the mobile UI is offline, the system shall allow users to view and check off items.
+    2. :material-play-circle:{ title="Event-driven" } When internet connectivity is restored, the system shall automatically synchronize offline changes with the server.
+
+### NFR-4: Accessibility & UX {: #nfr-4 }
+
+!!! success "Acceptance Criteria"
+    1. :material-check-all:{ title="Ubiquitous" } The system shall provide a minimum tap target size of 44x44px for all interactive elements in the shopping list interface.

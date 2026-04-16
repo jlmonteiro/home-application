@@ -1,0 +1,99 @@
+site_name: Home Application
+site_description: Household management platform for families
+site_author: Home App Team
+copyright: Copyright &copy; 2024 Home Application
+
+repo_name: jlmonteiro/home-application
+repo_url: https://github.com/jlmonteiro/home-application
+edit_uri: blob/main/docs/
+
+theme:
+  name: material
+  palette:
+    scheme: default
+    primary: black
+    accent: red
+  icon:
+    repo: fontawesome/brands/github
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.instant
+    - navigation.expand
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tooltips
+    - announce.dismiss
+    - toc.integrate
+
+plugins:
+  - search:
+      separator: '[\s\-\.]+'
+  - social:
+      cards: true
+      cards_dir: assets/images/social
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - attr_list
+  - md_in_html
+
+nav:
+  - Home: index.md
+  - User Guide:
+      - help/getting-started.md
+      - help/shopping.md
+      - help/profile.md
+  - Specifications:
+      - Overview: specification/index.md
+      - Design:
+          - Overview: specification/design/design.md
+          - Backend:
+              - Overview: specification/design/backend/overview.md
+              - API:
+                  - Overview: specification/design/backend/api/index.md
+                  - Reference: specification/design/backend/api/reference.md
+          - Frontend:
+              - Overview: specification/design/frontend/overview.md
+              - Architecture: specification/design/frontend/ui-architecture.md
+          - Database:
+              - Overview: specification/design/database/overview.md
+              - Schema: specification/design/database/schema.md
+          - Test Strategy:
+              - Test Architecture: specification/design/test-strategy/architecture.md
+              - Test Scenarios: specification/design/test-strategy/test-scenarios.md
+
+      - Requirements:
+          - Index: specification/requirements/requirements.md
+          - Authentication / Profile: specification/requirements/auth-profile.md
+          - Settings: specification/requirements/settings.md
+          - Shopping List: specification/requirements/shopping-list.md
+          - Documentation: specification/requirements/documentation.md
+          - Common: specification/requirements/shared.md
+
+      - Roadmap:
+          - Index: specification/roadmap/index.md
+          - "User Profile": specification/roadmap/01-update-user-profile.tasks.md
+          - "Shopping List": specification/roadmap/02-shopping-list.tasks.md
+          - "Family Hierarchy": specification/roadmap/03-family-hierarchy.tasks.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jlmonteiro/home-application
+    - icon: material/web
+      link: https://home-application.dev
+
+docs_dir: docs
+site_dir: build/site
