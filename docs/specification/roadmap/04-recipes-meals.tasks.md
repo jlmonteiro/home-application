@@ -12,7 +12,7 @@ Implement a comprehensive recipes and meal planning module that allows household
 
 ## 2. User Stories
 
-### US-1: Recipe CRUD :material-clock-outline: {: #us-1 }
+### US-1: Recipe CRUD :material-play-circle: {: #us-1 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to create, view, edit, and delete recipes, **so that** our family can build a shared cookbook.
@@ -30,10 +30,10 @@ Implement a comprehensive recipes and meal planning module that allows household
     3. :material-alert-circle:{ title="Unwanted Behavior" } If a recipe is referenced by a meal plan, then the system shall prevent deletion.
 
 !!! example "Implementation Tasks"
-    - [ ] :material-database-sync: Create Liquibase migration for `recipes` schema and `recipes` table.
-    - [ ] :material-file-code: Implement JPA Entity, Repository, Service, and DTO for Recipe.
-    - [ ] :material-api: Implement REST Controller with HATEOAS support.
-    - [ ] :material-layers: Build React RecipesListPage, RecipeDetailPage, and RecipeFormPage.
+    - [x] :material-database-sync: Create Liquibase migration for `recipes` schema and `recipes` table.
+    - [x] :material-file-code: Implement JPA Entity, Repository, Service, and DTO for Recipe.
+    - [x] :material-api: Implement REST Controller with HATEOAS support.
+    - [x] :material-layers: Build React RecipesListPage, RecipeDetailPage, and RecipeFormPage.
 
 ---
 

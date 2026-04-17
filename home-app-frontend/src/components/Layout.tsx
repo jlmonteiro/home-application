@@ -41,6 +41,7 @@ import {
   IconPackages,
   IconUserCircle,
   IconAdjustments,
+  IconChefHat,
 } from '@tabler/icons-react'
 import { useAuth } from '../context/AuthContext'
 
@@ -48,8 +49,8 @@ export function Layout() {
   const { user, logout } = useAuth()
   const location = useLocation()
   const [opened, { toggle }] = useDisclosure(true)
-  const [shoppingOpened, { toggle: toggleShopping }] = useDisclosure(true)
-  // @ts-expect-error: setColorScheme is not in the type definition but available in runtime for Mantine v7+
+  const [shoppingOpened, { toggle: toggleShopping }] = useDisclosure(false)
+  const [recipesOpened, { toggle: toggleRecipes }] = useDisclosure(true)
   const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
 
@@ -100,6 +101,24 @@ export function Layout() {
         })
       } else if (path.includes('/items')) {
         crumbs.push({ title: 'Items', href: '/shopping/items', icon: <IconPackages size={16} /> })
+      }
+    } else if (path.startsWith('/recipes')) {
+      crumbs.push({
+        title: 'Recipes & Meals',
+        href: '/recipes',
+        icon: <IconChefHat size={16} />,
+      })
+
+      if (path === '/recipes') {
+        crumbs[crumbs.length - 1].title = 'Recipes'
+      } else if (path === '/recipes/new') {
+        crumbs.push({ title: 'New Recipe', href: path })
+      } else if (path.match(/\/recipes\/\d+$/)) {
+        crumbs.push({ title: 'Recipe Details', href: path })
+      } else if (path.match(/\/recipes\/\d+\/edit$/)) {
+        const recipeId = path.split('/')[2]
+        crumbs.push({ title: 'Recipe Details', href: `/recipes/${recipeId}` })
+        crumbs.push({ title: 'Edit Recipe', href: path })
       }
     } else if (path === '/profile') {
       crumbs.push({ title: 'Profile', href: '/profile', icon: <IconUserCircle size={16} /> })
@@ -395,6 +414,21 @@ export function Layout() {
               to="/shopping/items"
               label="Items"
               active={isActive('/shopping/items')}
+            />
+          </NavLink>
+
+          <NavLink
+            label="Recipes & Meals"
+            leftSection={<IconChefHat size={20} stroke={1.5} />}
+            childrenOffset={28}
+            opened={recipesOpened}
+            onChange={toggleRecipes}
+          >
+            <NavLink
+              component={Link}
+              to="/recipes"
+              label="Recipes"
+              active={isActive('/recipes')}
             />
           </NavLink>
 

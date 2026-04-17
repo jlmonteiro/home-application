@@ -16,6 +16,9 @@ import { StoresPage } from './pages/shopping/StoresPage'
 import { StoreDetailsPage } from './pages/shopping/StoreDetailsPage'
 import { ShoppingListsPage } from './pages/shopping/ShoppingListsPage'
 import { ShoppingListDetailsPage } from './pages/shopping/ShoppingListDetailsPage'
+import RecipesListPage from './pages/recipes/RecipesListPage'
+import RecipeDetailPage from './pages/recipes/RecipeDetailPage'
+import RecipeFormPage from './pages/recipes/RecipeFormPage'
 import './App.css'
 
 const queryClient = new QueryClient({
@@ -58,6 +61,14 @@ function App() {
                   <Route path="stores/:id" element={<StoreDetailsPage />} />
                   <Route path="lists" element={<ShoppingListsPage />} />
                   <Route path="lists/:id" element={<ShoppingListDetailsPage />} />
+                </Route>
+
+                {/* Recipe Routes */}
+                <Route path="recipes">
+                  <Route index element={<RecipesListPage />} />
+                  <Route path="new" element={<RecipeFormPage />} />
+                  <Route path=":id" element={<RecipeDetailPage />} />
+                  <Route path=":id/edit" element={<RecipeFormPage />} />
                 </Route>
               </Route>
 

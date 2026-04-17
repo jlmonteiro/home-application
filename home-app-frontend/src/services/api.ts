@@ -12,6 +12,7 @@ import type {
   ShoppingList,
 } from '../types/shopping'
 import type { AgeGroupConfig, FamilyRole, UserPreference } from '../types/settings'
+import type { Recipe } from '../types/recipes'
 
 // Re-export types for backward compatibility
 export type {
@@ -29,6 +30,7 @@ export type {
   AgeGroupConfig,
   FamilyRole,
   UserPreference,
+  Recipe,
 }
 
 const API_BASE = '/api'
@@ -545,6 +547,57 @@ export async function fetchSuggestedPrice(
   const response = await apiFetch(url)
   if (!response.ok) throw new Error('Failed to fetch suggested price')
   return response.json()
+}
+
+// --- Recipes API ---
+
+export async function fetchRecipes(page = 0, size = 20): Promise<PagedResponse<Recipe>> {
+  const response = await apiFetch(`${API_BASE}/recipes?page=${page}&size=${size}`)
+  if (!response.ok) throw new Error('Failed to fetch recipes')
+  return response.json()
+}
+
+export async function fetchRecipe(id: number): Promise<Recipe> {
+  const response = await apiFetch(`${API_BASE}/recipes/${id}`)
+  if (!response.ok) throw new Error('Failed to fetch recipe')
+  return response.json()
+}
+
+export async function createRecipe(recipe: Partial<Recipe>): Promise<Recipe> {
+  const response = await apiFetch(`${API_BASE}/recipes`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(recipe),
+  })
+  if (!response.ok) {
+    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
+    const error = new Error(errorData.detail || 'Failed to create recipe') as ApiError
+    error.data = errorData
+    throw error
+  }
+  return response.json()
+}
+
+export async function updateRecipe(id: number, recipe: Partial<Recipe>): Promise<Recipe> {
+  const response = await apiFetch(`${API_BASE}/recipes/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(recipe),
+  })
+  if (!response.ok) {
+    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
+    const error = new Error(errorData.detail || 'Failed to update recipe') as ApiError
+    error.data = errorData
+    throw error
+  }
+  return response.json()
+}
+
+export async function deleteRecipe(id: number): Promise<void> {
+  const response = await apiFetch(`${API_BASE}/recipes/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) throw new Error('Failed to delete recipe')
 }
 
 // --- Auth ---
