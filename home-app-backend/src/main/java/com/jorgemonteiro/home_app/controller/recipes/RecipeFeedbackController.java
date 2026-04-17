@@ -13,6 +13,7 @@ import com.jorgemonteiro.home_app.repository.recipes.RecipeCommentRepository;
 import com.jorgemonteiro.home_app.repository.recipes.RecipeRatingRepository;
 import com.jorgemonteiro.home_app.repository.recipes.RecipeRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,7 @@ public class RecipeFeedbackController {
     private final UserRepository userRepository;
 
     @GetMapping("/comments")
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<RecipeCommentDTO> getComments(@PathVariable Long recipeId) {
         return commentRepository.findAllByRecipeIdOrderByCreatedAtDesc(recipeId).stream()
                 .map(RecipeAdapter::toCommentDTO)
@@ -41,6 +43,7 @@ public class RecipeFeedbackController {
     }
 
     @PostMapping("/comments")
+    @org.springframework.transaction.annotation.Transactional
     public RecipeCommentDTO addComment(@PathVariable Long recipeId, @RequestBody RecipeCommentDTO dto, @AuthenticationPrincipal OAuth2User principal) {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new ObjectNotFoundException("Recipe with id " + recipeId + " not found"));
@@ -52,6 +55,20 @@ public class RecipeFeedbackController {
         comment.setComment(dto.getComment());
 
         return RecipeAdapter.toCommentDTO(commentRepository.save(comment));
+    }
+
+    @DeleteMapping("/comments/{commentId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteComment(@PathVariable Long recipeId, @PathVariable Long commentId, @AuthenticationPrincipal OAuth2User principal) {
+        User user = getUser(principal);
+        RecipeComment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ObjectNotFoundException("Comment with id " + commentId + " not found"));
+
+        if (!comment.getUser().getId().equals(user.getId())) {
+            throw new com.jorgemonteiro.home_app.exception.AuthenticationException("You can only delete your own comments");
+        }
+
+        commentRepository.delete(comment);
     }
 
     @GetMapping("/rating")
@@ -70,7 +87,7 @@ public class RecipeFeedbackController {
 
         RecipeRating rating = ratingRepository.findByRecipeIdAndUserId(recipeId, user.getId())
                 .orElse(new RecipeRating());
-        
+
         rating.setRecipe(recipe);
         rating.setUser(user);
         rating.setRating(dto.getRating());

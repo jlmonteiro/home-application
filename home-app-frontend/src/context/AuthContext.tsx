@@ -2,6 +2,7 @@ import { createContext, useContext, type ReactNode } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import type { UserProfile } from '../types/user'
 import { fetchCurrentUser, logout as apiLogout } from '../services/api'
+import { ErrorPage } from '../pages/errors/ErrorPage'
 
 interface AuthContextType {
   user: UserProfile | null | undefined
@@ -19,7 +20,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     isLoading,
     isError,
-    error,
   } = useQuery({
     queryKey: ['user'],
     queryFn: fetchCurrentUser,
@@ -28,7 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnMount: 'always',
   })
 
-  console.log('AuthContext State:', { user, isLoading, isError, error })
+  // console.log('AuthContext State:', { user, isLoading, isError })
 
   const logout = async () => {
     try {
@@ -37,6 +37,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(['user'], null)
       window.location.href = '/login'
     }
+  }
+
+  // If we have an error fetching the user and it's not a 401 (which returns null)
+  // it means the backend is likely down or returned a 5xx
+  if (isError) {
+    return <ErrorPage type="502" />
   }
 
   return (

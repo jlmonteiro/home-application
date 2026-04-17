@@ -116,7 +116,7 @@ for (MealPlanExportItemDTO dto : itemsToExport) {
         }
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public MealPlanDTO getOrCreatePlan(LocalDate date) {
         LocalDate weekStart = date.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
         log.debug("Fetching meal plan for week starting {}", weekStart);

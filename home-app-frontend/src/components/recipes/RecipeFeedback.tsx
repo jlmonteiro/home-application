@@ -6,7 +6,6 @@ import {
   Text,
   Group,
   Rating,
-  Textarea,
   Button,
   Paper,
   Avatar,
@@ -14,13 +13,19 @@ import {
   Box,
   Collapse,
   UnstyledButton,
+  ActionIcon,
 } from '@mantine/core';
-import { IconMessagePlus, IconChevronDown, IconChevronUp } from '@tabler/icons-react';
-import { fetchRecipeComments, fetchUserRecipeRating, addRecipeComment, rateRecipe } from '../../services/api';
+import { IconMessagePlus, IconChevronDown, IconChevronUp, IconTrash } from '@tabler/icons-react';
+import { fetchRecipeComments, fetchUserRecipeRating, addRecipeComment, deleteRecipeComment, rateRecipe } from '../../services/api';
 import { notifications } from '@mantine/notifications';
-import type { RecipeComment, RecipeRating } from '../../types/recipes';
+import type { RecipeComment, RecipeRating } from '../../types';
 import dayjs from 'dayjs';
+
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { useAuth } from '../../context/AuthContext';
+import { MarkdownContent } from '../MarkdownContent';
+import { MarkdownEditor } from './MarkdownEditor';
+import { getPhotoSrc } from '../../utils/photo';
 
 dayjs.extend(relativeTime);
 
@@ -34,6 +39,8 @@ interface RecipeFeedbackProps {
 export function RecipeFeedback({ recipeId, averageRating, totalRatings, allRatings }: RecipeFeedbackProps) {
   const [comment, setComment] = useState('');
   const [showAllRatings, setShowAllRatings] = useState(false);
+  const [showEditor, setShowEditor] = useState(false);
+  const { user: me } = useAuth();
   const queryClient = useQueryClient();
 
   const { data: comments, isLoading: commentsLoading } = useQuery({
@@ -50,8 +57,17 @@ export function RecipeFeedback({ recipeId, averageRating, totalRatings, allRatin
     mutationFn: (newComment: string) => addRecipeComment(recipeId, newComment),
     onSuccess: () => {
       setComment('');
+      setShowEditor(false);
       queryClient.invalidateQueries({ queryKey: ['recipe-comments', recipeId] });
       notifications.show({ title: 'Success', message: 'Comment added', color: 'green' });
+    },
+  });
+
+  const deleteCommentMutation = useMutation({
+    mutationFn: (commentId: number) => deleteRecipeComment(recipeId, commentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipe-comments', recipeId] });
+      notifications.show({ title: 'Success', message: 'Comment deleted', color: 'green' });
     },
   });
 
@@ -74,7 +90,7 @@ export function RecipeFeedback({ recipeId, averageRating, totalRatings, allRatin
           <Group gap="xs">
             <Rating value={averageRating || 0} readOnly fractions={2} size="lg" />
             <Text size="lg" fw={700}>{(averageRating || 0).toFixed(1)}</Text>
-            <Text size="sm" c="dimmed">({totalRatings || 0} votes)</Text>
+            <Text size="sm" c="dimmed">({totalRatings} votes)</Text>
           </Group>
           
           {allRatings && allRatings.length > 0 && (
@@ -94,7 +110,7 @@ export function RecipeFeedback({ recipeId, averageRating, totalRatings, allRatin
                     <Group key={i} gap="xs">
                       <Text size="xs" fw={500}>{r.userName}:</Text>
                       <Rating value={r.rating} readOnly size="xs" />
-                      <Text size="xs" c="dimmed">{dayjs(r.createdAt).format('MMM D, YYYY')}</Text>
+                      {r.createdAt && <Text size="xs" c="dimmed">{dayjs(r.createdAt).format('MMM D, YYYY')}</Text>}
                     </Group>
                   ))}
                 </Stack>
@@ -117,46 +133,83 @@ export function RecipeFeedback({ recipeId, averageRating, totalRatings, allRatin
       </Group>
 
       <Stack gap="md">
-        <Title order={3}>Comments</Title>
+        <Group justify="space-between" align="center">
+          <Title order={3}>Comments</Title>
+          {!showEditor && (
+            <Button 
+              variant="light" 
+              leftSection={<IconMessagePlus size={16} />} 
+              onClick={() => setShowEditor(true)}
+            >
+              Add Comment
+            </Button>
+          )}
+        </Group>
         
-        <Paper withBorder p="md" radius="md">
-          <Stack gap="sm">
-            <Textarea
-              placeholder="What do you think about this recipe?"
-              minRows={2}
-              value={comment}
-              onChange={(e) => setComment(e.currentTarget.value)}
-            />
-            <Group justify="flex-end">
-              <Button 
-                variant="light" 
-                leftSection={<IconMessagePlus size={18} />}
-                disabled={!comment.trim()}
-                loading={commentMutation.isPending}
-                onClick={() => commentMutation.mutate(comment)}
-              >
-                Post Comment
-              </Button>
-            </Group>
-          </Stack>
-        </Paper>
+        {showEditor && (
+          <Paper withBorder p="md" radius="md">
+            <Stack gap="sm">
+              <MarkdownEditor
+                value={comment}
+                onChange={setComment}
+                placeholder="What do you think about this recipe? Supports Markdown..."
+                minHeight={150}
+              />
+              <Group justify="flex-end">
+                <Button variant="subtle" onClick={() => { setShowEditor(false); setComment(''); }}>
+                  Cancel
+                </Button>
+                <Button 
+                  variant="light" 
+                  leftSection={<IconMessagePlus size={18} />}
+                  disabled={!comment.trim()}
+                  loading={commentMutation.isPending}
+                  onClick={() => commentMutation.mutate(comment)}
+                >
+                  Post Comment
+                </Button>
+              </Group>
+            </Stack>
+          </Paper>
+        )}
 
         <Stack gap="sm" mt="md">
           {commentsLoading ? (
             <Text size="sm" c="dimmed">Loading comments...</Text>
-          ) : comments?.length === 0 ? (
+          ) : !comments || comments.length === 0 ? (
             <Text size="sm" c="dimmed" fs="italic">No comments yet. Be the first to share your feedback!</Text>
           ) : (
-            comments?.map((c: RecipeComment) => (
+            comments.map((c: RecipeComment) => (
               <Paper key={c.id} withBorder p="sm" radius="md">
                 <Group align="flex-start" wrap="nowrap">
-                  <Avatar src={c.userPhoto} radius="xl" size="sm" />
-                  <Stack gap={2} style={{ flex: 1 }}>
+                  <Avatar src={getPhotoSrc(c.userPhoto)} radius="xl" size="md">
+                    {c.userName.charAt(0)}
+                  </Avatar>
+                  <Stack gap={4} style={{ flex: 1 }}>
                     <Group justify="space-between">
-                      <Text size="sm" fw={700}>{c.userName}</Text>
-                      <Text size="xs" c="dimmed">{dayjs(c.createdAt).fromNow()}</Text>
+                      <Group gap="xs">
+                        <Text size="sm" fw={700}>{c.userName}</Text>
+                        <Text size="xs" c="dimmed">{dayjs(c.createdAt).fromNow()}</Text>
+                      </Group>
+                      {me?.id === c.userId && (
+                        <ActionIcon 
+                          variant="subtle" 
+                          color="red" 
+                          size="sm"
+                          onClick={() => {
+                            if (window.confirm('Are you sure you want to delete this comment?')) {
+                              deleteCommentMutation.mutate(c.id!);
+                            }
+                          }}
+                          loading={deleteCommentMutation.isPending}
+                        >
+                          <IconTrash size={14} />
+                        </ActionIcon>
+                      )}
                     </Group>
-                    <Text size="sm">{c.comment}</Text>
+                    <Box style={{ fontSize: '14px' }}>
+                      <MarkdownContent content={c.comment} />
+                    </Box>
                   </Stack>
                 </Group>
               </Paper>

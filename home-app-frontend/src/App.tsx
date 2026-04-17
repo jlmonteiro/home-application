@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Notifications } from '@mantine/notifications'
 import { ModalsProvider } from '@mantine/modals'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { Layout } from './components/Layout'
@@ -23,6 +23,7 @@ import RecipeFormPage from './pages/recipes/RecipeFormPage'
 import MealPlannerPage from './pages/recipes/MealPlannerPage'
 import NotificationsPage from './pages/notifications/NotificationsPage'
 import MessagingPage from './pages/notifications/MessagingPage'
+import { ErrorPage } from './pages/errors/ErrorPage'
 import './App.css'
 
 const queryClient = new QueryClient({
@@ -37,10 +38,10 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ModalsProvider>
-          <Notifications />
-          <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
+          <ModalsProvider>
+            <Notifications />
             <Routes>
               <Route path="/login" element={<LoginPage />} />
 
@@ -82,11 +83,11 @@ function App() {
                 </Route>
               </Route>
 
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<ErrorPage type="404" />} />
             </Routes>
-          </BrowserRouter>
-        </ModalsProvider>
-      </AuthProvider>
+          </ModalsProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   )
 }

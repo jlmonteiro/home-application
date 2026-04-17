@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class RecipeCommentDTO {
     private Long id;
+    private Long userId;
     private String userName;
     private String userPhoto;
     private String comment;

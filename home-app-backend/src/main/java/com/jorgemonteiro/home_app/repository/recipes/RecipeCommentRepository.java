@@ -11,5 +11,7 @@ import java.util.List;
  */
 @Repository
 public interface RecipeCommentRepository extends JpaRepository<RecipeComment, Long> {
-    List<RecipeComment> findAllByRecipeIdOrderByCreatedAtDesc(Long recipeId);
+    
+    @org.springframework.data.jpa.repository.Query("SELECT c FROM RecipeComment c JOIN FETCH c.user u LEFT JOIN FETCH u.userProfile WHERE c.recipe.id = :recipeId ORDER BY c.createdAt DESC")
+    java.util.List<RecipeComment> findAllByRecipeIdOrderByCreatedAtDesc(@org.springframework.data.repository.query.Param("recipeId") Long recipeId);
 }

@@ -28,6 +28,7 @@ export interface RecipeIngredient {
   id?: number;
   itemId: number;
   itemName?: string;
+  itemPhoto?: string;
   quantity: number;
   unit: string;
   nutritionEntries?: NutritionEntry[];
@@ -35,6 +36,7 @@ export interface RecipeIngredient {
 
 export interface RecipeComment {
   id?: number;
+  userId?: number;
   userName: string;
   userPhoto?: string;
   comment: string;

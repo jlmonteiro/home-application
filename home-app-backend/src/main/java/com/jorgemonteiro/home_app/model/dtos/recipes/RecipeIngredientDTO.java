@@ -14,6 +14,7 @@ public class RecipeIngredientDTO {
     private Long id;
     private Long itemId;
     private String itemName;
+    private String itemPhoto;
     private BigDecimal quantity;
     private String unit;
     private java.util.List<NutritionEntryDTO> nutritionEntries;

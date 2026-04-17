@@ -1,4 +1,3 @@
-import { useRef } from 'react'
 import { Modal, Stack, TextInput, Select, Group, Box, Image, Button, FileButton } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { IconUpload, IconBasket } from '@tabler/icons-react'

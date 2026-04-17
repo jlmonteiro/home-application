@@ -113,6 +113,7 @@ public class RecipeAdapter {
         if (entity.getItem() != null) {
             dto.setItemId(entity.getItem().getId());
             dto.setItemName(entity.getItem().getName());
+            dto.setItemPhoto(entity.getItem().getPhoto());
             
             if (entity.getItem().getNutritionEntries() != null) {
                 dto.setNutritionEntries(entity.getItem().getNutritionEntries().stream()
@@ -160,6 +161,7 @@ public class RecipeAdapter {
         dto.setComment(entity.getComment());
         dto.setCreatedAt(entity.getCreatedAt());
         if (entity.getUser() != null) {
+            dto.setUserId(entity.getUser().getId());
             dto.setUserName(entity.getUser().getFirstName() + " " + entity.getUser().getLastName());
             if (entity.getUser().getUserProfile() != null) {
                 dto.setUserPhoto(entity.getUser().getUserProfile().getPhoto());

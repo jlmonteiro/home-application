@@ -4,6 +4,9 @@ import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.model.adapter.recipes.RecipeAdapter;
 import com.jorgemonteiro.home_app.model.dtos.recipes.NutritionEntryDTO;
 import com.jorgemonteiro.home_app.model.dtos.recipes.RecipeDTO;
+import com.jorgemonteiro.home_app.model.dtos.recipes.RecipeIngredientDTO;
+import com.jorgemonteiro.home_app.model.dtos.recipes.RecipePhotoDTO;
+import com.jorgemonteiro.home_app.model.dtos.recipes.RecipeStepDTO;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import com.jorgemonteiro.home_app.model.entities.recipes.Recipe;
 import com.jorgemonteiro.home_app.model.entities.recipes.RecipeIngredient;
@@ -25,6 +28,7 @@ import org.springframework.validation.annotation.Validated;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -103,24 +107,44 @@ public class RecipeService {
 
     private void syncPhotos(Recipe recipe, RecipeDTO dto) {
         if (dto.getPhotos() != null) {
-            recipe.getPhotos().clear();
-            recipe.getPhotos().addAll(dto.getPhotos().stream()
+            // Surgical sync for photos
+            Map<Long, RecipePhoto> existingPhotos = recipe.getPhotos().stream()
+                    .filter(p -> p.getId() != null)
+                    .collect(Collectors.toMap(RecipePhoto::getId, p -> p));
+
+            List<RecipePhoto> newPhotos = dto.getPhotos().stream()
                     .map(photoDto -> {
-                        RecipePhoto photo = RecipeAdapter.toPhotoEntity(photoDto);
-                        photo.setRecipe(recipe);
+                        RecipePhoto photo = existingPhotos.get(photoDto.getId());
+                        if (photo == null) {
+                            photo = RecipeAdapter.toPhotoEntity(photoDto);
+                            photo.setRecipe(recipe);
+                        } else {
+                            photo.setPhotoData(photoDto.getPhotoData());
+                            photo.setIsDefault(photoDto.getIsDefault());
+                        }
                         return photo;
                     })
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList());
+
+            recipe.getPhotos().clear();
+            recipe.getPhotos().addAll(newPhotos);
         }
     }
 
     private void syncIngredients(Recipe recipe, RecipeDTO dto) {
         if (dto.getIngredients() != null) {
-            recipe.getIngredients().clear();
-            recipe.getIngredients().addAll(dto.getIngredients().stream()
+            // Surgical sync for ingredients
+            Map<Long, RecipeIngredient> existingIngs = recipe.getIngredients().stream()
+                    .filter(i -> i.getId() != null)
+                    .collect(Collectors.toMap(RecipeIngredient::getId, i -> i));
+
+            List<RecipeIngredient> newIngs = dto.getIngredients().stream()
                     .map(ingDto -> {
-                        RecipeIngredient ing = new RecipeIngredient();
-                        ing.setRecipe(recipe);
+                        RecipeIngredient ing = existingIngs.get(ingDto.getId());
+                        if (ing == null) {
+                            ing = new RecipeIngredient();
+                            ing.setRecipe(recipe);
+                        }
                         ing.setQuantity(ingDto.getQuantity());
                         ing.setUnit(ingDto.getUnit());
                         
@@ -129,20 +153,37 @@ public class RecipeService {
                         ing.setItem(item);
                         return ing;
                     })
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList());
+
+            recipe.getIngredients().clear();
+            recipe.getIngredients().addAll(newIngs);
         }
     }
 
     private void syncSteps(Recipe recipe, RecipeDTO dto) {
         if (dto.getSteps() != null) {
-            recipe.getSteps().clear();
-            recipe.getSteps().addAll(dto.getSteps().stream()
+            // Surgical sync for steps to avoid Optimistic Locking issues
+            Map<Long, RecipeStep> existingSteps = recipe.getSteps().stream()
+                    .filter(s -> s.getId() != null)
+                    .collect(Collectors.toMap(RecipeStep::getId, s -> s));
+
+            List<RecipeStep> newSteps = dto.getSteps().stream()
                     .map(stepDto -> {
-                        RecipeStep step = RecipeAdapter.toStepEntity(stepDto);
-                        step.setRecipe(recipe);
+                        RecipeStep step = existingSteps.get(stepDto.getId());
+                        if (step == null) {
+                            step = RecipeAdapter.toStepEntity(stepDto);
+                            step.setRecipe(recipe);
+                        } else {
+                            step.setInstruction(stepDto.getInstruction());
+                            step.setTimeMinutes(stepDto.getTimeMinutes());
+                            step.setSortOrder(stepDto.getSortOrder());
+                        }
                         return step;
                     })
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList());
+
+            recipe.getSteps().clear();
+            recipe.getSteps().addAll(newSteps);
         }
     }
 

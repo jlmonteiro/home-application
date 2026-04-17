@@ -7,7 +7,6 @@ import {
   Group,
   Stack,
   ActionIcon,
-  rem,
   LoadingOverlay,
   Box,
   Badge,

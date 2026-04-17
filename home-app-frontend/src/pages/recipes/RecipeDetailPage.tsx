@@ -30,6 +30,7 @@ import {
 import { fetchRecipe } from '../../services/api';
 import { MarkdownContent } from '../../components/MarkdownContent';
 import { RecipeFeedback } from '../../components/recipes/RecipeFeedback';
+import { getPhotoSrc } from '../../utils/photo';
 
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -72,7 +73,7 @@ export default function RecipeDetailPage() {
   return (
     <Container size="lg">
       <Stack gap="xl">
-        <Group justify="space-between">
+        <Group justify="space-between" wrap="nowrap" align="center">
           <Button
             leftSection={<IconArrowLeft size={18} />}
             variant="subtle"
@@ -185,17 +186,27 @@ export default function RecipeDetailPage() {
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl">
               <Stack gap="md">
                 <Title order={3}>Ingredients</Title>
-                <Table variant="vertical" layout="fixed">
+                <Table layout="fixed" verticalSpacing="sm">
                   <Table.Tbody>
                     {recipe.ingredients?.map((ing, index) => (
                       <Table.Tr key={index}>
-                        <Table.Td w={150}>
+                        <Table.Td w={40}>
+                          <Avatar 
+                            src={getPhotoSrc(ing.itemPhoto)} 
+                            size="sm" 
+                            radius="xs"
+                            variant="light"
+                          >
+                            <IconChefHat size={14} />
+                          </Avatar>
+                        </Table.Td>
+                        <Table.Td>
+                          <Text fw={500}>{ing.itemName}</Text>
+                        </Table.Td>
+                        <Table.Td w={120} style={{ textAlign: 'right' }}>
                           <Text fw={700}>
                             {ing.quantity} {ing.unit}
                           </Text>
-                        </Table.Td>
-                        <Table.Td>
-                          <Text>{ing.itemName}</Text>
                         </Table.Td>
                       </Table.Tr>
                     ))}
@@ -240,7 +251,7 @@ export default function RecipeDetailPage() {
                 <Stack gap="md">
                   <Title order={3}>Preparation Steps</Title>
                   <Stack gap="xs">
-                    {recipe.steps?.map((step, index) => (
+                    {recipe.steps.map((step, index) => (
                       <Paper key={index} withBorder p="md" radius="md">
                         <Group align="flex-start" wrap="nowrap">
                           <Avatar color="blue" radius="xl" size="sm">
@@ -264,7 +275,7 @@ export default function RecipeDetailPage() {
 
             <RecipeFeedback
               recipeId={recipe.id}
-              averageRating={recipe.averageRating}
+              averageRating={recipe.averageRating || 0}
               totalRatings={recipe.ratings?.length || 0}
               allRatings={recipe.ratings || []}
             />

@@ -5,22 +5,12 @@ import {
   Button,
   Group,
   Stack,
-  ActionIcon,
-  Modal,
-  TextInput,
-  Select,
-  NumberInput,
-  rem,
   LoadingOverlay,
   Box,
   Paper,
   Divider,
   Badge,
-  FileButton,
-  Image,
-  Textarea,
   Accordion,
-  Center,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useCombobox } from '@mantine/core'
@@ -33,12 +23,10 @@ import {
   IconArrowLeft,
   IconCheck,
   IconCalculator,
-  IconUpload,
   IconEdit,
   IconAlertCircle,
   IconBuildingStore,
   IconChevronRight,
-  IconBasket,
 } from '@tabler/icons-react'
 import {
   fetchList,
@@ -62,7 +50,6 @@ import { PriceHistoryModal } from '../../components/shopping/PriceHistoryModal'
 import { AddItemModal, type AddItemFormValues } from '../../components/shopping/AddItemModal'
 import { EditItemModal } from '../../components/shopping/EditItemModal'
 import { CreateItemModal } from '../../components/shopping/CreateItemModal'
-import { getPhotoSrc } from '../../utils/photo'
 
 export function ShoppingListDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -239,9 +226,6 @@ export function ShoppingListDetailsPage() {
   }
 
   const masterItems = masterItemsData?._embedded?.items || []
-  const filteredMasterItems = masterItems.filter((item) =>
-    item.name.toLowerCase().includes(itemSearch.toLowerCase()),
-  )
 
   const storeOptions = (storesData?._embedded?.stores || []).map((store: ShoppingStore) => ({
     value: store.id.toString(),

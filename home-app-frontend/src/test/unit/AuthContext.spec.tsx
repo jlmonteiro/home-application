@@ -1,4 +1,4 @@
-import { render, screen, waitFor, renderHook } from '@testing-library/react'
+import { waitFor, renderHook } from '@testing-library/react'
 import { AuthProvider, useAuth } from '../../context/AuthContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, expect, vi, beforeEach } from 'vitest'

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from '@mantine/form';
@@ -26,21 +26,7 @@ import {
   Divider,
   Select,
 } from '@mantine/core';
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import type { DragEndEvent } from '@dnd-kit/core';
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
+import { useDisclosure } from '@mantine/hooks';
 import {
   IconArrowLeft,
   IconDeviceFloppy,
@@ -51,14 +37,24 @@ import {
   IconStar,
   IconStarFilled,
   IconPlus,
-  IconListNumbers,
 } from '@tabler/icons-react';
-import { fetchRecipe, createRecipe, updateRecipe, searchLabels, fetchItems } from '../../services/api';
+import {
+  fetchRecipe,
+  createRecipe,
+  updateRecipe,
+  searchLabels,
+  fetchItems,
+  fetchCategories,
+  createItem,
+  type PagedResponse,
+} from '../../services/api';
 import { notifications } from '@mantine/notifications';
 import { MarkdownContent } from '../../components/MarkdownContent';
 import { MarkdownEditor } from '../../components/recipes/MarkdownEditor';
-import { SortableStepItem } from '../../components/recipes/SortableStepItem';
-import type { RecipePhoto, RecipeIngredient, RecipeStep } from '../../types/recipes';
+import { RecipeStepItem } from '../../components/recipes/RecipeStepItem';
+import { CreateItemModal, type CreateItemFormValues } from '../../components/shopping/CreateItemModal';
+import type { Recipe, Label, RecipePhoto, RecipeIngredient, RecipeStep } from '../../types/recipes';
+import type { ShoppingCategory, ShoppingItem } from '../../types/shopping';
 
 export default function RecipeFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -66,12 +62,11 @@ export default function RecipeFormPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
+  const [createItemOpened, { open: openCreateItem, close: closeCreateItem }] = useDisclosure(false);
+  const [activeIngredientIndex, setActiveIngredientIndex] = useState<number | null>(null);
+  
+  // Track which step is currently being edited
+  const [editingStepIndex, setEditingStepIndex] = useState<number | null>(null);
 
   const form = useForm({
     initialValues: {
@@ -93,20 +88,47 @@ export default function RecipeFormPage() {
     },
   });
 
-  const { data: recipe, isLoading } = useQuery({
+  const { data: recipe, isLoading } = useQuery<Recipe>({
     queryKey: ['recipe', id],
     queryFn: () => fetchRecipe(Number(id)),
     enabled: isEdit,
   });
 
-  const { data: allLabels } = useQuery({
+  const { data: allLabels } = useQuery<Label[]>({
     queryKey: ['labels-search', ''],
     queryFn: () => searchLabels(''),
   });
 
-  const { data: masterItems } = useQuery({
+  const { data: masterItems } = useQuery<PagedResponse<ShoppingItem>>({
     queryKey: ['shopping-items-all'],
     queryFn: () => fetchItems(0, 500),
+  });
+
+  const { data: categories } = useQuery<PagedResponse<ShoppingCategory>>({
+    queryKey: ['shopping-categories'],
+    queryFn: () => fetchCategories(0, 500),
+  });
+
+  const categoryOptions = (categories?._embedded?.categories || []).map((cat: ShoppingCategory) => ({
+    value: cat.id.toString(),
+    label: cat.name,
+  }));
+
+  const createItemMutation = useMutation({
+    mutationFn: (values: CreateItemFormValues) =>
+      createItem({
+        name: values.name,
+        category: { id: Number(values.categoryId) } as any,
+        photo: values.photo,
+      }),
+    onSuccess: (newItem) => {
+      queryClient.invalidateQueries({ queryKey: ['shopping-items-all'] });
+      if (activeIngredientIndex !== null) {
+        form.setFieldValue(`ingredients.${activeIngredientIndex}.itemId`, newItem.id);
+      }
+      closeCreateItem();
+      notifications.show({ title: 'Success', message: 'New master item created', color: 'green' });
+    },
   });
 
   useEffect(() => {
@@ -179,19 +201,34 @@ export default function RecipeFormPage() {
   };
 
   const addStep = () => {
-    form.insertListItem('steps', { instruction: '', sortOrder: form.values.steps.length });
+    const newIndex = form.values.steps.length;
+    form.insertListItem('steps', { instruction: '', sortOrder: newIndex });
+    setEditingStepIndex(newIndex);
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = Number(active.id);
-      const newIndex = Number(over.id);
-      const newSteps = arrayMove(form.values.steps, oldIndex, newIndex).map((step, index) => ({
-        ...step,
-        sortOrder: index,
-      }));
-      form.setFieldValue('steps', newSteps);
+  const moveStep = (from: number, to: number) => {
+    const newSteps = [...form.values.steps];
+    const [movedStep] = newSteps.splice(from, 1);
+    newSteps.splice(to, 0, movedStep);
+    
+    // Update sort orders
+    const updatedSteps = newSteps.map((step, index) => ({
+      ...step,
+      sortOrder: index,
+    }));
+    
+    form.setFieldValue('steps', updatedSteps);
+    
+    // Maintain editing index if it was the one moved
+    if (editingStepIndex === from) {
+      setEditingStepIndex(to);
+    } else if (editingStepIndex !== null) {
+      // Logic for if something else moved around the editing step
+      if (from < editingStepIndex && to >= editingStepIndex) {
+        setEditingStepIndex(editingStepIndex - 1);
+      } else if (from > editingStepIndex && to <= editingStepIndex) {
+        setEditingStepIndex(editingStepIndex + 1);
+      }
     }
   };
 
@@ -203,10 +240,13 @@ export default function RecipeFormPage() {
     );
   }
 
-  const itemOptions = (masterItems?._embedded?.items || []).map((item) => ({
-    value: item.id.toString(),
-    label: item.name,
-  }));
+  const itemOptions = [
+    ...(masterItems?._embedded?.items || []).map((item) => ({
+      value: item.id.toString(),
+      label: item.name,
+    })),
+    { value: 'CREATE_NEW', label: '+ Create New Item...' },
+  ];
 
   return (
     <Container size="md">
@@ -326,10 +366,15 @@ export default function RecipeFormPage() {
                             data={itemOptions}
                             searchable
                             {...form.getInputProps(`ingredients.${index}.itemId`)}
-                            onChange={(val) =>
-                              form.setFieldValue(`ingredients.${index}.itemId`, Number(val))
-                            }
-                            value={form.values.ingredients[index].itemId.toString()}
+                            onChange={(val) => {
+                              if (val === 'CREATE_NEW') {
+                                setActiveIngredientIndex(index);
+                                openCreateItem();
+                              } else {
+                                form.setFieldValue(`ingredients.${index}.itemId`, Number(val));
+                              }
+                            }}
+                            value={form.values.ingredients[index].itemId ? form.values.ingredients[index].itemId.toString() : ''}
                           />
                         </Table.Td>
                         <Table.Td>
@@ -370,37 +415,36 @@ export default function RecipeFormPage() {
               <Divider my="sm" label="Preparation Steps" labelPosition="center" />
 
               <Box>
-                <DndContext
-                  sensors={sensors}
-                  collisionDetection={closestCenter}
-                  onDragEnd={handleDragEnd}
-                >
-                  <SortableContext
-                    items={form.values.steps.map((_, i) => i.toString())}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {form.values.steps.map((step, index) => (
-                      <SortableStepItem
-                        key={index}
-                        id={index.toString()}
-                        index={index}
-                        instruction={step.instruction}
-                        timeMinutes={step.timeMinutes}
-                        onInstructionChange={(val) =>
-                          form.setFieldValue(`steps.${index}.instruction`, val)
-                        }
-                        onTimeChange={(val) =>
-                          form.setFieldValue(`steps.${index}.timeMinutes`, Number(val))
-                        }
-                        onRemove={() => form.removeListItem('steps', index)}
-                      />
-                    ))}
-                  </SortableContext>
-                </DndContext>
+                <Stack gap="xs">
+                  {form.values.steps.map((step, index) => (
+                    <RecipeStepItem
+                      key={index}
+                      index={index}
+                      totalSteps={form.values.steps.length}
+                      instruction={step.instruction}
+                      timeMinutes={step.timeMinutes}
+                      isEditing={editingStepIndex === index}
+                      onEdit={() => setEditingStepIndex(index)}
+                      onInstructionChange={(val) =>
+                        form.setFieldValue(`steps.${index}.instruction`, val)
+                      }
+                      onTimeChange={(val) =>
+                        form.setFieldValue(`steps.${index}.timeMinutes`, Number(val))
+                      }
+                      onRemove={() => {
+                        form.removeListItem('steps', index);
+                        setEditingStepIndex(null);
+                      }}
+                      onConfirm={() => setEditingStepIndex(null)}
+                      onMoveUp={() => moveStep(index, index - 1)}
+                      onMoveDown={() => moveStep(index, index + 1)}
+                    />
+                  ))}
+                </Stack>
 
                 <Button
                   variant="subtle"
-                  leftSection={<IconListNumbers size={18} />}
+                  leftSection={<IconPlus size={18} />}
                   onClick={addStep}
                   mt="sm"
                 >
@@ -462,6 +506,15 @@ export default function RecipeFormPage() {
           </form>
         </Paper>
       </Stack>
+
+      <CreateItemModal
+        opened={createItemOpened}
+        onClose={closeCreateItem}
+        categoryOptions={categoryOptions}
+        initialName=""
+        onSubmit={(values) => createItemMutation.mutate(values)}
+        isPending={createItemMutation.isPending}
+      />
     </Container>
   );
 }

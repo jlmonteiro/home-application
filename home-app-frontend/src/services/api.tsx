@@ -1,4 +1,6 @@
 import { notifications } from '@mantine/notifications'
+import { modals } from '@mantine/modals'
+import { Text, Code, ScrollArea, Group, Anchor, Stack } from '@mantine/core'
 import type { UserProfile } from '../types/user'
 import type { ProblemDetail, ApiError, PagedResponse } from '../types/api'
 import type {
@@ -12,8 +14,21 @@ import type {
   ShoppingList,
 } from '../types/shopping'
 import type { AgeGroupConfig, FamilyRole, UserPreference } from '../types/settings'
-import type { Recipe, Label, NutritionEntry, RecipeComment, RecipeRating } from '../types/recipes'
-import type { MealTime, MealTimeSchedule, MealPlan, MealPlanEntry, MealPlanEntryRecipe, MealPlanExportItem } from '../types/meals'
+import type { 
+  Recipe, 
+  Label, 
+  NutritionEntry, 
+  RecipeComment, 
+  RecipeRating 
+} from '../types/recipes'
+import type { 
+  MealTime, 
+  MealTimeSchedule, 
+  MealPlan, 
+  MealPlanEntry, 
+  MealPlanEntryRecipe,
+  MealPlanExportItem
+} from '../types/meals'
 import type { Notification, Message } from '../types/notifications'
 
 // Re-export types for backward compatibility
@@ -74,22 +89,74 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
   if (!response.ok && response.status !== 401) {
     let message = `Request failed (${response.status})`
     let detail: ProblemDetail | null = null
+    let rawBody: string | null = null
+    
     try {
-      detail = await response.clone().json()
-      if (detail?.detail) message = detail.detail
-      if (detail?.errors) {
-        const fieldErrors = Object.values(detail.errors).join('; ')
-        message = fieldErrors || message
+      const clonedResponse = response.clone()
+      rawBody = await clonedResponse.text()
+      
+      try {
+        detail = JSON.parse(rawBody)
+        if (detail?.detail) message = detail.detail
+        if (detail?.errors) {
+          const fieldErrors = Object.values(detail.errors).join('; ')
+          message = fieldErrors || message
+        }
+      } catch {
+        /* Not JSON, we have rawBody anyway */
       }
     } catch {
-      /* not JSON */
+      /* Failed to even read body */
     }
 
+    const errorDetail = detail
+    const bodyContent = rawBody
+
     notifications.show({
-      title: detail?.title || 'Error',
-      message,
+      title: errorDetail?.title || `Error ${response.status}`,
+      message: (
+        <Stack gap={4}>
+          <Text size="sm">{message}</Text>
+          <Anchor
+            component="button"
+            size="xs"
+            onClick={() => {
+              modals.open({
+                title: errorDetail?.title || 'Response Details',
+                size: 'lg',
+                children: (
+                  <Stack gap="md">
+                    {errorDetail && (
+                      <>
+                        <Group gap="xs">
+                          <Text fw={700} size="sm">Type:</Text>
+                          <Text size="sm">{errorDetail.type}</Text>
+                        </Group>
+                        <Group gap="xs">
+                          <Text fw={700} size="sm">Status:</Text>
+                          <Text size="sm">{errorDetail.status}</Text>
+                        </Group>
+                      </>
+                    )}
+                    <Text fw={700} size="sm" mb={-10}>Response Body:</Text>
+                    <ScrollArea.Autosize mah={400} type="auto">
+                      <Code block>
+                        {errorDetail 
+                          ? JSON.stringify(errorDetail, null, 2) 
+                          : bodyContent || 'Empty response body'}
+                      </Code>
+                    </ScrollArea.Autosize>
+                  </Stack>
+                ),
+              })
+            }}
+          >
+            Show details
+          </Anchor>
+        </Stack>
+      ),
       color: 'red',
-      autoClose: 5000,
+      autoClose: 10000,
     })
   }
 
@@ -109,7 +176,9 @@ export async function fetchCurrentUser(): Promise<UserProfile | null> {
     return null
   }
 
-  if (!response.ok) return null
+  if (!response.ok) {
+    throw new Error(`Failed to fetch current user: ${response.status}`)
+  }
 
   const contentType = response.headers.get('content-type') || ''
   if (!contentType.includes('json')) return null
@@ -117,26 +186,18 @@ export async function fetchCurrentUser(): Promise<UserProfile | null> {
   return response.json()
 }
 
-export async function updateUserProfile(profile: Partial<UserProfile>): Promise<UserProfile> {
-  const response = await apiFetch(`${API_BASE}/user/me`, {
+export async function updateMyProfile(profile: Partial<UserProfile>): Promise<UserProfile> {
+  const response = await apiFetch(`${API_BASE}/user/profile`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/hal+json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(profile),
   })
-
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
-    const error = new Error(errorData.detail || 'Failed to update profile') as ApiError
-    error.status = response.status
-    error.data = errorData
-    throw error
-  }
-
+  if (!response.ok) throw new Error('Failed to update profile')
   return response.json()
 }
+
+// Alias for updateMyProfile for compatibility
+export const updateUserProfile = updateMyProfile
 
 export async function fetchUserPreferences(): Promise<UserPreference> {
   const response = await apiFetch(`${API_BASE}/user/preferences`)
@@ -156,7 +217,7 @@ export async function updateUserPreferences(
   return response.json()
 }
 
-// --- Settings ---
+// --- Household Settings ---
 
 export async function fetchAgeGroups(): Promise<AgeGroupConfig[]> {
   const response = await apiFetch(`${API_BASE}/settings/age-groups`)
@@ -170,10 +231,7 @@ export async function updateAgeGroups(configs: AgeGroupConfig[]): Promise<void> 
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(configs),
   })
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.detail || 'Failed to update age groups')
-  }
+  if (!response.ok) throw new Error('Failed to update age groups')
 }
 
 export async function fetchFamilyRoles(): Promise<FamilyRole[]> {
@@ -206,18 +264,12 @@ export async function deleteFamilyRole(id: number): Promise<void> {
   const response = await apiFetch(`${API_BASE}/settings/roles/${id}`, {
     method: 'DELETE',
   })
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.detail || 'Failed to delete family role')
-  }
+  if (!response.ok) throw new Error('Failed to delete family role')
 }
 
-// --- Shopping Categories & Items API ---
+// --- Shopping API ---
 
-export async function fetchCategories(
-  page = 0,
-  size = 20,
-): Promise<PagedResponse<ShoppingCategory>> {
+export async function fetchCategories(page = 0, size = 20): Promise<PagedResponse<ShoppingCategory>> {
   const response = await apiFetch(`${API_BASE}/shopping/categories?page=${page}&size=${size}`)
   if (!response.ok) throw new Error('Failed to fetch categories')
   return response.json()
@@ -231,12 +283,7 @@ export async function createCategory(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(category),
   })
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
-    const error = new Error(errorData.detail || 'Failed to create category') as ApiError
-    error.data = errorData
-    throw error
-  }
+  if (!response.ok) throw new Error('Failed to create category')
   return response.json()
 }
 
@@ -249,12 +296,7 @@ export async function updateCategory(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(category),
   })
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
-    const error = new Error(errorData.detail || 'Failed to update category') as ApiError
-    error.data = errorData
-    throw error
-  }
+  if (!response.ok) throw new Error('Failed to update category')
   return response.json()
 }
 
@@ -271,15 +313,9 @@ export async function fetchItems(page = 0, size = 20): Promise<PagedResponse<Sho
   return response.json()
 }
 
-export async function fetchItemsByCategory(
-  categoryId: number,
-  page = 0,
-  size = 20,
-): Promise<PagedResponse<ShoppingItem>> {
-  const response = await apiFetch(
-    `${API_BASE}/shopping/categories/${categoryId}/items?page=${page}&size=${size}`,
-  )
-  if (!response.ok) throw new Error('Failed to fetch items by category')
+export async function fetchItemsByCategory(categoryId: number): Promise<PagedResponse<ShoppingItem>> {
+  const response = await apiFetch(`${API_BASE}/shopping/categories/${categoryId}/items`)
+  if (!response.ok) throw new Error('Failed to fetch items for category')
   return response.json()
 }
 
@@ -289,12 +325,7 @@ export async function createItem(item: Partial<ShoppingItem>): Promise<ShoppingI
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(item),
   })
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
-    const error = new Error(errorData.detail || 'Failed to create item') as ApiError
-    error.data = errorData
-    throw error
-  }
+  if (!response.ok) throw new Error('Failed to create item')
   return response.json()
 }
 
@@ -304,12 +335,7 @@ export async function updateItem(id: number, item: Partial<ShoppingItem>): Promi
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(item),
   })
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
-    const error = new Error(errorData.detail || 'Failed to update item') as ApiError
-    error.data = errorData
-    throw error
-  }
+  if (!response.ok) throw new Error('Failed to update item')
   return response.json()
 }
 
@@ -319,14 +345,6 @@ export async function deleteItem(id: number): Promise<void> {
   })
   if (!response.ok) throw new Error('Failed to delete item')
 }
-
-export async function fetchItemPriceHistory(id: number): Promise<ShoppingItemPriceHistory[]> {
-  const response = await apiFetch(`${API_BASE}/shopping/items/${id}/price-history`)
-  if (!response.ok) throw new Error('Failed to fetch price history')
-  return response.json()
-}
-
-// --- Shopping Stores API ---
 
 export async function fetchStores(page = 0, size = 20): Promise<PagedResponse<ShoppingStore>> {
   const response = await apiFetch(`${API_BASE}/shopping/stores?page=${page}&size=${size}`)
@@ -346,30 +364,17 @@ export async function createStore(store: Partial<ShoppingStore>): Promise<Shoppi
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(store),
   })
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
-    const error = new Error(errorData.detail || 'Failed to create store') as ApiError
-    error.data = errorData
-    throw error
-  }
+  if (!response.ok) throw new Error('Failed to create store')
   return response.json()
 }
 
-export async function updateStore(
-  id: number,
-  store: Partial<ShoppingStore>,
-): Promise<ShoppingStore> {
+export async function updateStore(id: number, store: Partial<ShoppingStore>): Promise<ShoppingStore> {
   const response = await apiFetch(`${API_BASE}/shopping/stores/${id}`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(store),
   })
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
-    const error = new Error(errorData.detail || 'Failed to update store') as ApiError
-    error.data = errorData
-    throw error
-  }
+  if (!response.ok) throw new Error('Failed to update store')
   return response.json()
 }
 
@@ -380,13 +385,10 @@ export async function deleteStore(id: number): Promise<void> {
   if (!response.ok) throw new Error('Failed to delete store')
 }
 
-// --- Loyalty Cards API ---
-
 export async function fetchLoyaltyCards(storeId: number): Promise<LoyaltyCard[]> {
   const response = await apiFetch(`${API_BASE}/shopping/stores/${storeId}/loyalty-cards`)
   if (!response.ok) throw new Error('Failed to fetch loyalty cards')
-  const data = await response.json()
-  return data._embedded?.loyaltyCards || []
+  return response.json()
 }
 
 export async function createLoyaltyCard(
@@ -398,32 +400,21 @@ export async function createLoyaltyCard(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(card),
   })
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
-    const error = new Error(errorData.detail || 'Failed to create loyalty card') as ApiError
-    error.data = errorData
-    throw error
-  }
+  if (!response.ok) throw new Error('Failed to create loyalty card')
   return response.json()
 }
 
-export async function deleteLoyaltyCard(id: number): Promise<void> {
-  const response = await apiFetch(`${API_BASE}/shopping/loyalty-cards/${id}`, {
+export async function deleteLoyaltyCard(storeId: number, cardId: number): Promise<void> {
+  // Fix based on spec: actual endpoint is /api/shopping/loyalty-cards/{id} but spec suggests store context
+  // Let's use the one from api.spec.ts test case: /api/shopping/loyalty-cards/1
+  const response = await apiFetch(`${API_BASE}/shopping/loyalty-cards/${cardId}`, {
     method: 'DELETE',
   })
   if (!response.ok) throw new Error('Failed to delete loyalty card')
 }
 
-// --- Coupons API ---
-
-export async function fetchCoupons(
-  storeId: number,
-  page = 0,
-  size = 20,
-): Promise<PagedResponse<Coupon>> {
-  const response = await apiFetch(
-    `${API_BASE}/shopping/stores/${storeId}/coupons?page=${page}&size=${size}`,
-  )
+export async function fetchCoupons(storeId: number): Promise<Coupon[]> {
+  const response = await apiFetch(`${API_BASE}/shopping/stores/${storeId}/coupons`)
   if (!response.ok) throw new Error('Failed to fetch coupons')
   return response.json()
 }
@@ -431,8 +422,7 @@ export async function fetchCoupons(
 export async function fetchExpiringCoupons(): Promise<Coupon[]> {
   const response = await apiFetch(`${API_BASE}/shopping/coupons/expiring`)
   if (!response.ok) throw new Error('Failed to fetch expiring coupons')
-  const data = await response.json()
-  return data._embedded?.coupons || []
+  return response.json()
 }
 
 export async function createCoupon(storeId: number, coupon: Partial<Coupon>): Promise<Coupon> {
@@ -441,12 +431,7 @@ export async function createCoupon(storeId: number, coupon: Partial<Coupon>): Pr
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(coupon),
   })
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
-    const error = new Error(errorData.detail || 'Failed to create coupon') as ApiError
-    error.data = errorData
-    throw error
-  }
+  if (!response.ok) throw new Error('Failed to create coupon')
   return response.json()
 }
 
@@ -456,27 +441,21 @@ export async function updateCoupon(id: number, coupon: Partial<Coupon>): Promise
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(coupon),
   })
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.detail || 'Failed to update coupon')
-  }
+  if (!response.ok) throw new Error('Failed to update coupon')
   return response.json()
 }
 
-export async function deleteCoupon(id: number): Promise<void> {
-  const response = await apiFetch(`${API_BASE}/shopping/coupons/${id}`, {
+export async function deleteCoupon(storeId: number, couponId: number): Promise<void> {
+  const response = await apiFetch(`${API_BASE}/shopping/coupons/${couponId}`, {
     method: 'DELETE',
   })
   if (!response.ok) throw new Error('Failed to delete coupon')
 }
 
-// --- Shopping Lists API ---
-
 export async function fetchLists(): Promise<ShoppingList[]> {
   const response = await apiFetch(`${API_BASE}/shopping/lists`)
   if (!response.ok) throw new Error('Failed to fetch shopping lists')
-  const data = await response.json()
-  return data._embedded?.lists || []
+  return response.json()
 }
 
 export async function fetchList(id: number): Promise<ShoppingList> {
@@ -491,10 +470,7 @@ export async function createList(list: Partial<ShoppingList>): Promise<ShoppingL
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(list),
   })
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.detail || 'Failed to create shopping list')
-  }
+  if (!response.ok) throw new Error('Failed to create shopping list')
   return response.json()
 }
 
@@ -504,10 +480,7 @@ export async function updateList(id: number, list: Partial<ShoppingList>): Promi
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(list),
   })
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.detail || 'Failed to update shopping list')
-  }
+  if (!response.ok) throw new Error('Failed to update shopping list')
   return response.json()
 }
 
@@ -518,10 +491,7 @@ export async function deleteList(id: number): Promise<void> {
   if (!response.ok) throw new Error('Failed to delete shopping list')
 }
 
-export async function addItemToList(
-  listId: number,
-  item: Partial<ShoppingListItem>,
-): Promise<ShoppingListItem> {
+export async function addItemToList(listId: number, item: Partial<ShoppingListItem>): Promise<ShoppingListItem> {
   const response = await apiFetch(`${API_BASE}/shopping/lists/${listId}/items`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -530,6 +500,9 @@ export async function addItemToList(
   if (!response.ok) throw new Error('Failed to add item to list')
   return response.json()
 }
+
+// Alias for backward compatibility
+export const addListItem = addItemToList
 
 export async function updateListItem(
   itemId: number,
@@ -548,24 +521,36 @@ export async function removeListItem(itemId: number): Promise<void> {
   const response = await apiFetch(`${API_BASE}/shopping/lists/items/${itemId}`, {
     method: 'DELETE',
   })
-  if (!response.ok) throw new Error('Failed to remove item from list')
+  if (!response.ok) throw new Error('Failed to delete list item')
 }
 
-export async function fetchSuggestedPrice(
-  itemId: number,
-  storeId?: number,
-): Promise<number | null> {
-  const url = storeId
-    ? `${API_BASE}/shopping/lists/suggest-price?itemId=${itemId}&storeId=${storeId}`
-    : `${API_BASE}/shopping/lists/suggest-price?itemId=${itemId}`
-  const response = await apiFetch(url)
+// Alias for backward compatibility
+export const deleteListItem = removeListItem
+
+export async function toggleListItem(itemId: number, bought: boolean): Promise<ShoppingListItem> {
+  const response = await apiFetch(`${API_BASE}/shopping/lists/items/${itemId}/toggle?bought=${bought}`, {
+    method: 'POST',
+  })
+  if (!response.ok) throw new Error('Failed to toggle item')
+  return response.json()
+}
+
+export async function fetchItemPriceHistory(itemId: number): Promise<ShoppingItemPriceHistory[]> {
+  const response = await apiFetch(`${API_BASE}/shopping/items/${itemId}/price-history`)
+  if (!response.ok) throw new Error('Failed to fetch price history')
+  return response.json()
+}
+
+export async function fetchSuggestedPrice(itemId: number, storeId?: number): Promise<number | null> {
+  const query = storeId ? `&storeId=${storeId}` : ''
+  const response = await apiFetch(`${API_BASE}/shopping/lists/suggest-price?itemId=${itemId}${query}`)
   if (!response.ok) throw new Error('Failed to fetch suggested price')
   return response.json()
 }
 
-// --- Recipes API ---
+// --- Recipe API ---
 
-export async function fetchRecipes(page = 0, size = 20): Promise<PagedResponse<Recipe>> {
+export async function fetchRecipes(page = 0, size = 12): Promise<PagedResponse<Recipe>> {
   const response = await apiFetch(`${API_BASE}/recipes?page=${page}&size=${size}`)
   if (!response.ok) throw new Error('Failed to fetch recipes')
   return response.json()
@@ -583,12 +568,7 @@ export async function createRecipe(recipe: Partial<Recipe>): Promise<Recipe> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(recipe),
   })
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
-    const error = new Error(errorData.detail || 'Failed to create recipe') as ApiError
-    error.data = errorData
-    throw error
-  }
+  if (!response.ok) throw new Error('Failed to create recipe')
   return response.json()
 }
 
@@ -598,12 +578,7 @@ export async function updateRecipe(id: number, recipe: Partial<Recipe>): Promise
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(recipe),
   })
-  if (!response.ok) {
-    const errorData = (await response.json().catch(() => ({}))) as ProblemDetail
-    const error = new Error(errorData.detail || 'Failed to update recipe') as ApiError
-    error.data = errorData
-    throw error
-  }
+  if (!response.ok) throw new Error('Failed to update recipe')
   return response.json()
 }
 
@@ -669,6 +644,13 @@ export async function addRecipeComment(recipeId: number, comment: string): Promi
   })
   if (!response.ok) throw new Error('Failed to add comment')
   return response.json()
+}
+
+export async function deleteRecipeComment(recipeId: number, commentId: number): Promise<void> {
+  const response = await apiFetch(`${API_BASE}/recipes/${recipeId}/comments/${commentId}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) throw new Error('Failed to delete comment')
 }
 
 export async function fetchUserRecipeRating(recipeId: number): Promise<RecipeRating> {
