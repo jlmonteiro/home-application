@@ -1,4 +1,4 @@
-package com.jorgemonteiro.home_app.model.entities.recipes;
+package com.jorgemonteiro.home_app.model.entities.media;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -10,30 +10,34 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 /**
- * JPA entity representing a photo for a recipe.
+ * JPA entity representing a centralized binary photo storage.
  */
 @Entity
-@Table(name = "recipe_photos", schema = "recipes")
+@Table(name = "photos", schema = "media")
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class RecipePhoto {
+public class Photo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "recipe_id", nullable = false)
-    private Recipe recipe;
+    @Column(name = "name", nullable = false, unique = true)
+    private String name;
 
-    /** Unique name of the recipe photo stored in media.photos. */
-    @Column(name = "photo_name", nullable = false)
-    private String photoName;
+    @Column(name = "type", nullable = false, length = 50)
+    private String type;
 
-    @Column(name = "is_default", nullable = false)
-    private Boolean isDefault = false;
+    @Column(name = "extension", nullable = false, length = 10)
+    private String extension;
+
+    @Column(name = "content_type", nullable = false, length = 100)
+    private String contentType;
+
+    @Column(name = "data", nullable = false)
+    private byte[] data;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

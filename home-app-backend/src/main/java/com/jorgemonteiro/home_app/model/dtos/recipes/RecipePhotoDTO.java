@@ -10,7 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class RecipePhotoDTO {
     private Long id;
-    private String photoData;
+    private String photoUrl; // Serves as the URL for the frontend
+    private String photoName; // Internal name for database reference
     private Boolean isDefault;
     private Long version;
 }

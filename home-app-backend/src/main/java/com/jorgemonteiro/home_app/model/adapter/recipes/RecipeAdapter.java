@@ -2,15 +2,22 @@ package com.jorgemonteiro.home_app.model.adapter.recipes;
 
 import com.jorgemonteiro.home_app.model.dtos.recipes.*;
 import com.jorgemonteiro.home_app.model.entities.recipes.*;
+import com.jorgemonteiro.home_app.service.media.PhotoService;
+import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 import java.util.stream.Collectors;
 
 /**
  * Static adapter for converting between {@link Recipe} entities and {@link RecipeDTO}s.
  */
+@Component
+@RequiredArgsConstructor
 public class RecipeAdapter {
 
-    public static RecipeDTO toDTO(Recipe entity) {
+    private final PhotoService photoService;
+
+    public RecipeDTO toDTO(Recipe entity) {
         if (entity == null) return null;
 
         RecipeDTO dto = new RecipeDTO();
@@ -36,31 +43,31 @@ public class RecipeAdapter {
 
         if (entity.getPhotos() != null) {
             dto.setPhotos(entity.getPhotos().stream()
-                    .map(RecipeAdapter::toPhotoDTO)
+                    .map(this::toPhotoDTO)
                     .collect(Collectors.toList()));
         }
 
         if (entity.getIngredients() != null) {
             dto.setIngredients(entity.getIngredients().stream()
-                    .map(RecipeAdapter::toIngredientDTO)
+                    .map(this::toIngredientDTO)
                     .collect(Collectors.toList()));
         }
 
         if (entity.getSteps() != null) {
             dto.setSteps(entity.getSteps().stream()
-                    .map(RecipeAdapter::toStepDTO)
+                    .map(this::toStepDTO)
                     .collect(Collectors.toList()));
         }
 
         if (entity.getComments() != null) {
             dto.setComments(entity.getComments().stream()
-                    .map(RecipeAdapter::toCommentDTO)
+                    .map(this::toCommentDTO)
                     .collect(Collectors.toList()));
         }
 
         if (entity.getRatings() != null) {
             dto.setRatings(entity.getRatings().stream()
-                    .map(RecipeAdapter::toRatingDTO)
+                    .map(this::toRatingDTO)
                     .collect(Collectors.toList()));
         }
 
@@ -83,48 +90,49 @@ public class RecipeAdapter {
         return entity;
     }
 
-    public static RecipePhotoDTO toPhotoDTO(RecipePhoto entity) {
+    public RecipePhotoDTO toPhotoDTO(RecipePhoto entity) {
         if (entity == null) return null;
         RecipePhotoDTO dto = new RecipePhotoDTO();
         dto.setId(entity.getId());
-        dto.setPhotoData(entity.getPhotoData());
+        dto.setPhotoUrl(photoService.getPhotoUrl(entity.getPhotoName()));
+        dto.setPhotoName(entity.getPhotoName());
         dto.setIsDefault(entity.getIsDefault());
         dto.setVersion(entity.getVersion());
         return dto;
     }
 
-    public static RecipePhoto toPhotoEntity(RecipePhotoDTO dto) {
+    public RecipePhoto toPhotoEntity(RecipePhotoDTO dto) {
         if (dto == null) return null;
         RecipePhoto entity = new RecipePhoto();
         entity.setId(dto.getId());
-        entity.setPhotoData(dto.getPhotoData());
+        entity.setPhotoName(dto.getPhotoName());
         entity.setIsDefault(dto.getIsDefault());
         entity.setVersion(dto.getVersion());
         return entity;
     }
 
-    public static RecipeIngredientDTO toIngredientDTO(RecipeIngredient entity) {
+    public RecipeIngredientDTO toIngredientDTO(RecipeIngredient entity) {
         if (entity == null) return null;
         RecipeIngredientDTO dto = new RecipeIngredientDTO();
         dto.setId(entity.getId());
         dto.setQuantity(entity.getQuantity());
-        dto.setUnit(entity.getUnit());
         
         if (entity.getItem() != null) {
             dto.setItemId(entity.getItem().getId());
             dto.setItemName(entity.getItem().getName());
-            dto.setItemPhoto(entity.getItem().getPhoto());
+            dto.setItemPhoto(photoService.getPhotoUrl(entity.getItem().getPhoto()));
+            dto.setUnit(entity.getItem().getUnit());
             
             if (entity.getItem().getNutritionEntries() != null) {
                 dto.setNutritionEntries(entity.getItem().getNutritionEntries().stream()
-                        .map(RecipeAdapter::toNutritionDTO)
+                        .map(this::toNutritionDTO)
                         .collect(Collectors.toList()));
             }
         }
         return dto;
     }
 
-    public static NutritionEntryDTO toNutritionDTO(NutritionEntry entity) {
+    public NutritionEntryDTO toNutritionDTO(NutritionEntry entity) {
         if (entity == null) return null;
         NutritionEntryDTO dto = new NutritionEntryDTO();
         dto.setId(entity.getId());
@@ -134,7 +142,7 @@ public class RecipeAdapter {
         return dto;
     }
 
-    public static RecipeStepDTO toStepDTO(RecipeStep entity) {
+    public RecipeStepDTO toStepDTO(RecipeStep entity) {
         if (entity == null) return null;
         RecipeStepDTO dto = new RecipeStepDTO();
         dto.setId(entity.getId());
@@ -154,7 +162,7 @@ public class RecipeAdapter {
         return entity;
     }
 
-    public static RecipeCommentDTO toCommentDTO(RecipeComment entity) {
+    public RecipeCommentDTO toCommentDTO(RecipeComment entity) {
         if (entity == null) return null;
         RecipeCommentDTO dto = new RecipeCommentDTO();
         dto.setId(entity.getId());
@@ -164,13 +172,13 @@ public class RecipeAdapter {
             dto.setUserId(entity.getUser().getId());
             dto.setUserName(entity.getUser().getFirstName() + " " + entity.getUser().getLastName());
             if (entity.getUser().getUserProfile() != null) {
-                dto.setUserPhoto(entity.getUser().getUserProfile().getPhoto());
+                dto.setUserPhoto(photoService.getPhotoUrl(entity.getUser().getUserProfile().getPhoto()));
             }
         }
         return dto;
     }
 
-    public static RecipeRatingDTO toRatingDTO(RecipeRating entity) {
+    public RecipeRatingDTO toRatingDTO(RecipeRating entity) {
         if (entity == null) return null;
         RecipeRatingDTO dto = new RecipeRatingDTO();
         dto.setId(entity.getId());

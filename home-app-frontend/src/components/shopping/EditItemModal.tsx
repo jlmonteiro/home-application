@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { Modal, Stack, Select, NumberInput, Group, Button } from '@mantine/core'
+import { Modal, Stack, Select, NumberInput, Group, Button, Badge, Box } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import type { ShoppingListItem } from '../../services/api'
 
@@ -69,19 +69,18 @@ export function EditItemModal({
             {...form.getInputProps('storeId')}
           />
 
-          <Group grow>
+          <Group grow align="flex-end">
             <NumberInput
               label="Quantity"
               min={0.1}
               step={0.1}
               {...form.getInputProps('quantity')}
             />
-            <Select
-              label="Unit"
-              data={['pcs', 'kg', 'g', 'L', 'ml', 'pack', 'bottle']}
-              comboboxProps={{ withinPortal: true, zIndex: 3000 }}
-              {...form.getInputProps('unit')}
-            />
+            <Box pb={8}>
+              <Badge size="lg" radius="sm" variant="light" h={36} w="100%">
+                {item?.unit || ''}
+              </Badge>
+            </Box>
           </Group>
 
           <NumberInput

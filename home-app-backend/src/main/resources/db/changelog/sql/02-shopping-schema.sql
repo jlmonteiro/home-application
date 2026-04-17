@@ -18,7 +18,7 @@ CREATE TABLE shopping.shopping_categories (
 CREATE TABLE shopping.shopping_items (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    photo TEXT,
+    photo VARCHAR(255),
     category_id BIGINT NOT NULL,
     version BIGINT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -35,7 +35,7 @@ CREATE TABLE shopping.shopping_stores (
     name VARCHAR(100) NOT NULL UNIQUE,
     description TEXT,
     icon VARCHAR(100),
-    photo TEXT,
+    photo VARCHAR(255),
     version BIGINT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
@@ -63,7 +63,7 @@ CREATE TABLE shopping.coupons (
     name VARCHAR(100) NOT NULL,
     description TEXT,
     value VARCHAR(100),
-    photo TEXT,
+    photo VARCHAR(255),
     due_date TIMESTAMP,
     code VARCHAR(100),
     barcode_type VARCHAR(20) DEFAULT 'CODE_128',

@@ -3,13 +3,19 @@ package com.jorgemonteiro.home_app.model.adapter.profiles;
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile;
+import com.jorgemonteiro.home_app.service.media.PhotoService;
+import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Static adapter class that converts between {@link User}/{@link UserProfile} entities
  * and {@link UserProfileDTO}.
- * Entities must never be exposed directly in API responses — always convert via this adapter.
  */
+@Component
+@RequiredArgsConstructor
 public class UserProfileAdapter {
+
+    private final PhotoService photoService;
 
     /**
      * Converts a {@link User} entity (and its associated profile if present) into a {@link UserProfileDTO}.
@@ -17,7 +23,7 @@ public class UserProfileAdapter {
      * @param user the user entity to convert; returns {@code null} if {@code user} is {@code null}
      * @return a populated DTO, with profile fields left {@code null} if no profile is attached
      */
-    public static UserProfileDTO toDTO(User user) {
+    public UserProfileDTO toDTO(User user) {
         if (user == null) return null;
 
         UserProfileDTO dto = new UserProfileDTO();
@@ -28,7 +34,7 @@ public class UserProfileAdapter {
         dto.setEnabled(user.getEnabled());
 
         if (user.getUserProfile() != null) {
-            dto.setPhoto(user.getUserProfile().getPhoto());
+            dto.setPhoto(photoService.getPhotoUrl(user.getUserProfile().getPhoto()));
             dto.setFacebook(user.getUserProfile().getFacebook());
             dto.setMobilePhone(user.getUserProfile().getMobilePhone());
             dto.setInstagram(user.getUserProfile().getInstagram());
@@ -51,7 +57,7 @@ public class UserProfileAdapter {
      * @param dto the DTO to convert; returns {@code null} if {@code dto} is {@code null}
      * @return a new, unpersisted {@link User} entity
      */
-    public static User toEntity(UserProfileDTO dto) {
+    public User toEntity(UserProfileDTO dto) {
         if (dto == null) return null;
 
         User user = new User();
@@ -72,7 +78,7 @@ public class UserProfileAdapter {
      * @param user the owning user entity
      * @return a new, unpersisted {@link UserProfile} entity
      */
-    public static UserProfile toUserProfileEntity(UserProfileDTO dto, User user) {
+    public UserProfile toUserProfileEntity(UserProfileDTO dto, User user) {
         if (dto == null || user == null) return null;
 
         UserProfile userProfile = new UserProfile();

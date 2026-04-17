@@ -32,5 +32,22 @@ CREATE INDEX idx_meal_time_schedules_meal_time ON meals.meal_time_schedules(meal
 -- Seed basic meal times
 INSERT INTO meals.meal_times (name, sort_order) VALUES ('Breakfast', 1);
 INSERT INTO meals.meal_times (name, sort_order) VALUES ('Lunch', 2);
-INSERT INTO meals.meal_times (name, sort_order) VALUES ('Snack', 3);
+INSERT INTO meals.meal_times (name, sort_order) VALUES ('Afternoon Snack', 3);
 INSERT INTO meals.meal_times (name, sort_order) VALUES ('Dinner', 4);
+
+-- Seed default schedules (Mon-Sun) for the default meal times
+-- Breakfast (07:00)
+INSERT INTO meals.meal_time_schedules (meal_time_id, day_of_week, start_time) 
+SELECT id, d, '07:00:00' FROM meals.meal_times CROSS JOIN generate_series(1,7) AS d WHERE name = 'Breakfast';
+
+-- Lunch (12:00)
+INSERT INTO meals.meal_time_schedules (meal_time_id, day_of_week, start_time) 
+SELECT id, d, '12:00:00' FROM meals.meal_times CROSS JOIN generate_series(1,7) AS d WHERE name = 'Lunch';
+
+-- Afternoon Snack (15:00)
+INSERT INTO meals.meal_time_schedules (meal_time_id, day_of_week, start_time) 
+SELECT id, d, '15:00:00' FROM meals.meal_times CROSS JOIN generate_series(1,7) AS d WHERE name = 'Afternoon Snack';
+
+-- Dinner (18:00)
+INSERT INTO meals.meal_time_schedules (meal_time_id, day_of_week, start_time) 
+SELECT id, d, '18:00:00' FROM meals.meal_times CROSS JOIN generate_series(1,7) AS d WHERE name = 'Dinner';

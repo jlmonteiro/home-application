@@ -92,6 +92,7 @@ public class MealAdapter {
         if (entity == null) return null;
         MealPlanEntryRecipeDTO dto = new MealPlanEntryRecipeDTO();
         dto.setId(entity.getId());
+        dto.setMultiplier(entity.getMultiplier());
         if (entity.getRecipe() != null) {
             dto.setRecipeId(entity.getRecipe().getId());
             dto.setRecipeName(entity.getRecipe().getName());

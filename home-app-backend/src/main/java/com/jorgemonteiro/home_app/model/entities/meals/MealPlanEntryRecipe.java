@@ -38,6 +38,9 @@ public class MealPlanEntryRecipe {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @Column(name = "multiplier", nullable = false, precision = 10, scale = 2)
+    private java.math.BigDecimal multiplier = java.math.BigDecimal.ONE;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

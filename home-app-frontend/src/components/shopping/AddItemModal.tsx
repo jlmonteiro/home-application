@@ -12,6 +12,7 @@ import {
   Text,
   Divider,
   Button,
+  Badge,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useCombobox } from '@mantine/core'
@@ -86,10 +87,18 @@ export function AddItemModal({
     } else {
       form.setFieldValue('itemId', val)
       const selected = masterItems.find((i) => i.id.toString() === val)
-      if (selected) setItemSearch(selected.name)
+      if (selected) {
+        setItemSearch(selected.name)
+        form.setFieldValue('unit', selected.unit)
+      }
     }
     combobox.closeDropdown()
   }
+
+  const selectedMasterItem = useMemo(() => 
+    masterItems.find(i => i.id.toString() === form.values.itemId),
+    [masterItems, form.values.itemId]
+  )
 
   return (
     <Modal opened={opened} onClose={onClose} title="Add Item to List" radius="md" zIndex={2000}>
@@ -130,23 +139,26 @@ export function AddItemModal({
                   <>
                     {filteredMasterItems.map((item) => (
                       <Combobox.Option value={item.id.toString()} key={item.id}>
-                        <Group gap="sm">
-                          <Box
-                            w={24}
-                            h={24}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            {item.photo ? (
-                              <Image src={getPhotoSrc(item.photo)} fit="contain" h={24} w={24} />
-                            ) : (
-                              <IconBasket size={14} />
-                            )}
-                          </Box>
-                          <Text size="sm">{item.name}</Text>
+                        <Group gap="sm" justify="space-between">
+                          <Group gap="sm">
+                            <Box
+                              w={24}
+                              h={24}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              {item.photo ? (
+                                <Image src={getPhotoSrc(item.photo)} fit="contain" h={24} w={24} />
+                              ) : (
+                                <IconBasket size={14} />
+                              )}
+                            </Box>
+                            <Text size="sm">{item.name}</Text>
+                          </Group>
+                          <Badge size="xs" variant="outline">{item.unit}</Badge>
                         </Group>
                       </Combobox.Option>
                     ))}
@@ -198,19 +210,18 @@ export function AddItemModal({
             {...form.getInputProps('storeId')}
           />
 
-          <Group grow>
+          <Group grow align="flex-end">
             <NumberInput
               label="Quantity"
               min={0.1}
               step={0.1}
               {...form.getInputProps('quantity')}
             />
-            <Select
-              label="Unit"
-              data={['pcs', 'kg', 'g', 'L', 'ml', 'pack', 'bottle']}
-              comboboxProps={{ withinPortal: true, zIndex: 3000 }}
-              {...form.getInputProps('unit')}
-            />
+            <Box pb={8}>
+              <Badge size="lg" radius="sm" variant="light" h={36} w="100%">
+                {selectedMasterItem?.unit || form.values.unit}
+              </Badge>
+            </Box>
           </Group>
 
           <NumberInput

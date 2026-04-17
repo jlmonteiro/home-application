@@ -569,19 +569,19 @@ export function ShoppingListDetailsPage() {
         isPending={updateItemMutation.isPending}
       />
 
-      {/* Create New Item Modal (Nested) */}
       <CreateItemModal
         opened={createItemOpened}
         onClose={closeCreateItem}
         categoryOptions={categoryOptions}
         initialName={itemSearch}
         onSubmit={(values) => {
-          const selectedCategory = masterItemsData?._embedded?.items?.find(
-            (item) => item.category.id === parseInt(values.categoryId || '0'),
-          )?.category
+          const selectedCategory = categoriesData?._embedded?.categories?.find(
+            (cat) => cat.id === parseInt(values.categoryId || '0'),
+          )
           createItemMutation.mutate({
             name: values.name,
             photo: values.photo,
+            unit: values.unit,
             category: selectedCategory || {
               id: parseInt(values.categoryId || '0'),
               name: '',

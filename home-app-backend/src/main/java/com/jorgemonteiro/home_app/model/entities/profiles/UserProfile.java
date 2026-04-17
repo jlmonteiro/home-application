@@ -44,8 +44,8 @@ public class UserProfile {
     @Column(name = "age_group_name")
     private String ageGroupName;
 
-    /** Profile photo encoded as a Base64 string. May be {@code null} if none was provided. */
-    @Column(columnDefinition = "TEXT")
+    /** Unique name of the profile photo stored in media.photos. */
+    @Column(name = "photo")
     private String photo;
 
     /** Facebook profile URL. */

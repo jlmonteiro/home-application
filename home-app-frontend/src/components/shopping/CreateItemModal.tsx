@@ -15,6 +15,7 @@ interface CreateItemModalProps {
 export interface CreateItemFormValues {
   name: string
   categoryId: string
+  unit: string
   photo: string
 }
 
@@ -30,13 +31,28 @@ export function CreateItemModal({
     initialValues: {
       name: '',
       categoryId: '',
+      unit: 'pcs',
       photo: '',
     },
     validate: {
       name: (v) => (!v ? 'Name is required' : null),
       categoryId: (v) => (!v ? 'Category is required' : null),
+      unit: (v) => (!v ? 'Unit is required' : null),
     },
   })
+
+  // Common grocery units
+  const unitOptions = [
+    { value: 'pcs', label: 'Pieces (pcs)' },
+    { value: 'kg', label: 'Kilograms (kg)' },
+    { value: 'g', label: 'Grams (g)' },
+    { value: 'l', label: 'Liters (l)' },
+    { value: 'ml', label: 'Milliliters (ml)' },
+    { value: 'pack', label: 'Pack' },
+    { value: 'box', label: 'Box' },
+    { value: 'bottle', label: 'Bottle' },
+    { value: 'can', label: 'Can' },
+  ]
 
   // Set initial name when it changes
   if (form.values.name === '' && initialName) {
@@ -62,15 +78,26 @@ export function CreateItemModal({
       <form onSubmit={form.onSubmit(onSubmit)}>
         <Stack gap="md">
           <TextInput required label="Item Name" {...form.getInputProps('name')} />
-          <Select
-            required
-            label="Category"
-            placeholder="Select category"
-            data={categoryOptions}
-            searchable
-            comboboxProps={{ withinPortal: true, zIndex: 5000 }}
-            {...form.getInputProps('categoryId')}
-          />
+          <Group grow>
+            <Select
+              required
+              label="Category"
+              placeholder="Select category"
+              data={categoryOptions}
+              searchable
+              comboboxProps={{ withinPortal: true, zIndex: 5000 }}
+              {...form.getInputProps('categoryId')}
+            />
+            <Select
+              required
+              label="Default Unit"
+              placeholder="Select unit"
+              data={unitOptions}
+              searchable
+              comboboxProps={{ withinPortal: true, zIndex: 5000 }}
+              {...form.getInputProps('unit')}
+            />
+          </Group>
 
           <Group align="flex-end">
             <Box

@@ -5,6 +5,7 @@ import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile;
 import com.jorgemonteiro.home_app.repository.profiles.UserProfileRepository;
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository;
+import com.jorgemonteiro.home_app.service.media.PhotoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -74,7 +75,7 @@ public class UserService {
 
         UserProfile profile = new UserProfile();
         profile.setUser(user);
-        
+
         birthdate.ifPresent(profile::setBirthdate);
 
         // Bootstrap: First user is always an Adult
@@ -85,11 +86,7 @@ public class UserService {
         }
 
         if (pictureUrl != null && !pictureUrl.isEmpty()) {
-            try {
-                profile.setPhoto(photoService.downloadAndConvertToBase64(pictureUrl));
-            } catch (PhotoDownloadException e) {
-                log.warn("Could not download profile photo for new user {}, proceeding without photo: {}", email, e.getMessage());
-            }
+            profile.setPhoto(pictureUrl);
         }
 
         userProfileRepository.save(profile);

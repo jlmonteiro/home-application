@@ -7,9 +7,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 /**
- * Spring Data JPA repository for {@link LoyaltyCard} entities.
+ * Spring Data JPA repository for {@link LoyaltyCard} entity.
  */
 @Repository
 public interface LoyaltyCardRepository extends JpaRepository<LoyaltyCard, Long> {
-    List<LoyaltyCard> findByStoreId(Long storeId);
+    List<LoyaltyCard> findAllByStoreIdOrderByCreatedAtDesc(Long storeId);
 }

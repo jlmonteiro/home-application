@@ -10,14 +10,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Spring Data JPA repository for {@link Coupon} entities.
+ * Spring Data JPA repository for {@link Coupon} entity.
  */
 @Repository
 public interface CouponRepository extends JpaRepository<Coupon, Long> {
-    Page<Coupon> findByStoreId(Long storeId, Pageable pageable);
-    
-    /**
-     * Find unused coupons due within a certain timeframe.
-     */
-    List<Coupon> findByUsedFalseAndDueDateBetweenOrderByDueDateAsc(LocalDateTime start, LocalDateTime end);
+    List<Coupon> findAllByStoreIdOrderByCreatedAtDesc(Long storeId);
+    Page<Coupon> findAllByStoreId(Long storeId, Pageable pageable);
+    List<Coupon> findAllByUsedFalseAndDueDateAfterOrderByDueDateAsc(LocalDateTime dueDate);
 }

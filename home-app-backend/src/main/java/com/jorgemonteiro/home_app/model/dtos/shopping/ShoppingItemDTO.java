@@ -26,6 +26,10 @@ public class ShoppingItemDTO {
     /** Base64-encoded photo data or URL. */
     private String photo;
 
+    @NotBlank(message = "Unit is required")
+    @Size(max = 20, message = "Unit must not exceed 20 characters")
+    private String unit;
+
     /** The category this item belongs to. */
     @NotNull(message = "Category is required")
     private Category category;

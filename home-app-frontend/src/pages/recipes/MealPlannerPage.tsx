@@ -14,7 +14,9 @@ import {
   Modal,
   Badge,
   Select,
+  MultiSelect,
   Divider,
+  NumberInput,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { 
@@ -45,8 +47,6 @@ import { useState } from 'react';
 import dayjs from 'dayjs';
 import isoWeek from 'dayjs/plugin/isoWeek';
 import type { MealPlan, MealPlanEntry, MealPlanEntryRecipe } from '../../types/meals';
-import type { UserProfile } from '../../types/user';
-import type { Recipe } from '../../types/recipes';
 import { useAuth } from '../../context/AuthContext';
 import { MealPlanExportModal } from '../../components/recipes/MealPlanExportModal';
 
@@ -71,12 +71,12 @@ export default function MealPlannerPage() {
     queryFn: fetchMealTimes,
   });
 
-  const { data: recipes } = useQuery({
+  const { data: recipesData } = useQuery({
     queryKey: ['recipes-all'],
     queryFn: () => fetchRecipes(0, 1000),
   });
 
-  const { data: users } = useQuery({
+  const { data: usersData } = useQuery({
     queryKey: ['users-all'],
     queryFn: fetchAllUsers,
   });
@@ -147,6 +147,9 @@ export default function MealPlannerPage() {
       default: return null;
     }
   };
+
+  const recipes = (recipesData as any)?._embedded?.recipes || [];
+  const users = usersData || [];
 
   return (
     <Container size="xl">
@@ -240,19 +243,37 @@ export default function MealPlannerPage() {
                       >
                         {entry && entry.recipes.length > 0 ? (
                           <Stack gap={4}>
-                            {entry.recipes.map((r, i) => (
-                              <Paper key={i} withBorder p={4} radius="xs" bg="white">
-                                <Stack gap={2}>
-                                  <Text size="xs" fw={700} lineClamp={1}>{r.recipeName}</Text>
-                                  {r.userName && (
-                                    <Group gap={2}>
-                                      <IconUser size={10} color="var(--mantine-color-blue-6)" />
-                                      <Text size="10px" c="blue">{r.userName}</Text>
+                            {Array.from(new Set(entry.recipes.map(r => r.recipeId))).map(rid => {
+                              const recipeAssignments = entry.recipes.filter(r => r.recipeId === rid);
+                              const recipeName = recipeAssignments[0].recipeName;
+                              const userNames = recipeAssignments.map(r => r.userName).filter(Boolean);
+                              const multiplier = recipeAssignments[0].multiplier || 1;
+                              
+                              return (
+                                <Paper key={rid} withBorder p={4} radius="xs" bg="white">
+                                  <Stack gap={2}>
+                                    <Group gap={4} wrap="nowrap" align="center" style={{ overflow: 'hidden' }}>
+                                      {multiplier > 1 && (
+                                        <Badge size="xs" variant="filled" color="orange" style={{ flex: '0 0 auto' }}>
+                                          {multiplier}x
+                                        </Badge>
+                                      )}
+                                      <Text size="xs" fw={700} lineClamp={1} style={{ flex: 1 }}>
+                                        {recipeName}
+                                      </Text>
                                     </Group>
-                                  )}
-                                </Stack>
-                              </Paper>
-                            ))}
+                                    {userNames.length > 0 && (
+                                      <Group gap={2}>
+                                        <IconUser size={10} color="var(--mantine-color-blue-6)" />
+                                        <Text size="10px" c="blue" lineClamp={1}>
+                                          {userNames.join(', ')}
+                                        </Text>
+                                      </Group>
+                                    )}
+                                  </Stack>
+                                </Paper>
+                              );
+                            })}
                             
                             <Group gap={4} justify="center" mt={2} wrap="nowrap">
                               {entry.isDone ? (
@@ -292,14 +313,15 @@ export default function MealPlannerPage() {
         onClose={() => setModalOpened(false)} 
         title="Edit Meal Entry"
         size="md"
+        zIndex={3000}
       >
         {selectedCell && (
           <MealEntryEditor 
             plan={plan!}
             day={selectedCell.day}
             timeId={selectedCell.timeId}
-            recipes={recipes?._embedded?.recipes || []}
-            users={users || []}
+            recipes={recipes}
+            users={users}
             onSave={(updatedPlan) => mutation.mutate(updatedPlan)}
             onToggleDone={(entry) => {
               const newPlan = { ...plan! };
@@ -331,41 +353,77 @@ interface MealEntryEditorProps {
   plan: MealPlan;
   day: number;
   timeId: number;
-  recipes: Recipe[];
-  users: UserProfile[];
+  recipes: any[];
+  users: any[];
   onSave: (plan: MealPlan) => void;
   onToggleDone: (entry: MealPlanEntry) => void;
   onVote: (vote: boolean) => void;
   isPending: boolean;
 }
 
+interface RecipeSelection {
+  recipeId: string;
+  userIds: string[];
+  multiplier: number;
+}
+
 function MealEntryEditor({ plan, day, timeId, recipes, users, onSave, onToggleDone, onVote, isPending }: MealEntryEditorProps) {
   const existingEntry = plan.entries.find(e => e.dayOfWeek === day && e.mealTimeId === timeId);
-  const [selectedRecipes, setSelectedRecipes] = useState<MealPlanEntryRecipe[]>(
-    existingEntry?.recipes.map(r => ({ ...r })) || []
-  );
+  
+  const [selections, setSelections] = useState<RecipeSelection[]>(() => {
+    if (!existingEntry) return [];
+    
+    // Group users and multipliers by recipeId
+    const groups = new Map<number, { uids: number[], mult: number }>();
+    existingEntry.recipes.forEach(r => {
+      if (!groups.has(r.recipeId)) groups.set(r.recipeId, { uids: [], mult: r.multiplier || 1 });
+      if (r.userId) groups.get(r.recipeId)!.uids.push(r.userId);
+    });
+
+    return Array.from(groups.entries()).map(([rid, data]) => ({
+      recipeId: String(rid),
+      userIds: data.uids.map(String),
+      multiplier: data.mult
+    }));
+  });
 
   const handleAddRecipe = () => {
-    setSelectedRecipes([...selectedRecipes, { recipeId: 0 }]);
+    setSelections([...selections, { recipeId: '', userIds: [], multiplier: 1 }]);
   };
 
-  const updateRecipe = (index: number, fields: Partial<MealPlanEntryRecipe>) => {
-    const newList = [...selectedRecipes];
+  const updateSelection = (index: number, fields: Partial<RecipeSelection>) => {
+    const newList = [...selections];
     newList[index] = { ...newList[index], ...fields };
-    setSelectedRecipes(newList);
+    setSelections(newList);
   };
 
-  const removeRecipe = (index: number) => {
-    setSelectedRecipes(selectedRecipes.filter((_, i) => i !== index));
+  const removeSelection = (index: number) => {
+    setSelections(selections.filter((_, i) => i !== index));
   };
 
   const handleSave = () => {
     const newPlan = { ...plan };
     const entryIdx = newPlan.entries.findIndex(e => e.dayOfWeek === day && e.mealTimeId === timeId);
     
+    const flattenedRecipes: MealPlanEntryRecipe[] = [];
+    selections.forEach(sel => {
+      if (!sel.recipeId) return;
+      
+      const rid = Number(sel.recipeId);
+      const mult = sel.multiplier;
+      
+      if (sel.userIds.length === 0) {
+        flattenedRecipes.push({ recipeId: rid, multiplier: mult });
+      } else {
+        sel.userIds.forEach(uid => {
+          flattenedRecipes.push({ recipeId: rid, userId: Number(uid), multiplier: mult });
+        });
+      }
+    });
+
     const entryData: MealPlanEntry = existingEntry 
-      ? { ...existingEntry, recipes: selectedRecipes.filter(r => r.recipeId !== 0) }
-      : { mealTimeId: timeId, dayOfWeek: day, isDone: false, recipes: selectedRecipes.filter(r => r.recipeId !== 0) };
+      ? { ...existingEntry, recipes: flattenedRecipes }
+      : { mealTimeId: timeId, dayOfWeek: day, isDone: false, recipes: flattenedRecipes };
 
     if (entryIdx > -1) {
       newPlan.entries[entryIdx] = entryData;
@@ -380,27 +438,41 @@ function MealEntryEditor({ plan, day, timeId, recipes, users, onSave, onToggleDo
     <Stack gap="md">
       <Title order={4}>Recipes</Title>
       
-      {selectedRecipes.map((r, i) => (
+      {selections.map((sel, i) => (
         <Paper key={i} withBorder p="xs" radius="md">
           <Stack gap="xs">
             <Group grow wrap="nowrap">
               <Select
+                label="Recipe"
                 placeholder="Choose recipe"
-                data={recipes.map(rec => ({ value: rec.id.toString(), label: rec.name }))}
-                value={r.recipeId.toString()}
-                onChange={(val) => updateRecipe(i, { recipeId: Number(val) })}
+                data={recipes.map(rec => ({ value: String(rec.id), label: rec.name }))}
+                value={sel.recipeId}
+                onChange={(val) => updateSelection(i, { recipeId: val || '' })}
                 searchable
+                comboboxProps={{ zIndex: 4000 }}
+                style={{ flex: 1 }}
               />
-              <ActionIcon color="red" variant="subtle" onClick={() => removeRecipe(i)}>
+              <NumberInput
+                min={1}
+                max={10}
+                value={sel.multiplier}
+                onChange={(val) => updateSelection(i, { multiplier: Number(val) })}
+                w={70}
+                label="Qty"
+                size="xs"
+              />
+              <ActionIcon color="red" variant="subtle" onClick={() => removeSelection(i)} mt="xl">
                 <IconTrash size={18} />
               </ActionIcon>
             </Group>
-            <Select
-              placeholder="Assign to member (optional)"
-              data={users.map(u => ({ value: u.id.toString(), label: `${u.firstName} ${u.lastName}` }))}
-              value={r.userId?.toString() || ''}
-              onChange={(val) => updateRecipe(i, { userId: val ? Number(val) : undefined })}
+            <MultiSelect
+              placeholder="Assign to members (empty = everyone)"
+              data={users.map(u => ({ value: String(u.id), label: `${u.firstName} ${u.lastName}` }))}
+              value={sel.userIds}
+              onChange={(vals) => updateSelection(i, { userIds: vals })}
               clearable
+              searchable
+              comboboxProps={{ zIndex: 4000 }}
             />
           </Stack>
         </Paper>

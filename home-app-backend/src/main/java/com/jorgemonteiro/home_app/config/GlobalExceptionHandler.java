@@ -138,6 +138,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         problemDetail.setTitle("Internal Server Error");
         problemDetail.setType(errorType(AppErrorType.INTERNAL_SERVER_ERROR));
+        enrichWithExceptionDetails(problemDetail, ex);
         return problemDetail;
     }
 
@@ -168,6 +169,30 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         problemDetail.setTitle("Internal Server Error");
         problemDetail.setType(errorType(AppErrorType.INTERNAL_SERVER_ERROR));
+        enrichWithExceptionDetails(problemDetail, ex);
         return problemDetail;
+    }
+
+    private void enrichWithExceptionDetails(ProblemDetail problemDetail, Exception ex) {
+        if (ex.getMessage() != null) {
+            problemDetail.setProperty("exceptionMessage", ex.getMessage());
+        }
+
+        java.util.List<String> filteredTrace = java.util.Arrays.stream(ex.getStackTrace())
+                .map(StackTraceElement::toString)
+                .filter(line -> line.startsWith("com.jorgemonteiro.home_app") ||
+                                (!line.startsWith("java.base/") &&
+                                 !line.startsWith("jdk.internal.") &&
+                                 !line.startsWith("org.apache.tomcat.") &&
+                                 !line.startsWith("org.apache.catalina.") &&
+                                 !line.startsWith("org.springframework.web.filter.") &&
+                                 !line.startsWith("org.springframework.security.web.FilterChainProxy") &&
+                                 !line.startsWith("jakarta.servlet.")))
+                .limit(15)
+                .toList();
+
+        if (!filteredTrace.isEmpty()) {
+            problemDetail.setProperty("stackTrace", filteredTrace);
+        }
     }
 }

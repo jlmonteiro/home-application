@@ -1,7 +1,7 @@
 package com.jorgemonteiro.home_app.controller.profiles
 
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository
-import com.jorgemonteiro.home_app.service.profiles.PhotoService
+import com.jorgemonteiro.home_app.service.media.PhotoService
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import groovy.json.JsonOutput
 import org.springframework.beans.factory.annotation.Autowired

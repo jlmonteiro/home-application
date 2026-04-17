@@ -14,4 +14,5 @@ public class MealPlanEntryRecipeDTO {
     private String recipeName;
     private Long userId;
     private String userName;
+    private java.math.BigDecimal multiplier;
 }

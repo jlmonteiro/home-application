@@ -33,12 +33,13 @@ public class RecipeFeedbackController {
     private final RecipeCommentRepository commentRepository;
     private final RecipeRatingRepository ratingRepository;
     private final UserRepository userRepository;
+    private final RecipeAdapter recipeAdapter;
 
     @GetMapping("/comments")
     @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<RecipeCommentDTO> getComments(@PathVariable Long recipeId) {
         return commentRepository.findAllByRecipeIdOrderByCreatedAtDesc(recipeId).stream()
-                .map(RecipeAdapter::toCommentDTO)
+                .map(recipeAdapter::toCommentDTO)
                 .collect(Collectors.toList());
     }
 
@@ -54,7 +55,7 @@ public class RecipeFeedbackController {
         comment.setUser(user);
         comment.setComment(dto.getComment());
 
-        return RecipeAdapter.toCommentDTO(commentRepository.save(comment));
+        return recipeAdapter.toCommentDTO(commentRepository.save(comment));
     }
 
     @DeleteMapping("/comments/{commentId}")
@@ -75,7 +76,7 @@ public class RecipeFeedbackController {
     public RecipeRatingDTO getUserRating(@PathVariable Long recipeId, @AuthenticationPrincipal OAuth2User principal) {
         User user = getUser(principal);
         return ratingRepository.findByRecipeIdAndUserId(recipeId, user.getId())
-                .map(RecipeAdapter::toRatingDTO)
+                .map(recipeAdapter::toRatingDTO)
                 .orElse(new RecipeRatingDTO());
     }
 
@@ -83,16 +84,17 @@ public class RecipeFeedbackController {
     public RecipeRatingDTO rateRecipe(@PathVariable Long recipeId, @RequestBody RecipeRatingDTO dto, @AuthenticationPrincipal OAuth2User principal) {
         Recipe recipe = recipeRepository.findById(recipeId)
                 .orElseThrow(() -> new ObjectNotFoundException("Recipe with id " + recipeId + " not found"));
+
         User user = getUser(principal);
 
         RecipeRating rating = ratingRepository.findByRecipeIdAndUserId(recipeId, user.getId())
                 .orElse(new RecipeRating());
-
+        
         rating.setRecipe(recipe);
         rating.setUser(user);
         rating.setRating(dto.getRating());
 
-        return RecipeAdapter.toRatingDTO(ratingRepository.save(rating));
+        return recipeAdapter.toRatingDTO(ratingRepository.save(rating));
     }
 
     private User getUser(OAuth2User principal) {

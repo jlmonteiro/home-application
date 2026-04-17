@@ -2,6 +2,7 @@ package com.jorgemonteiro.home_app.service.profiles
 
 import com.jorgemonteiro.home_app.model.entities.profiles.User
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository
+import com.jorgemonteiro.home_app.service.media.PhotoService
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired

@@ -38,9 +38,6 @@ public class ShoppingListItem {
     @Column(name = "quantity", nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity = BigDecimal.ONE;
 
-    @Column(name = "unit", nullable = false, length = 20)
-    private String unit = "pcs";
-
     @Column(name = "price", precision = 10, scale = 2)
     private BigDecimal price;
 

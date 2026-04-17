@@ -41,7 +41,7 @@ CREATE INDEX idx_user_email ON profiles.user(email);
 CREATE TABLE profiles.user_profile (
     id BIGSERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL UNIQUE,
-    photo TEXT,
+    photo VARCHAR(255),
     facebook VARCHAR(255),
     mobile_phone VARCHAR(20),
     instagram VARCHAR(255),

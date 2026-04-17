@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
 
 /**
- * DTO for an item in the meal plan export preview.
+ * DTO for previewing and selecting ingredients to export to a shopping list.
  */
 @Data
 @NoArgsConstructor
@@ -15,7 +15,17 @@ import java.math.BigDecimal;
 public class MealPlanExportItemDTO {
     private Long itemId;
     private String itemName;
+    private String itemPhoto;
     private BigDecimal quantity;
     private String unit;
-    private BigDecimal existingQuantity; // Quantity already in the target shopping list
+    private BigDecimal existingQuantity;
+    private Long storeId;
+
+    public MealPlanExportItemDTO(Long itemId, String itemName, BigDecimal quantity, String unit, BigDecimal existingQuantity) {
+        this.itemId = itemId;
+        this.itemName = itemName;
+        this.quantity = quantity;
+        this.unit = unit;
+        this.existingQuantity = existingQuantity;
+    }
 }

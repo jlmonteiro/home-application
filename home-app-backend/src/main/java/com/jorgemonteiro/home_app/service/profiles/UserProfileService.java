@@ -9,6 +9,7 @@ import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile;
 import com.jorgemonteiro.home_app.repository.profiles.FamilyRoleRepository;
 import com.jorgemonteiro.home_app.repository.profiles.UserProfileRepository;
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository;
+import com.jorgemonteiro.home_app.service.media.PhotoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -34,20 +35,21 @@ public class UserProfileService {
     private final FamilyRoleRepository familyRoleRepository;
     private final PhotoService photoService;
     private final AgeClassificationService ageClassificationService;
+    private final UserProfileAdapter userProfileAdapter;
 
     @Transactional(readOnly = true)
     public Page<UserProfileDTO> findAll(Pageable pageable) {
-        return userRepository.findAll(pageable).map(UserProfileAdapter::toDTO);
+        return userRepository.findAll(pageable).map(userProfileAdapter::toDTO);
     }
 
     @Transactional(readOnly = true)
     public Optional<UserProfileDTO> getUserProfile(Long id) {
-        return userRepository.findById(id).map(UserProfileAdapter::toDTO);
+        return userRepository.findById(id).map(userProfileAdapter::toDTO);
     }
 
     @Transactional(readOnly = true)
     public Optional<UserProfileDTO> getUserProfile(String email) {
-        return userProfileRepository.findByUserEmail(email).map(up -> UserProfileAdapter.toDTO(up.getUser()));
+        return userProfileRepository.findByUserEmail(email).map(up -> userProfileAdapter.toDTO(up.getUser()));
     }
 
     @Transactional(readOnly = true)
@@ -72,7 +74,8 @@ public class UserProfileService {
         existingUser.setEnabled(dto.getEnabled());
 
         if (existingUser.getUserProfile() == null) {
-            UserProfile newProfile = UserProfileAdapter.toUserProfileEntity(dto, existingUser);
+            UserProfile newProfile = new UserProfile();
+            newProfile.setUser(existingUser);
             applyProfileUpdates(newProfile, dto);
             existingUser.setUserProfile(newProfile);
         } else {
@@ -80,7 +83,7 @@ public class UserProfileService {
         }
 
         User savedUser = userRepository.save(existingUser);
-        return UserProfileAdapter.toDTO(savedUser);
+        return userProfileAdapter.toDTO(savedUser);
     }
 
     public UserProfileDTO updateMyProfile(@Valid UserProfileDTO dto) {
@@ -96,11 +99,15 @@ public class UserProfileService {
         applyProfileUpdates(existingUser.getUserProfile(), dto);
 
         User savedUser = userRepository.save(existingUser);
-        return UserProfileAdapter.toDTO(savedUser);
+        return userProfileAdapter.toDTO(savedUser);
     }
 
     private void applyProfileUpdates(UserProfile profile, UserProfileDTO dto) {
-        profile.setPhoto(processPhoto(dto.getPhoto()));
+        if (dto.getPhoto() != null) {
+            String fileName = "user-" + profile.getUser().getId() + "-profile";
+            profile.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "profile"));
+        }
+        
         profile.setFacebook(dto.getFacebook());
         profile.setMobilePhone(dto.getMobilePhone());
         profile.setInstagram(dto.getInstagram());
@@ -116,12 +123,5 @@ public class UserProfileService {
                     .orElseThrow(() -> new ObjectNotFoundException("Family role not found: " + dto.getFamilyRoleId()));
             profile.setFamilyRole(role);
         }
-    }
-
-    private String processPhoto(String photo) {
-        if (photo != null && photo.startsWith("http")) {
-            return photoService.downloadAndConvertToBase64(photo);
-        }
-        return photo;
     }
 }

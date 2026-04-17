@@ -1,9 +1,11 @@
 export interface RecipePhoto {
   id?: number;
-  photoData: string;
+  photoData?: string; // Kept for backward compatibility if needed
+  photoUrl?: string;  // New centralized binary storage URL
   isDefault: boolean;
   version?: number;
 }
+
 
 export interface Label {
   id?: number;

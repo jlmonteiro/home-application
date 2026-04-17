@@ -1,14 +1,12 @@
 # Gemini CLI Mandates
 
-This project uses `DEVELOPMENT.md` as the primary source of truth for architectural guidelines, coding standards, and operational commands.
+- Use the guidelines in `docs/development` folder. They contain the code rules, expectations, templates and directives to diverse technologies.
 
-**Mandate:** Always adhere to the core practices defined in [DEVELOPMENT.md](DEVELOPMENT.md) and the project's modular rules in [.kiro/rules/](.kiro/rules/).
+- At startup read the file `.ai/projct-context.md` for a brief overview about this project
 
-## Key Commands
-
-- **Build:** `./gradlew build`
-- **Run:** `./gradlew :home-app-backend:bootRun`
-- **Test:** `./gradlew :home-app-backend:test`
-- **Coverage:** `./gradlew :home-app-backend:jacocoTestReport`
-
-Refer to [DEVELOPMENT.md](DEVELOPMENT.md) for more details.
+- Read on demand the skills in `.ai/skills` for operations around:
+  -  documentation update (docs-update)
+  - update/create spock tests (generate-spock-tests)
+  - commit code to git (git-commit-helper)
+  - github workflow suchnas create PRs and branches (github-workflow)
+  - spring rest controllers (spring-rest-expert)

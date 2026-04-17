@@ -24,11 +24,12 @@ public class NutritionEntryController {
 
     private final NutritionEntryRepository nutritionEntryRepository;
     private final ShoppingItemRepository shoppingItemRepository;
+    private final RecipeAdapter recipeAdapter;
 
     @GetMapping
     public List<NutritionEntryDTO> getNutritionEntries(@PathVariable Long itemId) {
         return nutritionEntryRepository.findAllByItemId(itemId).stream()
-                .map(RecipeAdapter::toNutritionDTO)
+                .map(recipeAdapter::toNutritionDTO)
                 .collect(Collectors.toList());
     }
 
@@ -45,13 +46,13 @@ public class NutritionEntryController {
         entry.setValue(dto.getValue());
         entry.setUnit(dto.getUnit());
 
-        return RecipeAdapter.toNutritionDTO(nutritionEntryRepository.save(entry));
+        return recipeAdapter.toNutritionDTO(nutritionEntryRepository.save(entry));
     }
 
     @DeleteMapping("/{nutrientKey}")
     public void deleteNutritionEntry(@PathVariable Long itemId, @PathVariable String nutrientKey) {
         NutritionEntry entry = nutritionEntryRepository.findByItemIdAndNutrientKey(itemId, nutrientKey)
-                .orElseThrow(() -> new ObjectNotFoundException("NutritionEntry for " + nutrientKey));
+                .orElseThrow(() -> new ObjectNotFoundException("NutritionEntry for " + nutrientKey + " not found"));
         nutritionEntryRepository.delete(entry);
     }
 }

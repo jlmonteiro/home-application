@@ -18,6 +18,7 @@ export interface MealPlanEntryRecipe {
   recipeName?: string;
   userId?: number;
   userName?: string;
+  multiplier?: number;
 }
 
 export interface MealPlanEntry {
@@ -42,7 +43,9 @@ export interface MealPlan {
 export interface MealPlanExportItem {
   itemId: number;
   itemName: string;
+  itemPhoto?: string;
   quantity: number;
   unit: string;
   existingQuantity: number;
+  storeId?: number;
 }

@@ -28,14 +28,17 @@ public class ShoppingItem {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    /** Base64-encoded photo data or URL for the item. */
-    @Column(name = "photo", columnDefinition = "TEXT")
+    /** Unique name of the item photo stored in media.photos. */
+    @Column(name = "photo")
     private String photo;
 
     /** The category this item belongs to. */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private ShoppingCategory category;
+
+    @Column(name = "unit", nullable = false, length = 20)
+    private String unit = "pcs";
 
     /** Timestamp set automatically when the record is first persisted. */
     @CreationTimestamp

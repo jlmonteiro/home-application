@@ -12,6 +12,7 @@ import com.jorgemonteiro.home_app.model.entities.meals.MealTime;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingList;
 import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingListItem;
+import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingStore;
 import com.jorgemonteiro.home_app.repository.meals.MealPlanEntryRepository;
 import com.jorgemonteiro.home_app.repository.meals.MealPlanRepository;
 import com.jorgemonteiro.home_app.repository.meals.MealPlanVoteRepository;
@@ -21,6 +22,8 @@ import com.jorgemonteiro.home_app.repository.recipes.RecipeRepository;
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingItemRepository;
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingListItemRepository;
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingListRepository;
+import com.jorgemonteiro.home_app.repository.shopping.ShoppingStoreRepository;
+import com.jorgemonteiro.home_app.service.media.PhotoService;
 import com.jorgemonteiro.home_app.service.notifications.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +57,8 @@ public class MealPlanService {
     private final ShoppingListRepository shoppingListRepository;
     private final ShoppingListItemRepository shoppingListItemRepository;
     private final ShoppingItemRepository shoppingItemRepository;
+    private final ShoppingStoreRepository storeRepository;
+    private final PhotoService photoService;
 
     @Transactional(readOnly = true)
     public List<MealPlanExportItemDTO> getExportPreview(Long planId, Long targetListId) {
@@ -64,53 +69,83 @@ public class MealPlanService {
 
         plan.getEntries().forEach(entry -> {
             entry.getRecipes().forEach(recipeAssignment -> {
+                BigDecimal multiplier = recipeAssignment.getMultiplier() != null ? recipeAssignment.getMultiplier() : BigDecimal.ONE;
+                
                 recipeAssignment.getRecipe().getIngredients().forEach(ing -> {
-                    String key = ing.getItem().getId() + ":" + ing.getUnit();
+                    String key = ing.getItem().getId() + ":" + ing.getItem().getUnit();
                     MealPlanExportItemDTO item = aggregated.getOrDefault(key, new MealPlanExportItemDTO(
                             ing.getItem().getId(),
                             ing.getItem().getName(),
                             BigDecimal.ZERO,
-                            ing.getUnit(),
+                            ing.getItem().getUnit(),
                             BigDecimal.ZERO
                     ));
-                    item.setQuantity(item.getQuantity().add(ing.getQuantity()));
+                    
+                    // Add photo to preview - using photoService to build the correct public URL
+                    item.setItemPhoto(photoService.getPhotoUrl(ing.getItem().getPhoto()));
+                    
+                    // SCALE BY MULTIPLIER
+                    BigDecimal scaledQuantity = ing.getQuantity().multiply(multiplier);
+                    item.setQuantity(item.getQuantity().add(scaledQuantity));
+                    
                     aggregated.put(key, item);
                 });
             });
         });
-// 2. Cross-reference with existing list if provided
-if (targetListId != null) {
-    List<ShoppingListItem> existingItems = shoppingListItemRepository.findAllByListId(targetListId);
-    existingItems.forEach(existing -> {
-        String key = existing.getItem().getId() + ":" + existing.getUnit();
-        if (aggregated.containsKey(key)) {
-            aggregated.get(key).setExistingQuantity(existing.getQuantity());
+
+        if (targetListId != null && targetListId > 0) {
+            List<ShoppingListItem> existingItems = shoppingListItemRepository.findAllByListId(targetListId);
+            existingItems.forEach(existing -> {
+                String key = existing.getItem().getId() + ":" + existing.getItem().getUnit();
+                if (aggregated.containsKey(key)) {
+                    aggregated.get(key).setExistingQuantity(existing.getQuantity());
+                }
+            });
         }
-    });
-}
 
-return new java.util.ArrayList<>(aggregated.values());
-}
+        return new java.util.ArrayList<>(aggregated.values());
+    }
 
-public void exportToList(Long planId, Long targetListId, List<MealPlanExportItemDTO> itemsToExport) {
-ShoppingList list = shoppingListRepository.findById(targetListId)
-        .orElseThrow(() -> new ObjectNotFoundException("ShoppingList with id " + targetListId + " not found"));
+    public void exportToList(Long planId, Long targetListId, List<MealPlanExportItemDTO> itemsToExport, String newListName, String userEmail) {
+        ShoppingList list;
+        if (targetListId != null && targetListId > 0) {
+            log.info("Exporting to existing list: {}", targetListId);
+            list = shoppingListRepository.findById(targetListId)
+                .orElseThrow(() -> new ObjectNotFoundException("ShoppingList with id " + targetListId + " not found"));
+        } else {
+            // Create new list
+            log.info("Creating new shopping list for export: {} (user: {})", newListName, userEmail);
+            User creator = userRepository.findByEmail(userEmail)
+                    .orElseThrow(() -> new ObjectNotFoundException("User not found: " + userEmail));
+            list = new ShoppingList();
+            list.setName(newListName != null && !newListName.isBlank() ? newListName : "Meal Plan Export - " + LocalDate.now());
+            list.setCreatedBy(creator);
+            list.setStatus(com.jorgemonteiro.home_app.model.entities.shopping.ShoppingListStatus.PENDING);
+            list = shoppingListRepository.save(list);
+            log.info("Created new shopping list with ID: {}", list.getId());
+        }
 
-for (MealPlanExportItemDTO dto : itemsToExport) {
-    ShoppingListItem existing = shoppingListItemRepository.findByListIdAndItemIdAndUnit(targetListId, dto.getItemId(), dto.getUnit())
-            .orElse(null);
-
+        for (MealPlanExportItemDTO dto : itemsToExport) {
+            // Find if item exists in this list already
+            ShoppingListItem existing = shoppingListItemRepository.findByListIdAndItemId(list.getId(), dto.getItemId())
+                    .orElse(null);
 
             if (existing != null) {
                 existing.setQuantity(existing.getQuantity().add(dto.getQuantity()));
+                if (dto.getStoreId() != null) {
+                    existing.setStore(storeRepository.findById(dto.getStoreId()).orElse(existing.getStore()));
+                }
                 shoppingListItemRepository.save(existing);
             } else {
                 ShoppingListItem newItem = new ShoppingListItem();
                 newItem.setList(list);
-                newItem.setItem(shoppingItemRepository.findById(dto.getItemId()).orElseThrow());
+                newItem.setItem(shoppingItemRepository.findById(dto.getItemId())
+                        .orElseThrow(() -> new ObjectNotFoundException("Item not found: " + dto.getItemId())));
                 newItem.setQuantity(dto.getQuantity());
-                newItem.setUnit(dto.getUnit());
                 newItem.setBought(false);
+                if (dto.getStoreId() != null) {
+                    newItem.setStore(storeRepository.findById(dto.getStoreId()).orElse(null));
+                }
                 shoppingListItemRepository.save(newItem);
             }
         }
@@ -204,6 +239,8 @@ for (MealPlanExportItemDTO dto : itemsToExport) {
                                         er.setRecipe(recipeRepository.findById(rDto.getRecipeId())
                                                 .orElseThrow(() -> new ObjectNotFoundException("Recipe with id " + rDto.getRecipeId() + " not found")));
                                         
+                                        er.setMultiplier(rDto.getMultiplier() != null ? rDto.getMultiplier() : BigDecimal.ONE);
+
                                         if (rDto.getUserId() != null) {
                                             er.setUser(userRepository.findById(rDto.getUserId())
                                                     .orElseThrow(() -> new ObjectNotFoundException("User with id " + rDto.getUserId() + " not found")));

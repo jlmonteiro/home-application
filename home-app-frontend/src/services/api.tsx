@@ -1,35 +1,32 @@
-import { notifications } from '@mantine/notifications'
-import { modals } from '@mantine/modals'
-import { Text, Code, ScrollArea, Group, Anchor, Stack } from '@mantine/core'
-import type { UserProfile } from '../types/user'
-import type { ProblemDetail, ApiError, PagedResponse } from '../types/api'
+import {notifications} from '@mantine/notifications'
+import {modals} from '@mantine/modals'
+import {Anchor, Box, Group, ScrollArea, Stack, Text} from '@mantine/core'
+import {highlight, languages} from 'prismjs'
+import 'prismjs/components/prism-json'
+import 'prismjs/themes/prism-tomorrow.css'
+import type {UserProfile} from '../types/user'
+import type {ApiError, PagedResponse, ProblemDetail} from '../types/api'
 import type {
+  Coupon,
+  LoyaltyCard,
   ShoppingCategory,
   ShoppingItem,
   ShoppingItemPriceHistory,
-  ShoppingStore,
-  LoyaltyCard,
-  Coupon,
-  ShoppingListItem,
   ShoppingList,
+  ShoppingListItem,
+  ShoppingStore,
 } from '../types/shopping'
-import type { AgeGroupConfig, FamilyRole, UserPreference } from '../types/settings'
-import type { 
-  Recipe, 
-  Label, 
-  NutritionEntry, 
-  RecipeComment, 
-  RecipeRating 
-} from '../types/recipes'
-import type { 
-  MealTime, 
-  MealTimeSchedule, 
-  MealPlan, 
-  MealPlanEntry, 
+import type {AgeGroupConfig, FamilyRole, UserPreference} from '../types/settings'
+import type {Label, NutritionEntry, Recipe, RecipeComment, RecipeRating} from '../types/recipes'
+import type {
+  MealPlan,
+  MealPlanEntry,
   MealPlanEntryRecipe,
-  MealPlanExportItem
+  MealPlanExportItem,
+  MealTime,
+  MealTimeSchedule
 } from '../types/meals'
-import type { Notification, Message } from '../types/notifications'
+import type {Message, Notification} from '../types/notifications'
 
 // Re-export types for backward compatibility
 export type {
@@ -90,11 +87,11 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
     let message = `Request failed (${response.status})`
     let detail: ProblemDetail | null = null
     let rawBody: string | null = null
-    
+
     try {
       const clonedResponse = response.clone()
       rawBody = await clonedResponse.text()
-      
+
       try {
         detail = JSON.parse(rawBody)
         if (detail?.detail) message = detail.detail
@@ -113,6 +110,7 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
     const bodyContent = rawBody
 
     notifications.show({
+      id: `error-${response.status}-${url}`,
       title: errorDetail?.title || `Error ${response.status}`,
       message: (
         <Stack gap={4}>
@@ -122,8 +120,10 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
             size="xs"
             onClick={() => {
               modals.open({
+                modalId: 'api-error-details',
                 title: errorDetail?.title || 'Response Details',
                 size: 'lg',
+                zIndex: 3000,
                 children: (
                   <Stack gap="md">
                     {errorDetail && (
@@ -140,11 +140,25 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
                     )}
                     <Text fw={700} size="sm" mb={-10}>Response Body:</Text>
                     <ScrollArea.Autosize mah={400} type="auto">
-                      <Code block>
-                        {errorDetail 
-                          ? JSON.stringify(errorDetail, null, 2) 
-                          : bodyContent || 'Empty response body'}
-                      </Code>
+                      <Box
+                        component="pre"
+                        p="xs"
+                        style={{
+                          backgroundColor: '#2d2d2d',
+                          color: '#ccc',
+                          borderRadius: 'var(--mantine-radius-md)',
+                          fontSize: '12px'
+                        }}
+                        dangerouslySetInnerHTML={{
+                          __html: highlight(
+                            errorDetail
+                              ? JSON.stringify(errorDetail, null, 2)
+                              : bodyContent || 'Empty response body',
+                            languages.json,
+                            'json'
+                          )
+                        }}
+                      />
                     </ScrollArea.Autosize>
                   </Stack>
                 ),
@@ -404,7 +418,8 @@ export async function createLoyaltyCard(
   return response.json()
 }
 
-export async function deleteLoyaltyCard(storeId: number, cardId: number): Promise<void> {
+export async function deleteLoyaltyCard(_storeId: number, cardId: number): Promise<void> {
+
   // Fix based on spec: actual endpoint is /api/shopping/loyalty-cards/{id} but spec suggests store context
   // Let's use the one from api.spec.ts test case: /api/shopping/loyalty-cards/1
   const response = await apiFetch(`${API_BASE}/shopping/loyalty-cards/${cardId}`, {
@@ -445,7 +460,8 @@ export async function updateCoupon(id: number, coupon: Partial<Coupon>): Promise
   return response.json()
 }
 
-export async function deleteCoupon(storeId: number, couponId: number): Promise<void> {
+export async function deleteCoupon(_storeId: number, couponId: number): Promise<void> {
+
   const response = await apiFetch(`${API_BASE}/shopping/coupons/${couponId}`, {
     method: 'DELETE',
   })
@@ -455,7 +471,8 @@ export async function deleteCoupon(storeId: number, couponId: number): Promise<v
 export async function fetchLists(): Promise<ShoppingList[]> {
   const response = await apiFetch(`${API_BASE}/shopping/lists`)
   if (!response.ok) throw new Error('Failed to fetch shopping lists')
-  return response.json()
+  const data = await response.json()
+  return data._embedded?.lists || []
 }
 
 export async function fetchList(id: number): Promise<ShoppingList> {
@@ -550,8 +567,16 @@ export async function fetchSuggestedPrice(itemId: number, storeId?: number): Pro
 
 // --- Recipe API ---
 
-export async function fetchRecipes(page = 0, size = 12): Promise<PagedResponse<Recipe>> {
-  const response = await apiFetch(`${API_BASE}/recipes?page=${page}&size=${size}`)
+export async function fetchRecipes(
+  page = 0,
+  size = 12,
+  search?: string,
+  labels?: string[]
+): Promise<PagedResponse<Recipe>> {
+  let query = `?page=${page}&size=${size}`
+  if (search) query += `&q=${encodeURIComponent(search)}`
+  if (labels && labels.length > 0) query += `&labels=${labels.map(encodeURIComponent).join(',')}`
+  const response = await apiFetch(`${API_BASE}/recipes${query}`)
   if (!response.ok) throw new Error('Failed to fetch recipes')
   return response.json()
 }
@@ -743,8 +768,16 @@ export async function fetchExportPreview(planId: number, listId?: number): Promi
   return response.json()
 }
 
-export async function exportMealPlan(planId: number, listId: number, items: MealPlanExportItem[]): Promise<void> {
-  const response = await apiFetch(`${API_BASE}/meals/plans/${planId}/export?targetListId=${listId}`, {
+export async function exportMealPlan(
+  planId: number, 
+  listId: number, 
+  items: MealPlanExportItem[],
+  newListName?: string
+): Promise<void> {
+  let url = `${API_BASE}/meals/plans/${planId}/export?targetListId=${listId}`
+  if (newListName) url += `&newListName=${encodeURIComponent(newListName)}`
+  
+  const response = await apiFetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(items),

@@ -13,6 +13,7 @@ export interface ShoppingItem {
   id: number
   name: string
   photo?: string
+  unit: string
   category: {
     id: number
     name: string

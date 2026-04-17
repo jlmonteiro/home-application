@@ -2,13 +2,13 @@ package com.jorgemonteiro.home_app.controller.recipes;
 
 import com.jorgemonteiro.home_app.controller.recipes.resource.recipes.RecipeResource;
 import com.jorgemonteiro.home_app.controller.recipes.resource.recipes.RecipeResourceAssembler;
+import com.jorgemonteiro.home_app.model.adapter.recipes.RecipeAdapter;
 import com.jorgemonteiro.home_app.model.dtos.recipes.RecipeDTO;
 import com.jorgemonteiro.home_app.service.recipes.RecipeService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PagedResourcesAssembler;
-import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.PagedModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +27,7 @@ public class RecipeController {
     private final RecipeService recipeService;
     private final RecipeResourceAssembler recipeResourceAssembler;
     private final PagedResourcesAssembler<RecipeDTO> pagedResourcesAssembler;
+    private final RecipeAdapter recipeAdapter;
 
     /**
      * Retrieves all recipes in a paginated format.
@@ -34,8 +35,11 @@ public class RecipeController {
      * @return paged model of recipe resources.
      */
     @GetMapping
-    public PagedModel<RecipeResource> listAllRecipes(Pageable pageable) {
-        var recipes = recipeService.listAllRecipes(pageable);
+    public PagedModel<RecipeResource> listAllRecipes(
+            @RequestParam(name = "q", required = false) String search,
+            @RequestParam(name = "labels", required = false) java.util.List<String> labels,
+            Pageable pageable) {
+        var recipes = recipeService.listAllRecipes(search, labels, pageable);
         return pagedResourcesAssembler.toModel(recipes, recipeResourceAssembler);
     }
 

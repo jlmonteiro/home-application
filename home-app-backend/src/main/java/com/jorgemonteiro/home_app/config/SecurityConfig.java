@@ -56,10 +56,10 @@ public class SecurityConfig {
             .addFilterAfter(csrfCookieFilter(), CsrfFilter.class)
 
             // Configure URL-based authorization rules
-            // Public endpoints: home, login page, error page, OAuth2 callback
+            // Public endpoints: home, login page, error page, OAuth2 callback, public images
             // All other endpoints require authentication
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/error", "/oauth2/**").permitAll()
+                .requestMatchers("/", "/login", "/error", "/oauth2/**", "/api/images/**").permitAll()
                 .anyRequest().authenticated()
             )
 

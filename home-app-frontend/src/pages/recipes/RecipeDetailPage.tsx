@@ -156,7 +156,7 @@ export default function RecipeDetailPage() {
                     {recipe.photos.map((photo, index) => (
                       <Paper key={index} withBorder radius="md" style={{ overflow: 'hidden' }}>
                         <Image
-                          src={photo.photoData}
+                          src={getPhotoSrc(photo.photoUrl)}
                           alt={`Recipe photo ${index + 1}`}
                           fit="contain"
                         />

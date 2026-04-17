@@ -76,10 +76,12 @@ export function ShoppingItemsPage() {
     initialValues: {
       name: '',
       photo: '',
+      unit: 'pcs',
       categoryId: '',
     },
     validate: {
       name: (value) => (value.length < 2 ? 'Name must have at least 2 characters' : null),
+      unit: (value) => (!value ? 'Unit is required' : null),
       categoryId: (value) => (!value ? 'Category is required' : null),
     },
   })
@@ -116,7 +118,9 @@ export function ShoppingItemsPage() {
     mutationFn: ({ id, item }: { id: number; item: Partial<ShoppingItem> }) => updateItem(id, item),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items'] })
-      notifications.show({ title: 'Success', message: 'Item updated successfully', color: 'green' })
+      notifications.show({ title: 'Success', message: 'Item updated successfully', color: 'green' });
+      // Invalidate related lists too
+      queryClient.invalidateQueries({ queryKey: ['shopping-lists'] });
       close()
       setEditingItem(null)
       form.reset()
@@ -145,6 +149,7 @@ export function ShoppingItemsPage() {
     form.setValues({
       name: item.name,
       photo: item.photo || '',
+      unit: item.unit || 'pcs',
       categoryId: item.category.id.toString(),
     })
     open()
@@ -162,6 +167,7 @@ export function ShoppingItemsPage() {
     const payload = {
       name: values.name,
       photo: values.photo,
+      unit: values.unit,
       category: selectedCategory || { id: parseInt(values.categoryId), name: '', icon: '' },
     }
     if (editingItem) {
@@ -182,6 +188,18 @@ export function ShoppingItemsPage() {
     value: cat.id.toString(),
     label: cat.name,
   }))
+
+  const unitOptions = [
+    { value: 'pcs', label: 'Pieces (pcs)' },
+    { value: 'kg', label: 'Kilograms (kg)' },
+    { value: 'g', label: 'Grams (g)' },
+    { value: 'l', label: 'Liters (l)' },
+    { value: 'ml', label: 'Milliliters (ml)' },
+    { value: 'pack', label: 'Pack' },
+    { value: 'box', label: 'Box' },
+    { value: 'bottle', label: 'Bottle' },
+    { value: 'can', label: 'Can' },
+  ]
 
   const rows = items
     .filter((item) => item.name.toLowerCase().includes(search.toLowerCase()))
@@ -212,6 +230,9 @@ export function ShoppingItemsPage() {
         </Table.Td>
         <Table.Td>
           <Text size="sm">{item.category.name}</Text>
+        </Table.Td>
+        <Table.Td>
+          <Badge variant="outline">{item.unit}</Badge>
         </Table.Td>
         <Table.Td>
           <Group gap="xs" justify="flex-end">
@@ -271,6 +292,7 @@ export function ShoppingItemsPage() {
               <Table.Tr>
                 <Table.Th>Item</Table.Th>
                 <Table.Th>Category</Table.Th>
+                <Table.Th>Unit</Table.Th>
                 <Table.Th style={{ width: rem(140) }} />
               </Table.Tr>
             </Table.Thead>
@@ -279,7 +301,7 @@ export function ShoppingItemsPage() {
                 rows
               ) : (
                 <Table.Tr>
-                  <Table.Td colSpan={3}>
+                  <Table.Td colSpan={4}>
                     <Text ta="center" py="xl" c="dimmed">
                       No items found
                     </Text>
@@ -322,6 +344,16 @@ export function ShoppingItemsPage() {
               nothingFoundMessage="No categories found"
               comboboxProps={{ withinPortal: true, zIndex: 3000 }}
               {...form.getInputProps('categoryId')}
+            />
+            
+            <Select
+              required
+              label="Default Unit"
+              placeholder="Select unit"
+              data={unitOptions}
+              searchable
+              comboboxProps={{ withinPortal: true, zIndex: 3000 }}
+              {...form.getInputProps('unit')}
             />
 
             <Group align="flex-end">

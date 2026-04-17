@@ -25,6 +25,7 @@ import {
   Table,
   Divider,
   Select,
+  Badge,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
@@ -46,15 +47,15 @@ import {
   fetchItems,
   fetchCategories,
   createItem,
-  type PagedResponse,
 } from '../../services/api';
 import { notifications } from '@mantine/notifications';
 import { MarkdownContent } from '../../components/MarkdownContent';
 import { MarkdownEditor } from '../../components/recipes/MarkdownEditor';
 import { RecipeStepItem } from '../../components/recipes/RecipeStepItem';
 import { CreateItemModal, type CreateItemFormValues } from '../../components/shopping/CreateItemModal';
-import type { Recipe, Label, RecipePhoto, RecipeIngredient, RecipeStep } from '../../types/recipes';
-import type { ShoppingCategory, ShoppingItem } from '../../types/shopping';
+import type { RecipePhoto, RecipeIngredient, RecipeStep } from '../../types/recipes';
+import type { ShoppingCategory } from '../../types/shopping';
+import { getPhotoSrc } from '../../utils/photo';
 
 export default function RecipeFormPage() {
   const { id } = useParams<{ id: string }>();
@@ -88,28 +89,28 @@ export default function RecipeFormPage() {
     },
   });
 
-  const { data: recipe, isLoading } = useQuery<Recipe>({
+  const { data: recipe, isLoading } = useQuery({
     queryKey: ['recipe', id],
     queryFn: () => fetchRecipe(Number(id)),
     enabled: isEdit,
   });
 
-  const { data: allLabels } = useQuery<Label[]>({
+  const { data: allLabels } = useQuery({
     queryKey: ['labels-search', ''],
     queryFn: () => searchLabels(''),
   });
 
-  const { data: masterItems } = useQuery<PagedResponse<ShoppingItem>>({
+  const { data: masterItems } = useQuery({
     queryKey: ['shopping-items-all'],
     queryFn: () => fetchItems(0, 500),
   });
 
-  const { data: categories } = useQuery<PagedResponse<ShoppingCategory>>({
+  const { data: categories } = useQuery({
     queryKey: ['shopping-categories'],
     queryFn: () => fetchCategories(0, 500),
   });
 
-  const categoryOptions = (categories?._embedded?.categories || []).map((cat: ShoppingCategory) => ({
+  const categoryOptions = ((categories as any)?._embedded?.categories || []).map((cat: ShoppingCategory) => ({
     value: cat.id.toString(),
     label: cat.name,
   }));
@@ -119,12 +120,14 @@ export default function RecipeFormPage() {
       createItem({
         name: values.name,
         category: { id: Number(values.categoryId) } as any,
+        unit: values.unit,
         photo: values.photo,
       }),
     onSuccess: (newItem) => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items-all'] });
       if (activeIngredientIndex !== null) {
         form.setFieldValue(`ingredients.${activeIngredientIndex}.itemId`, newItem.id);
+        form.setFieldValue(`ingredients.${activeIngredientIndex}.unit`, newItem.unit);
       }
       closeCreateItem();
       notifications.show({ title: 'Success', message: 'New master item created', color: 'green' });
@@ -170,7 +173,7 @@ export default function RecipeFormPage() {
     reader.onload = (e) => {
       const base64 = e.target?.result as string;
       const newPhoto: RecipePhoto = {
-        photoData: base64,
+        photoUrl: base64,
         isDefault: form.values.photos.length === 0,
       };
       form.setFieldValue('photos', [...form.values.photos, newPhoto]);
@@ -197,7 +200,7 @@ export default function RecipeFormPage() {
   };
 
   const addIngredient = () => {
-    form.insertListItem('ingredients', { itemId: 0, quantity: 1, unit: 'UNIT' });
+    form.insertListItem('ingredients', { itemId: 0, quantity: 1, unit: '' });
   };
 
   const addStep = () => {
@@ -371,7 +374,13 @@ export default function RecipeFormPage() {
                                 setActiveIngredientIndex(index);
                                 openCreateItem();
                               } else {
-                                form.setFieldValue(`ingredients.${index}.itemId`, Number(val));
+                                const itemId = Number(val);
+                                form.setFieldValue(`ingredients.${index}.itemId`, itemId);
+                                // Sync unit from master items
+                                const selectedItem = masterItems?._embedded?.items?.find((i: any) => i.id === itemId);
+                                if (selectedItem) {
+                                  form.setFieldValue(`ingredients.${index}.unit`, selectedItem.unit);
+                                }
                               }
                             }}
                             value={form.values.ingredients[index].itemId ? form.values.ingredients[index].itemId.toString() : ''}
@@ -384,10 +393,11 @@ export default function RecipeFormPage() {
                           />
                         </Table.Td>
                         <Table.Td>
-                          <Select
-                            data={['UNIT', 'KG', 'G', 'L', 'ML', 'PACK', 'CUP', 'TBSP', 'TSP']}
-                            {...form.getInputProps(`ingredients.${index}.unit`)}
-                          />
+                          <Box pt={4}>
+                            <Badge variant="light" size="lg" radius="sm" w="100%">
+                              {form.values.ingredients[index].unit || '-'}
+                            </Badge>
+                          </Box>
                         </Table.Td>
                         <Table.Td>
                           <ActionIcon
@@ -458,7 +468,7 @@ export default function RecipeFormPage() {
                 <SimpleGrid cols={{ base: 2, sm: 3 }} spacing="md">
                   {form.values.photos.map((photo, index) => (
                     <Card key={index} withBorder padding={0} radius="md" pos="relative">
-                      <Image src={photo.photoData} height={120} fit="cover" radius="md" />
+                      <Image src={getPhotoSrc(photo.photoUrl)} height={120} fit="cover" radius="md" />
                       <Group gap={5} pos="absolute" top={5} right={5}>
                         <ActionIcon
                           color={photo.isDefault ? 'yellow' : 'gray'}

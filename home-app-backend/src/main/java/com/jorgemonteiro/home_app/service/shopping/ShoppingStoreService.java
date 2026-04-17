@@ -12,34 +12,35 @@ import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingStore;
 import com.jorgemonteiro.home_app.repository.shopping.CouponRepository;
 import com.jorgemonteiro.home_app.repository.shopping.LoyaltyCardRepository;
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingStoreRepository;
+import com.jorgemonteiro.home_app.service.media.PhotoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-
-import static java.util.Optional.ofNullable;
+import java.util.UUID;
 
 /**
- * Manages stores, loyalty cards, and coupons.
+ * Manages shopping stores and their associated assets (loyalty cards, coupons).
  */
 @Service
 @RequiredArgsConstructor
 @Transactional
 @Validated
+@Slf4j
 public class ShoppingStoreService {
 
     private final ShoppingStoreRepository storeRepository;
     private final LoyaltyCardRepository loyaltyCardRepository;
     private final CouponRepository couponRepository;
     private final ShoppingAdapter shoppingAdapter;
+    private final PhotoService photoService;
 
     // --- Stores ---
 
@@ -50,15 +51,19 @@ public class ShoppingStoreService {
 
     @Transactional(readOnly = true)
     public ShoppingStoreDTO getStore(Long id) {
-        return storeRepository.findById(id)
-                .map(shoppingAdapter::toStoreDTO)
-                .orElseThrow(() -> new ObjectNotFoundException("Store not found with ID: " + id));
+        return shoppingAdapter.toStoreDTO(requireStore(id));
     }
 
     public ShoppingStoreDTO createStore(@Valid ShoppingStoreDTO dto) {
         assertStoreNameUnique(dto.getName());
-        return shoppingAdapter.toStoreDTO(
-                storeRepository.save(shoppingAdapter.toStoreEntity(dto)));
+        ShoppingStore entity = shoppingAdapter.toStoreEntity(dto);
+        
+        if (dto.getPhoto() != null && dto.getPhoto().startsWith("data:image")) {
+            String fileName = "store-" + UUID.randomUUID();
+            entity.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "store"));
+        }
+
+        return shoppingAdapter.toStoreDTO(storeRepository.save(entity));
     }
 
     public ShoppingStoreDTO updateStore(Long id, @Valid ShoppingStoreDTO dto) {
@@ -66,10 +71,18 @@ public class ShoppingStoreService {
         if (!existing.getName().equals(dto.getName())) {
             assertStoreNameUnique(dto.getName());
         }
+        
         existing.setName(dto.getName());
         existing.setDescription(dto.getDescription());
         existing.setIcon(dto.getIcon());
-        existing.setPhoto(dto.getPhoto());
+        
+        if (dto.getPhoto() != null && dto.getPhoto().startsWith("data:image")) {
+            String fileName = "store-" + UUID.randomUUID();
+            existing.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "store"));
+        } else if (dto.getPhoto() == null) {
+            existing.setPhoto(null);
+        }
+
         return shoppingAdapter.toStoreDTO(storeRepository.save(existing));
     }
 
@@ -82,79 +95,93 @@ public class ShoppingStoreService {
 
     @Transactional(readOnly = true)
     public List<LoyaltyCardDTO> findLoyaltyCardsByStore(Long storeId) {
-        return loyaltyCardRepository.findByStoreId(storeId)
+        requireStore(storeId);
+        return loyaltyCardRepository.findAllByStoreIdOrderByCreatedAtDesc(storeId)
                 .stream()
                 .map(shoppingAdapter::toLoyaltyCardDTO)
                 .toList();
     }
 
     public LoyaltyCardDTO createLoyaltyCard(@Valid LoyaltyCardDTO dto) {
-        ShoppingStore store = requireStore(dto.getStore().getId());
-        LoyaltyCard entity = shoppingAdapter.toLoyaltyCardEntity(dto);
+        Long storeId = dto.getStore().getId();
+        ShoppingStore store = requireStore(storeId);
+        LoyaltyCard entity = shoppingAdapter.toLoyaltyCardEntity(dto, store);
         store.addLoyaltyCard(entity);
         return shoppingAdapter.toLoyaltyCardDTO(loyaltyCardRepository.save(entity));
     }
 
-    public void deleteLoyaltyCard(Long id) {
-        if (!loyaltyCardRepository.existsById(id)) {
-            throw new ObjectNotFoundException("Loyalty card not found with ID: " + id);
+    public void deleteLoyaltyCard(Long cardId) {
+        if (!loyaltyCardRepository.existsById(cardId)) {
+            throw new ObjectNotFoundException("Loyalty card not found with ID: " + cardId);
         }
-        loyaltyCardRepository.deleteById(id);
+        loyaltyCardRepository.deleteById(cardId);
     }
 
     // --- Coupons ---
 
     @Transactional(readOnly = true)
     public Page<CouponDTO> findCouponsByStore(Long storeId, Pageable pageable) {
-        return couponRepository.findByStoreId(storeId, pageable).map(shoppingAdapter::toCouponDTO);
+        requireStore(storeId);
+        return couponRepository.findAllByStoreId(storeId, pageable)
+                .map(shoppingAdapter::toCouponDTO);
     }
 
     @Transactional(readOnly = true)
     public List<CouponDTO> findExpiringCoupons() {
-        LocalDateTime now = LocalDateTime.now();
-        return couponRepository.findByUsedFalseAndDueDateBetweenOrderByDueDateAsc(now, now.plusDays(4))
+        return couponRepository.findAllByUsedFalseAndDueDateAfterOrderByDueDateAsc(LocalDateTime.now())
                 .stream()
                 .map(shoppingAdapter::toCouponDTO)
                 .toList();
     }
 
     public CouponDTO createCoupon(@Valid CouponDTO dto) {
-        ShoppingStore store = requireStore(dto.getStore().getId());
-        Coupon entity = shoppingAdapter.toCouponEntity(dto);
+        Long storeId = dto.getStore().getId();
+        ShoppingStore store = requireStore(storeId);
+        Coupon entity = shoppingAdapter.toCouponEntity(dto, store);
+        
+        if (dto.getPhoto() != null && dto.getPhoto().startsWith("data:image")) {
+            String fileName = "coupon-" + UUID.randomUUID();
+            entity.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "coupon"));
+        }
+        
         store.addCoupon(entity);
         return shoppingAdapter.toCouponDTO(couponRepository.save(entity));
     }
 
     public CouponDTO updateCoupon(Long id, @Valid CouponDTO dto) {
-        Coupon existing = requireCoupon(id);
+        Coupon existing = couponRepository.findById(id)
+                .orElseThrow(() -> new ObjectNotFoundException("Coupon not found with ID: " + id));
+        
         existing.setName(dto.getName());
         existing.setDescription(dto.getDescription());
         existing.setValue(dto.getValue());
-        existing.setPhoto(dto.getPhoto());
-        existing.setDueDate(ofNullable(dto.getDueDate()).map(LocalDate::atStartOfDay).orElse(null));
-        if (dto.getBarcode() != null) {
-            existing.setCode(dto.getBarcode().getCode());
-            existing.setBarcodeType(dto.getBarcode().getType());
+        if (dto.getDueDate() != null) {
+            existing.setDueDate(dto.getDueDate().atStartOfDay());
         }
         existing.setUsed(dto.isUsed());
+        
+        if (dto.getPhoto() != null && dto.getPhoto().startsWith("data:image")) {
+            String fileName = "coupon-" + UUID.randomUUID();
+            existing.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "coupon"));
+        } else if (dto.getPhoto() == null) {
+            existing.setPhoto(null);
+        }
+
         return shoppingAdapter.toCouponDTO(couponRepository.save(existing));
     }
 
-    public void deleteCoupon(Long id) {
-        requireCoupon(id);
-        couponRepository.deleteById(id);
+    public void deleteCoupon(Long couponId) {
+        if (!couponRepository.existsById(couponId)) {
+            throw new ObjectNotFoundException("Coupon not found with ID: " + couponId);
+        }
+        couponRepository.deleteById(couponId);
     }
 
     // --- Private helpers ---
 
-    ShoppingStore requireStore(Long id) {
+    private ShoppingStore requireStore(Long id) {
         return storeRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("Store not found with ID: " + id));
-    }
-
-    private Coupon requireCoupon(Long id) {
-        return couponRepository.findById(id)
-                .orElseThrow(() -> new ObjectNotFoundException("Coupon not found with ID: " + id));
     }
 
     private void assertStoreNameUnique(String name) {

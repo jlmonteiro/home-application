@@ -56,7 +56,7 @@ export function Dashboard() {
 
   const { data: mealPlan, isLoading: mealPlanLoading } = useQuery({
     queryKey: ['meal-plan-today'],
-    queryFn: () => fetchMealPlan(),
+    queryFn: () => fetchMealPlan(dayjs().format('YYYY-MM-DD')),
   })
 
   const [fullscreenCoupon, setFullscreenCoupon] = useState<Coupon | null>(null)
