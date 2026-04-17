@@ -78,27 +78,28 @@ public class MealPlanService {
                 });
             });
         });
-
-        if (targetListId != null) {
-            List<ShoppingListItem> existingItems = shoppingListItemRepository.findAllByShoppingListId(targetListId);
-            existingItems.forEach(existing -> {
-                String key = existing.getItem().getId() + ":" + existing.getUnit();
-                if (aggregated.containsKey(key)) {
-                    aggregated.get(key).setExistingQuantity(existing.getQuantity());
-                }
-            });
+// 2. Cross-reference with existing list if provided
+if (targetListId != null) {
+    List<ShoppingListItem> existingItems = shoppingListItemRepository.findAllByListId(targetListId);
+    existingItems.forEach(existing -> {
+        String key = existing.getItem().getId() + ":" + existing.getUnit();
+        if (aggregated.containsKey(key)) {
+            aggregated.get(key).setExistingQuantity(existing.getQuantity());
         }
+    });
+}
 
-        return new java.util.ArrayList<>(aggregated.values());
-    }
+return new java.util.ArrayList<>(aggregated.values());
+}
 
-    public void exportToList(Long planId, Long targetListId, List<MealPlanExportItemDTO> itemsToExport) {
-        ShoppingList list = shoppingListRepository.findById(targetListId)
-                .orElseThrow(() -> new ObjectNotFoundException("ShoppingList with id " + targetListId + " not found"));
+public void exportToList(Long planId, Long targetListId, List<MealPlanExportItemDTO> itemsToExport) {
+ShoppingList list = shoppingListRepository.findById(targetListId)
+        .orElseThrow(() -> new ObjectNotFoundException("ShoppingList with id " + targetListId + " not found"));
 
-        for (MealPlanExportItemDTO dto : itemsToExport) {
-            ShoppingListItem existing = shoppingListItemRepository.findByShoppingListIdAndItemIdAndUnit(targetListId, dto.getItemId(), dto.getUnit())
-                    .orElse(null);
+for (MealPlanExportItemDTO dto : itemsToExport) {
+    ShoppingListItem existing = shoppingListItemRepository.findByListIdAndItemIdAndUnit(targetListId, dto.getItemId(), dto.getUnit())
+            .orElse(null);
+
 
             if (existing != null) {
                 existing.setQuantity(existing.getQuantity().add(dto.getQuantity()));

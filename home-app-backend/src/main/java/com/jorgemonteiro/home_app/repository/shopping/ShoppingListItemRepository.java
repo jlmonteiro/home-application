@@ -15,9 +15,9 @@ import java.util.Optional;
 @Repository
 public interface ShoppingListItemRepository extends JpaRepository<ShoppingListItem, Long> {
 
-    List<ShoppingListItem> findAllByShoppingListId(Long shoppingListId);
+    List<ShoppingListItem> findAllByListId(Long listId);
 
-    Optional<ShoppingListItem> findByShoppingListIdAndItemIdAndUnit(Long shoppingListId, Long itemId, String unit);
+    Optional<ShoppingListItem> findByListIdAndItemIdAndUnit(Long listId, Long itemId, String unit);
 
     /**
      * Find the last price paid for a specific item at a specific store.
