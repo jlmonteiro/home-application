@@ -1,9 +1,10 @@
 import {notifications} from '@mantine/notifications'
 import {modals} from '@mantine/modals'
-import {Anchor, Box, Group, ScrollArea, Stack, Text} from '@mantine/core'
+import {Anchor, Box, Group, ScrollArea, Stack, Text, CopyButton, Button} from '@mantine/core'
 import {highlight, languages} from 'prismjs'
 import 'prismjs/components/prism-json'
 import 'prismjs/themes/prism-tomorrow.css'
+import {IconCheck, IconCopy} from '@tabler/icons-react'
 import type {UserProfile} from '../types/user'
 import type {ApiError, PagedResponse, ProblemDetail} from '../types/api'
 import type {
@@ -118,12 +119,15 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
           <Anchor
             component="button"
             size="xs"
-            onClick={() => {
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              modals.closeAll();
               modals.open({
                 modalId: 'api-error-details',
                 title: errorDetail?.title || 'Response Details',
                 size: 'lg',
-                zIndex: 3000,
+                zIndex: 4000,
                 children: (
                   <Stack gap="md">
                     {errorDetail && (
@@ -138,7 +142,22 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
                         </Group>
                       </>
                     )}
-                    <Text fw={700} size="sm" mb={-10}>Response Body:</Text>
+                    <Group justify="space-between" align="center" mb={-10}>
+                      <Text fw={700} size="sm">Response Body:</Text>
+                      <CopyButton value={errorDetail ? JSON.stringify(errorDetail, null, 2) : bodyContent || ''}>
+                        {({ copied, copy }) => (
+                          <Button 
+                            color={copied ? 'teal' : 'blue'} 
+                            variant="subtle" 
+                            size="xs" 
+                            onClick={copy}
+                            leftSection={copied ? <IconCheck size={14} /> : <IconCopy size={14} />}
+                          >
+                            {copied ? 'Copied' : 'Copy JSON'}
+                          </Button>
+                        )}
+                      </CopyButton>
+                    </Group>
                     <ScrollArea.Autosize mah={400} type="auto">
                       <Box
                         component="pre"
@@ -637,7 +656,8 @@ export async function searchLabels(query: string): Promise<Label[]> {
 export async function fetchNutritionEntries(itemId: number): Promise<NutritionEntry[]> {
   const response = await apiFetch(`${API_BASE}/items/${itemId}/nutrition`)
   if (!response.ok) throw new Error('Failed to fetch nutrition data')
-  return response.json()
+  const data = await response.json()
+  return data._embedded?.nutritionEntries || []
 }
 
 export async function upsertNutritionEntry(
@@ -651,6 +671,44 @@ export async function upsertNutritionEntry(
   })
   if (!response.ok) throw new Error('Failed to save nutrition entry')
   return response.json()
+}
+
+export async function deleteNutritionEntry(itemId: number, nutrientId: number): Promise<void> {
+  const response = await apiFetch(`${API_BASE}/items/${itemId}/nutrition/${nutrientId}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) throw new Error('Failed to delete nutrition entry')
+}
+
+// --- Nutrient Settings API ---
+
+export async function fetchAllNutrients(): Promise<Nutrient[]> {
+  console.log('Fetching all nutrients...');
+  const response = await apiFetch(`${API_BASE}/settings/nutrients`)
+  if (!response.ok) throw new Error('Failed to fetch nutrients list')
+  const data = await response.json()
+  console.log('FetchAllNutrients raw data:', data);
+  const result = data._embedded?.nutrients || []
+  console.log('FetchAllNutrients result:', result);
+  return result
+}
+
+export async function saveNutrient(nutrient: Partial<Nutrient>): Promise<Nutrient> {
+  const id = (nutrient as any).id
+  const response = await apiFetch(`${API_BASE}/settings/nutrients${id ? `/${id}` : ''}`, {
+    method: id ? 'PUT' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(nutrient),
+  })
+  if (!response.ok) throw new Error('Failed to save nutrient')
+  return response.json()
+}
+
+export async function deleteNutrient(id: number): Promise<void> {
+  const response = await apiFetch(`${API_BASE}/settings/nutrients/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) throw new Error('Failed to delete nutrient')
 }
 
 // --- Recipe Feedback API ---

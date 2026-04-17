@@ -27,7 +27,7 @@ const TYPE_ICONS: Record<string, React.ReactNode> = {
   NEW_MESSAGE: <IconMessage size={20} color="var(--mantine-color-green-6)" />,
 };
 
-export default function NotificationsPage() {
+export function NotificationsPage() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 

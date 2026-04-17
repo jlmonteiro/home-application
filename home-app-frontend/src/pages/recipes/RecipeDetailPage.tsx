@@ -32,7 +32,7 @@ import { MarkdownContent } from '../../components/MarkdownContent';
 import { RecipeFeedback } from '../../components/recipes/RecipeFeedback';
 import { getPhotoSrc } from '../../utils/photo';
 
-export default function RecipeDetailPage() {
+export function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -227,9 +227,9 @@ export default function RecipeDetailPage() {
                     <Table.Tbody>
                       {recipe.nutritionTotals.map((n, index) => (
                         <Table.Tr key={index}>
-                          <Table.Td>{n.nutrientKey}</Table.Td>
+                          <Table.Td fw={500}>{n.nutrientName}</Table.Td>
                           <Table.Td>
-                            {n.value} {n.unit}
+                            {n.value.toFixed(1)} {n.unit}
                           </Table.Td>
                         </Table.Tr>
                       ))}

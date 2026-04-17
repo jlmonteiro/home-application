@@ -1,6 +1,5 @@
 package com.jorgemonteiro.home_app.model.entities.recipes;
 
-import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingItem;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -8,34 +7,31 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * JPA entity representing a nutrition data point for a master item.
+ * JPA entity representing a master nutrient definition (e.g. Energy, Protein).
  */
 @Entity
-@Table(name = "nutrition_entries", schema = "recipes")
+@Table(name = "nutrients", schema = "recipes")
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class NutritionEntry {
+public class Nutrient {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "item_id", nullable = false)
-    private ShoppingItem item;
+    @Column(name = "name", nullable = false, unique = true, length = 50)
+    private String name;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "nutrient_id", nullable = false)
-    private Nutrient nutrient;
+    @Column(name = "description")
+    private String description;
 
-    @Column(name = "value", nullable = false, precision = 10, scale = 2)
-    private BigDecimal value;
+    @Column(name = "unit", nullable = false, length = 20)
+    private String unit;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

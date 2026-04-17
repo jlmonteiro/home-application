@@ -107,7 +107,8 @@ public class ShoppingListService {
         ofNullable(dto.getPrice()).ifPresent(existing::setPrice);
         ofNullable(dto.getBought()).ifPresent(existing::setBought);
         ofNullable(dto.getUnavailable()).ifPresent(existing::setUnavailable);
-        ofNullable(dto.getStore()).map(s -> s.getId()).map(this::requireStore).ifPresent(existing::setStore);
+        ofNullable(dto.getStore()).map(ShoppingListItemDTO.Store::getId)
+            .map(this::requireStore).ifPresent(existing::setStore);
 
         ShoppingListItem saved = listItemRepository.save(existing);
 

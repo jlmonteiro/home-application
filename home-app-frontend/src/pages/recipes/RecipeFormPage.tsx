@@ -57,7 +57,7 @@ import type { RecipePhoto, RecipeIngredient, RecipeStep } from '../../types/reci
 import type { ShoppingCategory } from '../../types/shopping';
 import { getPhotoSrc } from '../../utils/photo';
 
-export default function RecipeFormPage() {
+export function RecipeFormPage() {
   const { id } = useParams<{ id: string }>();
   const isEdit = !!id;
   const navigate = useNavigate();

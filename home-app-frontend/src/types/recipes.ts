@@ -7,16 +7,20 @@ export interface RecipePhoto {
 }
 
 
-export interface Label {
+export interface Nutrient {
   id?: number;
   name: string;
+  description?: string;
+  unit: string;
+  version?: number;
 }
 
 export interface NutritionEntry {
   id?: number;
-  nutrientKey: string;
+  nutrientId: number;
+  nutrientName?: string;
   value: number;
-  unit: string;
+  unit?: string;
 }
 
 export interface RecipeStep {

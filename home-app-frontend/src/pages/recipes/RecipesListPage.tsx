@@ -37,7 +37,7 @@ const SORT_OPTIONS = [
   { value: 'createdAt,desc', label: 'Newest First' },
 ];
 
-export default function RecipesListPage() {
+export function RecipesListPage() {
   const [activePage, setActivePage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch] = useDebouncedValue(search, 400);

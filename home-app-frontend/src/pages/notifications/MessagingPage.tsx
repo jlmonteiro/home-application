@@ -21,7 +21,7 @@ import { useState, useRef, useEffect } from 'react';
 import dayjs from 'dayjs';
 import { useAuth } from '../../context/AuthContext';
 
-export default function MessagingPage() {
+export function MessagingPage() {
   const { recipientId } = useParams<{ recipientId: string }>();
   const { user: me } = useAuth();
   const [message, setMessage] = useState('');

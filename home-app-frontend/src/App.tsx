@@ -10,19 +10,22 @@ import { Dashboard } from './pages/dashboard/Dashboard'
 import { ProfilePage } from './pages/user/ProfilePage'
 import { SettingsPage } from './pages/settings/SettingsPage'
 import { PreferencesPage } from './pages/settings/PreferencesPage'
-import MealTimesPage from './pages/settings/MealTimesPage'
+import { MealTimesPage } from './pages/settings/MealTimesPage'
+import { NutrientSettingsPage } from './pages/settings/NutrientSettingsPage'
+
+
 import { ShoppingCategoriesPage } from './pages/shopping/ShoppingCategoriesPage'
 import { ShoppingItemsPage } from './pages/shopping/ShoppingItemsPage'
 import { StoresPage } from './pages/shopping/StoresPage'
 import { StoreDetailsPage } from './pages/shopping/StoreDetailsPage'
 import { ShoppingListsPage } from './pages/shopping/ShoppingListsPage'
 import { ShoppingListDetailsPage } from './pages/shopping/ShoppingListDetailsPage'
-import RecipesListPage from './pages/recipes/RecipesListPage'
-import RecipeDetailPage from './pages/recipes/RecipeDetailPage'
-import RecipeFormPage from './pages/recipes/RecipeFormPage'
-import MealPlannerPage from './pages/recipes/MealPlannerPage'
-import NotificationsPage from './pages/notifications/NotificationsPage'
-import MessagingPage from './pages/notifications/MessagingPage'
+import { RecipesListPage } from './pages/recipes/RecipesListPage'
+import { RecipeDetailPage } from './pages/recipes/RecipeDetailPage'
+import { RecipeFormPage } from './pages/recipes/RecipeFormPage'
+import { MealPlannerPage } from './pages/recipes/MealPlannerPage'
+import { NotificationsPage } from './pages/notifications/NotificationsPage'
+import { MessagingPage } from './pages/notifications/MessagingPage'
 import { ErrorPage } from './pages/errors/ErrorPage'
 import './App.css'
 
@@ -35,12 +38,12 @@ const queryClient = new QueryClient({
   },
 })
 
-function App() {
+export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <ModalsProvider>
+          <>
             <Notifications />
             <Routes>
               <Route path="/login" element={<LoginPage />} />
@@ -61,6 +64,7 @@ function App() {
                 <Route path="settings">
                   <Route index element={<SettingsPage />} />
                   <Route path="meal-times" element={<MealTimesPage />} />
+                  <Route path="nutrients" element={<NutrientSettingsPage />} />
                 </Route>
 
                 {/* Shopping Routes */}
@@ -85,11 +89,9 @@ function App() {
 
               <Route path="*" element={<ErrorPage type="404" />} />
             </Routes>
-          </ModalsProvider>
+          </>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   )
 }
-
-export default App

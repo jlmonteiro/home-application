@@ -1,4 +1,4 @@
-import { Modal, Stack, TextInput, Select, Group, Box, Image, Button, FileButton } from '@mantine/core'
+import { Modal, Stack, TextInput, Select, Group, Box, Image, Button, FileButton, Divider, Text, NumberInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { IconUpload, IconBasket } from '@tabler/icons-react'
 import { getPhotoSrc } from '../../utils/photo'
@@ -16,6 +16,8 @@ export interface CreateItemFormValues {
   name: string
   categoryId: string
   unit: string
+  nutritionSampleSize: number
+  nutritionSampleUnit: string
   photo: string
 }
 
@@ -32,12 +34,15 @@ export function CreateItemModal({
       name: '',
       categoryId: '',
       unit: 'pcs',
+      nutritionSampleSize: 100,
+      nutritionSampleUnit: 'g',
       photo: '',
     },
     validate: {
       name: (v) => (!v ? 'Name is required' : null),
       categoryId: (v) => (!v ? 'Category is required' : null),
       unit: (v) => (!v ? 'Unit is required' : null),
+      nutritionSampleSize: (v) => (v <= 0 ? 'Sample size must be positive' : null),
     },
   })
 
@@ -96,6 +101,29 @@ export function CreateItemModal({
               searchable
               comboboxProps={{ withinPortal: true, zIndex: 5000 }}
               {...form.getInputProps('unit')}
+            />
+          </Group>
+
+          <Divider label="Nutrition Calculation Context" labelPosition="center" />
+          <Text size="xs" c="dimmed">
+            Define the portion size used for nutritional values (e.g. 100kcal per 100g).
+          </Text>
+
+          <Group grow>
+            <NumberInput
+              required
+              label="Sample Size"
+              min={0.1}
+              decimalScale={2}
+              {...form.getInputProps('nutritionSampleSize')}
+            />
+            <Select
+              required
+              label="Sample Unit"
+              data={unitOptions}
+              searchable
+              comboboxProps={{ withinPortal: true, zIndex: 5000 }}
+              {...form.getInputProps('nutritionSampleUnit')}
             />
           </Group>
 

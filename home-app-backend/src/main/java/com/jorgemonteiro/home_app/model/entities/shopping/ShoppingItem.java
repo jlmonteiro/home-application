@@ -40,6 +40,12 @@ public class ShoppingItem {
     @Column(name = "unit", nullable = false, length = 20)
     private String unit = "pcs";
 
+    @Column(name = "nutrition_sample_size", nullable = false, precision = 10, scale = 2)
+    private java.math.BigDecimal nutritionSampleSize = new java.math.BigDecimal("100.00");
+
+    @Column(name = "nutrition_sample_unit", nullable = false, length = 20)
+    private String nutritionSampleUnit = "g";
+
     /** Timestamp set automatically when the record is first persisted. */
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

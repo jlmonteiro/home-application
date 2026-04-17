@@ -14,6 +14,8 @@ export interface ShoppingItem {
   name: string
   photo?: string
   unit: string
+  nutritionSampleSize: number
+  nutritionSampleUnit: string
   category: {
     id: number
     name: string

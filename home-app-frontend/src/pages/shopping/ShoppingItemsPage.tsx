@@ -5,7 +5,6 @@ import {
   Button,
   Group,
   Stack,
-  Table,
   ActionIcon,
   Modal,
   TextInput,
@@ -18,7 +17,15 @@ import {
   FileButton,
   Image,
   Timeline,
+  Paper,
+  Badge,
+  Center,
+  Table,
+  NumberInput,
+  Divider,
+  ScrollArea,
 } from '@mantine/core'
+
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -32,6 +39,8 @@ import {
   IconUpload,
   IconHistory,
   IconBuildingStore,
+  IconActivity,
+  IconCheck,
 } from '@tabler/icons-react'
 import {
   fetchItems,
@@ -40,9 +49,13 @@ import {
   deleteItem,
   fetchCategories,
   fetchItemPriceHistory,
+  fetchNutritionEntries,
+  fetchAllNutrients,
+  upsertNutritionEntry,
+  deleteNutritionEntry,
   type ApiError,
 } from '../../services/api'
-import type { ShoppingItem } from '../../services/api'
+import type { ShoppingItem, NutritionEntry } from '../../services/api'
 import { getPhotoSrc } from '../../utils/photo'
 
 export function ShoppingItemsPage() {
@@ -51,6 +64,9 @@ export function ShoppingItemsPage() {
   const [search, setSearch] = useState('')
   const [opened, { open, close }] = useDisclosure(false)
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
+
+  const [nutritionOpened, { open: openNutrition, close: closeNutrition }] = useDisclosure(false)
+  const [selectedNutritionItem, setSelectedNutritionItem] = useState<ShoppingItem | null>(null)
 
   const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false)
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<ShoppingItem | null>(null)
@@ -77,12 +93,15 @@ export function ShoppingItemsPage() {
       name: '',
       photo: '',
       unit: 'pcs',
+      nutritionSampleSize: 100,
+      nutritionSampleUnit: 'g',
       categoryId: '',
     },
     validate: {
       name: (value) => (value.length < 2 ? 'Name must have at least 2 characters' : null),
       unit: (value) => (!value ? 'Unit is required' : null),
       categoryId: (value) => (!value ? 'Category is required' : null),
+      nutritionSampleSize: (v) => (v <= 0 ? 'Sample size must be positive' : null),
     },
   })
 
@@ -150,6 +169,8 @@ export function ShoppingItemsPage() {
       name: item.name,
       photo: item.photo || '',
       unit: item.unit || 'pcs',
+      nutritionSampleSize: item.nutritionSampleSize || 100,
+      nutritionSampleUnit: item.nutritionSampleUnit || 'g',
       categoryId: item.category.id.toString(),
     })
     open()
@@ -168,6 +189,8 @@ export function ShoppingItemsPage() {
       name: values.name,
       photo: values.photo,
       unit: values.unit,
+      nutritionSampleSize: values.nutritionSampleSize,
+      nutritionSampleUnit: values.nutritionSampleUnit,
       category: selectedCategory || { id: parseInt(values.categoryId), name: '', icon: '' },
     }
     if (editingItem) {
@@ -236,6 +259,17 @@ export function ShoppingItemsPage() {
         </Table.Td>
         <Table.Td>
           <Group gap="xs" justify="flex-end">
+            <ActionIcon
+              variant="light"
+              color="orange"
+              onClick={() => {
+                setSelectedNutritionItem(item)
+                openNutrition()
+              }}
+              title="Nutrition Data"
+            >
+              <IconActivity style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+            </ActionIcon>
             <ActionIcon
               variant="light"
               color="indigo"
@@ -356,6 +390,29 @@ export function ShoppingItemsPage() {
               {...form.getInputProps('unit')}
             />
 
+            <Divider label="Nutrition Calculation Context" labelPosition="center" />
+            <Text size="xs" c="dimmed">
+              Define the portion size used for nutritional values (e.g. 100kcal per 100g).
+            </Text>
+
+            <Group grow>
+              <NumberInput
+                required
+                label="Sample Size"
+                min={0.1}
+                decimalScale={2}
+                {...form.getInputProps('nutritionSampleSize')}
+              />
+              <Select
+                required
+                label="Sample Unit"
+                data={unitOptions}
+                searchable
+                comboboxProps={{ withinPortal: true, zIndex: 3000 }}
+                {...form.getInputProps('nutritionSampleUnit')}
+              />
+            </Group>
+
             <Group align="flex-end">
               <Box
                 w={64}
@@ -456,6 +513,181 @@ export function ShoppingItemsPage() {
           )}
         </Box>
       </Modal>
+
+      <NutritionModal
+        opened={nutritionOpened}
+        onClose={() => {
+          closeNutrition()
+          setSelectedNutritionItem(null)
+        }}
+        item={selectedNutritionItem}
+      />
     </Stack>
+  )
+}
+
+interface NutritionModalProps {
+  opened: boolean
+  onClose: () => void
+  item: ShoppingItem | null
+}
+
+function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
+  const queryClient = useQueryClient()
+  
+  const { data: allNutrients } = useQuery({
+    queryKey: ['nutrients-master'],
+    queryFn: fetchAllNutrients,
+    enabled: opened,
+  })
+
+  const { data: nutrition, isLoading } = useQuery({
+    queryKey: ['item-nutrition', item?.id],
+    queryFn: () => (item ? fetchNutritionEntries(item.id) : Promise.resolve([])),
+    enabled: !!item && opened,
+  })
+
+  const upsertMutation = useMutation({
+    mutationFn: (entry: Partial<NutritionEntry>) => upsertNutritionEntry(item!.id, entry),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['item-nutrition', item?.id] })
+      notifications.show({ title: 'Success', message: 'Nutrition data updated', color: 'green' })
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (nutrientId: number) => deleteNutritionEntry(item!.id, nutrientId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['item-nutrition', item?.id] })
+      notifications.show({ title: 'Success', message: 'Nutrient removed', color: 'green' })
+    },
+  })
+
+  const nutritionForm = useForm({
+    initialValues: {
+      nutrientId: '' as string | number,
+      value: 0,
+    },
+    validate: {
+      nutrientId: (v) => (!v ? 'Select a nutrient' : null),
+    },
+  })
+
+  const handleAddNutrient = (values: typeof nutritionForm.values) => {
+    upsertMutation.mutate({
+      nutrientId: Number(values.nutrientId),
+      value: values.value,
+    })
+    nutritionForm.reset()
+  }
+
+  const selectedNutrientData = allNutrients?.find(n => String(n.id) === String(nutritionForm.values.nutrientId))
+
+  return (
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={item ? `Nutrition: ${item.name}` : 'Nutrition Data'}
+      radius="md"
+      size="md"
+      zIndex={2000}
+    >
+      <Stack gap="md">
+        <Paper withBorder p="sm" bg="blue.0">
+          <Text size="sm" fw={500} c="blue.9">
+            Provide nutritional values per <strong>{item?.nutritionSampleSize} {item?.nutritionSampleUnit}</strong>.
+          </Text>
+        </Paper>
+
+        <Paper withBorder p="sm" bg="gray.0">
+          <form onSubmit={nutritionForm.onSubmit(handleAddNutrient)}>
+            <Stack gap="xs">
+              <Group grow align="flex-end">
+                <Select
+                  label="Nutrient"
+                  placeholder="Select definition"
+                  data={allNutrients?.map(n => ({ value: String(n.id), label: n.name })) || []}
+                  searchable
+                  required
+                  comboboxProps={{ zIndex: 5000 }}
+                  {...nutritionForm.getInputProps('nutrientId')}
+                />
+                <Group grow gap="xs">
+                  <NumberInput
+                    label="Value"
+                    min={0}
+                    decimalScale={2}
+                    required
+                    {...nutritionForm.getInputProps('value')}
+                  />
+                  <TextInput
+                    label="Unit"
+                    readOnly
+                    variant="filled"
+                    value={selectedNutrientData?.unit || '-'}
+                  />
+                </Group>
+              </Group>
+              <Button 
+                type="submit" 
+                variant="light" 
+                leftSection={<IconPlus size={16} />}
+                loading={upsertMutation.isPending}
+              >
+                Add / Update Nutrient
+              </Button>
+            </Stack>
+          </form>
+        </Paper>
+
+        <ScrollArea.Autosize mah={200} type="auto">
+          <Box pos="relative" mih={100}>
+            <LoadingOverlay visible={isLoading} />
+            
+            {nutrition && nutrition.length > 0 ? (
+              <Table verticalSpacing="xs">
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Nutrient</Table.Th>
+                    <Table.Th w={100}>Value</Table.Th>
+                    <Table.Th w={50}></Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {nutrition.map((entry) => (
+                    <Table.Tr key={entry.nutrientId}>
+                      <Table.Td>
+                        <Text size="sm" fw={500}>{entry.nutrientName}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="sm">{entry.value} {entry.unit}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <ActionIcon 
+                          variant="subtle" 
+                          color="red" 
+                          onClick={() => deleteMutation.mutate(entry.nutrientId)}
+                          loading={deleteMutation.isPending && deleteMutation.variables === entry.nutrientId}
+                        >
+                          <IconTrash size={16} />
+                        </ActionIcon>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            ) : !isLoading && (
+              <Center py="xl">
+                <Text c="dimmed" size="sm">No nutrition data recorded yet.</Text>
+              </Center>
+            )}
+          </Box>
+        </ScrollArea.Autosize>
+
+        <Group justify="flex-end" mt="md">
+          <Button onClick={onClose}>Done</Button>
+        </Group>
+      </Stack>
+    </Modal>
   )
 }

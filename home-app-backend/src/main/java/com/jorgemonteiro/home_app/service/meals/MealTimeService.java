@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -58,14 +59,26 @@ public class MealTimeService {
 
     private void syncSchedules(MealTime entity, MealTimeDTO dto) {
         if (dto.getSchedules() != null) {
-            entity.getSchedules().clear();
-            entity.getSchedules().addAll(dto.getSchedules().stream()
+            // Use surgical updates to avoid OptimisticLockingFailureException
+            Map<Integer, MealTimeSchedule> existingMap = entity.getSchedules().stream()
+                    .collect(Collectors.toMap(MealTimeSchedule::getDayOfWeek, s -> s));
+
+            List<MealTimeSchedule> updatedSchedules = dto.getSchedules().stream()
                     .map(sDto -> {
-                        MealTimeSchedule s = MealAdapter.toScheduleEntity(sDto);
-                        s.setMealTime(entity);
+                        MealTimeSchedule s = existingMap.get(sDto.getDayOfWeek());
+                        if (s == null) {
+                            s = new MealTimeSchedule();
+                            s.setMealTime(entity);
+                            s.setDayOfWeek(sDto.getDayOfWeek());
+                        }
+                        s.setStartTime(sDto.getStartTime());
                         return s;
                     })
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toList());
+
+            // Clear and add back the same managed instances (or new ones)
+            entity.getSchedules().clear();
+            entity.getSchedules().addAll(updatedSchedules);
         }
     }
 }

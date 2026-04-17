@@ -136,10 +136,35 @@ public class RecipeAdapter {
         if (entity == null) return null;
         NutritionEntryDTO dto = new NutritionEntryDTO();
         dto.setId(entity.getId());
-        dto.setNutrientKey(entity.getNutrientKey());
         dto.setValue(entity.getValue());
-        dto.setUnit(entity.getUnit());
+        if (entity.getNutrient() != null) {
+            dto.setNutrientId(entity.getNutrient().getId());
+            dto.setNutrientName(entity.getNutrient().getName());
+            dto.setUnit(entity.getNutrient().getUnit());
+        }
         return dto;
+    }
+
+    public NutrientDTO toNutrientDTO(Nutrient entity) {
+        if (entity == null) return null;
+        return new NutrientDTO(
+                entity.getId(),
+                entity.getName(),
+                entity.getDescription(),
+                entity.getUnit(),
+                entity.getVersion()
+        );
+    }
+
+    public Nutrient toNutrientEntity(NutrientDTO dto) {
+        if (dto == null) return null;
+        Nutrient entity = new Nutrient();
+        entity.setId(dto.getId());
+        entity.setName(dto.getName());
+        entity.setDescription(dto.getDescription());
+        entity.setUnit(dto.getUnit());
+        entity.setVersion(dto.getVersion());
+        return entity;
     }
 
     public RecipeStepDTO toStepDTO(RecipeStep entity) {

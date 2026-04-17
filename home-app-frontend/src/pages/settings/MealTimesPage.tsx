@@ -35,7 +35,7 @@ const DAYS = [
   { value: 7, label: 'Sunday' },
 ];
 
-export default function MealTimesPage() {
+export function MealTimesPage() {
   const [modalOpened, setModalOpened] = useState(false);
   const [editingMealTime, setEditingMealTime] = useState<MealTime | null>(null);
   const queryClient = useQueryClient();
@@ -164,6 +164,7 @@ export default function MealTimesPage() {
         onClose={() => setModalOpened(false)}
         title={editingMealTime ? 'Edit Meal Time' : 'Add Meal Time'}
         size="lg"
+        zIndex={3000}
       >
         <form onSubmit={form.onSubmit((values) => mutation.mutate({ ...editingMealTime, ...values }))}>
           <Stack gap="md">

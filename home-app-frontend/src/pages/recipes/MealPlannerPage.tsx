@@ -17,6 +17,7 @@ import {
   MultiSelect,
   Divider,
   NumberInput,
+  Box,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { 
@@ -30,7 +31,8 @@ import {
   IconThumbUp,
   IconThumbDown,
   IconCircleCheck,
-  IconShoppingCart
+  IconShoppingCart,
+  IconClock,
 } from '@tabler/icons-react';
 import { 
   fetchMealPlan, 
@@ -52,7 +54,7 @@ import { MealPlanExportModal } from '../../components/recipes/MealPlanExportModa
 
 dayjs.extend(isoWeek);
 
-export default function MealPlannerPage() {
+export function MealPlannerPage() {
   const [currentDate, setCurrentDate] = useState(dayjs().startOf('isoWeek'));
   const [modalOpened, setModalOpened] = useState(false);
   const [selectedCell, setSelectedCell] = useState<{ day: number; timeId: number } | null>(null);
@@ -234,13 +236,34 @@ export default function MealPlannerPage() {
                   <Table.Td fw={700}>{time.name}</Table.Td>
                   {days.map(day => {
                     const entry = getEntryFor(day.value, time.id!);
+                    const schedule = time.schedules?.find(s => s.dayOfWeek === day.value);
+                    const timeStr = schedule?.startTime ? schedule.startTime.substring(0, 5) : '--:--';
+
                     return (
                       <Table.Td 
                         key={day.value} 
                         onClick={() => handleCellClick(day.value, time.id!)}
-                        style={{ cursor: 'pointer', verticalAlign: 'top', minHeight: '80px' }}
+                        style={{ cursor: 'pointer', verticalAlign: 'top', minHeight: '80px', position: 'relative' }}
                         bg={entry?.isDone ? 'gray.0' : undefined}
                       >
+                        <Box pos="absolute" top={2} right={2} style={{ zIndex: 5 }}>
+                          <Badge 
+                            variant="light" 
+                            color="gray" 
+                            size="xs" 
+                            style={{ 
+                              fontSize: '9px', 
+                              paddingLeft: '4px', 
+                              paddingRight: '4px',
+                              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                              backdropFilter: 'blur(2px)'
+                            }}
+                            leftSection={<IconClock size={10} />}
+                          >
+                            {timeStr}
+                          </Badge>
+                        </Box>
+
                         {entry && entry.recipes.length > 0 ? (
                           <Stack gap={4}>
                             {Array.from(new Set(entry.recipes.map(r => r.recipeId))).map(rid => {

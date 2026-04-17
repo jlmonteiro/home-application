@@ -205,13 +205,23 @@ public class RecipeService {
 
     private List<NutritionEntryDTO> calculateNutritionTotals(Recipe recipe) {
         Map<String, List<NutritionEntryDTO>> groupedNutrients = recipe.getIngredients().stream()
-                .flatMap(ing -> ing.getItem().getNutritionEntries().stream()
-                        .map(ne -> new NutritionEntryDTO(
-                                ne.getNutrientKey(),
-                                ne.getValue().multiply(ing.getQuantity()),
-                                ne.getUnit()
-                        )))
-                .collect(Collectors.groupingBy(NutritionEntryDTO::getNutrientKey));
+                .flatMap(ing -> {
+                    ShoppingItem item = ing.getItem();
+                    BigDecimal sampleSize = item.getNutritionSampleSize();
+                    
+                    // Avoid division by zero, default to 100 if something is wrong (should be handled by DB default)
+                    BigDecimal scale = (sampleSize != null && sampleSize.compareTo(BigDecimal.ZERO) > 0)
+                            ? ing.getQuantity().divide(sampleSize, 4, java.math.RoundingMode.HALF_UP)
+                            : BigDecimal.ONE;
+
+                    return item.getNutritionEntries().stream()
+                            .map(ne -> new NutritionEntryDTO(
+                                    ne.getNutrient().getName(),
+                                    ne.getValue().multiply(scale),
+                                    ne.getNutrient().getUnit()
+                            ));
+                })
+                .collect(Collectors.groupingBy(NutritionEntryDTO::getNutrientName));
 
         return groupedNutrients.entrySet().stream()
                 .map(entry -> {

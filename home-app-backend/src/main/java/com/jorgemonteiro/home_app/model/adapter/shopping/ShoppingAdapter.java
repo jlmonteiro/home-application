@@ -51,6 +51,8 @@ public class ShoppingAdapter {
         dto.setId(entity.getId());
         dto.setName(entity.getName());
         dto.setUnit(entity.getUnit());
+        dto.setNutritionSampleSize(entity.getNutritionSampleSize());
+        dto.setNutritionSampleUnit(entity.getNutritionSampleUnit());
         dto.setPhoto(photoService.getPhotoUrl(entity.getPhoto()));
         dto.setVersion(entity.getVersion());
         if (entity.getCategory() != null) {
@@ -69,6 +71,14 @@ public class ShoppingAdapter {
         entity.setId(dto.getId());
         entity.setName(dto.getName());
         entity.setUnit(dto.getUnit() != null ? dto.getUnit() : "pcs");
+        
+        if (dto.getNutritionSampleSize() != null) {
+            entity.setNutritionSampleSize(dto.getNutritionSampleSize());
+        }
+        if (dto.getNutritionSampleUnit() != null) {
+            entity.setNutritionSampleUnit(dto.getNutritionSampleUnit());
+        }
+        
         entity.setVersion(dto.getVersion());
         return entity;
     }
