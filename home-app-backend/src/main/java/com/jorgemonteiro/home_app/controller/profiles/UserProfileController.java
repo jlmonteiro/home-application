@@ -61,6 +61,11 @@ public class UserProfileController {
                 .orElseThrow(() -> new ObjectNotFoundException("User record not found for authenticated email: " + email));
     }
 
+    @GetMapping("/all")
+    public ResponseEntity<java.util.List<com.jorgemonteiro.home_app.model.dtos.profiles.UserDTO>> getAllUsers() {
+        return ResponseEntity.ok(userProfileService.listAllUsers());
+    }
+
     /**
      * Returns a paginated list of all user profiles.
      *

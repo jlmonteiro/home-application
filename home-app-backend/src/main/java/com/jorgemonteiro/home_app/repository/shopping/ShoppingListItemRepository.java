@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -13,6 +14,10 @@ import java.util.Optional;
  */
 @Repository
 public interface ShoppingListItemRepository extends JpaRepository<ShoppingListItem, Long> {
+
+    List<ShoppingListItem> findAllByShoppingListId(Long shoppingListId);
+
+    Optional<ShoppingListItem> findByShoppingListIdAndItemIdAndUnit(Long shoppingListId, Long itemId, String unit);
 
     /**
      * Find the last price paid for a specific item at a specific store.

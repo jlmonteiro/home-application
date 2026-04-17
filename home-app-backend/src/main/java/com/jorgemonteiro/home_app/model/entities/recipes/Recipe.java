@@ -58,4 +58,37 @@ public class Recipe {
     @Version
     @Column(name = "version", nullable = false)
     private Long version;
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<RecipePhoto> photos = new java.util.ArrayList<>();
+
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+        name = "recipe_labels",
+        schema = "recipes",
+        joinColumns = @JoinColumn(name = "recipe_id"),
+        inverseJoinColumns = @JoinColumn(name = "label_id")
+    )
+    private java.util.Set<Label> labels = new java.util.HashSet<>();
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<RecipeIngredient> ingredients = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("sortOrder ASC")
+    private java.util.List<RecipeStep> steps = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<RecipeComment> comments = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<RecipeRating> ratings = new java.util.ArrayList<>();
+
+    public Double getAverageRating() {
+        if (ratings == null || ratings.isEmpty()) return 0.0;
+        return ratings.stream()
+                .mapToInt(RecipeRating::getRating)
+                .average()
+                .orElse(0.0);
+    }
 }

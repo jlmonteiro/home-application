@@ -35,4 +35,20 @@ public class RecipeDTO {
     private String createdBy; // Full name of the creator
 
     private Long version;
+
+    private java.util.Set<String> labels = new java.util.HashSet<>();
+
+    private java.util.List<RecipePhotoDTO> photos = new java.util.ArrayList<>();
+
+    private java.util.List<RecipeIngredientDTO> ingredients = new java.util.ArrayList<>();
+
+    private java.util.List<NutritionEntryDTO> nutritionTotals = new java.util.ArrayList<>();
+
+    private java.util.List<RecipeStepDTO> steps = new java.util.ArrayList<>();
+
+    private Double averageRating = 0.0;
+
+    private java.util.List<RecipeCommentDTO> comments = new java.util.ArrayList<>();
+
+    private java.util.List<RecipeRatingDTO> ratings = new java.util.ArrayList<>();
 }

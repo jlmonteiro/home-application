@@ -12,7 +12,9 @@ import type {
   ShoppingList,
 } from '../types/shopping'
 import type { AgeGroupConfig, FamilyRole, UserPreference } from '../types/settings'
-import type { Recipe } from '../types/recipes'
+import type { Recipe, Label, NutritionEntry, RecipeComment, RecipeRating } from '../types/recipes'
+import type { MealTime, MealTimeSchedule, MealPlan, MealPlanEntry, MealPlanEntryRecipe, MealPlanExportItem } from '../types/meals'
+import type { Notification, Message } from '../types/notifications'
 
 // Re-export types for backward compatibility
 export type {
@@ -31,6 +33,18 @@ export type {
   FamilyRole,
   UserPreference,
   Recipe,
+  Label,
+  NutritionEntry,
+  RecipeComment,
+  RecipeRating,
+  MealTime,
+  MealTimeSchedule,
+  MealPlan,
+  MealPlanEntry,
+  MealPlanEntryRecipe,
+  MealPlanExportItem,
+  Notification,
+  Message,
 }
 
 const API_BASE = '/api'
@@ -600,6 +614,199 @@ export async function deleteRecipe(id: number): Promise<void> {
   if (!response.ok) throw new Error('Failed to delete recipe')
 }
 
+export async function reorderRecipeSteps(recipeId: number, stepIds: number[]): Promise<Recipe> {
+  const response = await apiFetch(`${API_BASE}/recipes/${recipeId}/steps/reorder`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(stepIds),
+  })
+  if (!response.ok) throw new Error('Failed to reorder steps')
+  return response.json()
+}
+
+// --- Labels API ---
+
+export async function searchLabels(query: string): Promise<Label[]> {
+  const response = await apiFetch(`${API_BASE}/labels?q=${encodeURIComponent(query)}`)
+  if (!response.ok) throw new Error('Failed to search labels')
+  return response.json()
+}
+
+// --- Nutrition API ---
+
+export async function fetchNutritionEntries(itemId: number): Promise<NutritionEntry[]> {
+  const response = await apiFetch(`${API_BASE}/items/${itemId}/nutrition`)
+  if (!response.ok) throw new Error('Failed to fetch nutrition data')
+  return response.json()
+}
+
+export async function upsertNutritionEntry(
+  itemId: number,
+  entry: Partial<NutritionEntry>
+): Promise<NutritionEntry> {
+  const response = await apiFetch(`${API_BASE}/items/${itemId}/nutrition`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(entry),
+  })
+  if (!response.ok) throw new Error('Failed to save nutrition entry')
+  return response.json()
+}
+
+// --- Recipe Feedback API ---
+
+export async function fetchRecipeComments(recipeId: number): Promise<RecipeComment[]> {
+  const response = await apiFetch(`${API_BASE}/recipes/${recipeId}/comments`)
+  if (!response.ok) throw new Error('Failed to fetch comments')
+  return response.json()
+}
+
+export async function addRecipeComment(recipeId: number, comment: string): Promise<RecipeComment> {
+  const response = await apiFetch(`${API_BASE}/recipes/${recipeId}/comments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ comment }),
+  })
+  if (!response.ok) throw new Error('Failed to add comment')
+  return response.json()
+}
+
+export async function fetchUserRecipeRating(recipeId: number): Promise<RecipeRating> {
+  const response = await apiFetch(`${API_BASE}/recipes/${recipeId}/rating`)
+  if (!response.ok) throw new Error('Failed to fetch rating')
+  return response.json()
+}
+
+export async function rateRecipe(recipeId: number, rating: number): Promise<RecipeRating> {
+  const response = await apiFetch(`${API_BASE}/recipes/${recipeId}/rating`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ rating }),
+  })
+  if (!response.ok) throw new Error('Failed to save rating')
+  return response.json()
+}
+
+// --- Meal Times API ---
+
+export async function fetchMealTimes(): Promise<MealTime[]> {
+  const response = await apiFetch(`${API_BASE}/settings/meal-times`)
+  if (!response.ok) throw new Error('Failed to fetch meal times')
+  return response.json()
+}
+
+export async function saveMealTime(mealTime: Partial<MealTime>): Promise<MealTime> {
+  const isEdit = !!mealTime.id
+  const url = isEdit ? `${API_BASE}/settings/meal-times/${mealTime.id}` : `${API_BASE}/settings/meal-times`
+  const response = await apiFetch(url, {
+    method: isEdit ? 'PUT' : 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(mealTime),
+  })
+  if (!response.ok) throw new Error('Failed to save meal time')
+  return response.json()
+}
+
+export async function deleteMealTime(id: number): Promise<void> {
+  const response = await apiFetch(`${API_BASE}/settings/meal-times/${id}`, {
+    method: 'DELETE',
+  })
+  if (!response.ok) throw new Error('Failed to delete meal time')
+}
+
+// --- Meal Plans API ---
+
+export async function fetchMealPlan(date?: string): Promise<MealPlan> {
+  const query = date ? `?date=${date}` : ''
+  const response = await apiFetch(`${API_BASE}/meals/plans${query}`)
+  if (!response.ok) throw new Error('Failed to fetch meal plan')
+  return response.json()
+}
+
+export async function saveMealPlan(plan: Partial<MealPlan>): Promise<MealPlan> {
+  const response = await apiFetch(`${API_BASE}/meals/plans/${plan.id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(plan),
+  })
+  if (!response.ok) throw new Error('Failed to save meal plan')
+  return response.json()
+}
+
+export async function notifyHousehold(id: number): Promise<void> {
+  const response = await apiFetch(`${API_BASE}/meals/plans/${id}/notify`, {
+    method: 'POST',
+  })
+  if (!response.ok) throw new Error('Failed to notify household')
+}
+
+export async function acceptMealPlan(id: number): Promise<void> {
+  const response = await apiFetch(`${API_BASE}/meals/plans/${id}/accept`, {
+    method: 'POST',
+  })
+  if (!response.ok) throw new Error('Failed to accept meal plan')
+}
+
+export async function voteMealEntry(entryId: number, vote: boolean): Promise<void> {
+  const response = await apiFetch(`${API_BASE}/meals/plans/entries/${entryId}/vote?vote=${vote}`, {
+    method: 'POST',
+  })
+  if (!response.ok) throw new Error('Failed to vote')
+}
+
+export async function fetchExportPreview(planId: number, listId?: number): Promise<MealPlanExportItem[]> {
+  const query = listId ? `?listId=${listId}` : ''
+  const response = await apiFetch(`${API_BASE}/meals/plans/${planId}/export-preview${query}`)
+  if (!response.ok) throw new Error('Failed to fetch export preview')
+  return response.json()
+}
+
+export async function exportMealPlan(planId: number, listId: number, items: MealPlanExportItem[]): Promise<void> {
+  const response = await apiFetch(`${API_BASE}/meals/plans/${planId}/export?targetListId=${listId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(items),
+  })
+  if (!response.ok) throw new Error('Failed to export meal plan')
+}
+
+// --- Notifications API ---
+
+export async function fetchNotifications(): Promise<Notification[]> {
+  const response = await apiFetch(`${API_BASE}/notifications`)
+  if (!response.ok) throw new Error('Failed to fetch notifications')
+  return response.json()
+}
+
+export async function markNotificationAsRead(id: number): Promise<void> {
+  const response = await apiFetch(`${API_BASE}/notifications/${id}/read`, {
+    method: 'PUT',
+  })
+  if (!response.ok) throw new Error('Failed to mark notification as read')
+}
+
+export async function fetchUnreadCount(): Promise<number> {
+  const response = await apiFetch(`${API_BASE}/notifications/unread-count`)
+  if (!response.ok) throw new Error('Failed to fetch unread count')
+  return response.json()
+}
+
+export async function fetchConversation(otherId: number): Promise<Message[]> {
+  const response = await apiFetch(`${API_BASE}/notifications/messages/${otherId}`)
+  if (!response.ok) throw new Error('Failed to fetch conversation')
+  return response.json()
+}
+
+export async function sendMessage(recipientId: number, content: string): Promise<Message> {
+  const response = await apiFetch(`${API_BASE}/notifications/messages/${recipientId}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content }),
+  })
+  if (!response.ok) throw new Error('Failed to send message')
+  return response.json()
+}
+
 // --- Auth ---
 
 export async function logout(): Promise<void> {
@@ -609,4 +816,10 @@ export async function logout(): Promise<void> {
     headers: token ? { 'X-XSRF-TOKEN': token } : {},
     redirect: 'manual',
   })
+}
+
+export async function fetchAllUsers(): Promise<UserProfile[]> {
+  const response = await apiFetch(`${API_BASE}/user/all`)
+  if (!response.ok) throw new Error('Failed to fetch users')
+  return response.json()
 }

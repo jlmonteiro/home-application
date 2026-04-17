@@ -44,6 +44,7 @@ import {
   IconChefHat,
 } from '@tabler/icons-react'
 import { useAuth } from '../context/AuthContext'
+import { NotificationBell } from './NotificationBell'
 
 export function Layout() {
   const { user, logout } = useAuth()
@@ -51,6 +52,7 @@ export function Layout() {
   const [opened, { toggle }] = useDisclosure(true)
   const [shoppingOpened, { toggle: toggleShopping }] = useDisclosure(false)
   const [recipesOpened, { toggle: toggleRecipes }] = useDisclosure(true)
+  const [settingsOpened, { toggle: toggleSettings }] = useDisclosure(false)
   const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
 
@@ -194,6 +196,7 @@ export function Layout() {
             </Group>
 
             <Group gap="lg">
+              <NotificationBell />
               <ActionIcon
                 onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
                 variant="subtle"
@@ -426,9 +429,15 @@ export function Layout() {
           >
             <NavLink
               component={Link}
+              to="/recipes/planner"
+              label="Meal Planner"
+              active={isActive('/recipes/planner')}
+            />
+            <NavLink
+              component={Link}
               to="/recipes"
               label="Recipes"
-              active={isActive('/recipes')}
+              active={isActive('/recipes') && location.pathname === '/recipes'}
             />
           </NavLink>
 
@@ -447,14 +456,25 @@ export function Layout() {
                 Administration
               </Text>
               <NavLink
-                component={Link}
-                to="/settings"
                 label="Household Settings"
                 leftSection={<IconSettings size={20} stroke={1.5} />}
-                active={isActive('/settings')}
-                variant="filled"
-                color="indigo"
-              />
+                opened={settingsOpened}
+                onChange={toggleSettings}
+                childrenOffset={28}
+              >
+                <NavLink
+                  component={Link}
+                  to="/settings"
+                  label="General Setup"
+                  active={isActive('/settings') && location.pathname === '/settings'}
+                />
+                <NavLink
+                  component={Link}
+                  to="/settings/meal-times"
+                  label="Meal Times"
+                  active={isActive('/settings/meal-times')}
+                />
+              </NavLink>
             </>
           )}
         </Stack>

@@ -32,7 +32,7 @@ These modules are currently defined and follow the sequential rollout plan:
 | **01**    | [**User Profile Updates**](01-update-user-profile.tasks.md) | :material-check-circle: Completed |
 | **02**    | [**Shopping List Module**](02-shopping-list.tasks.md)       | :material-check-circle: Completed |
 | **03**    | [**Family Hierarchy**](03-family-hierarchy.tasks.md)        | :material-check-circle: Completed |
-| **04**    | [**Recipes & Meals**](04-recipes-meals.tasks.md)            | :material-clock-outline: Planned   |
+| **04**    | [**Recipes & Meals**](04-recipes-meals.tasks.md)            | :material-check-circle: Completed |
 
 ---
 

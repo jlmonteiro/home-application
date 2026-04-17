@@ -82,4 +82,15 @@ public class RecipeController {
         recipeService.deleteRecipe(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Reorders the preparation steps of a recipe.
+     * @param id recipe ID.
+     * @param stepIds ordered list of step IDs.
+     * @return updated recipe resource.
+     */
+    @PutMapping("/{id}/steps/reorder")
+    public RecipeResource reorderSteps(@PathVariable Long id, @RequestBody java.util.List<Long> stepIds) {
+        return recipeResourceAssembler.toModel(recipeService.reorderSteps(id, stepIds));
+    }
 }

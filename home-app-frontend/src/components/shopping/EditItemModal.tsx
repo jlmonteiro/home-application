@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Modal, Stack, Select, NumberInput, Group, Button } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import type { ShoppingListItem, ShoppingStore } from '../../services/api'
+import type { ShoppingListItem } from '../../services/api'
 
 interface EditItemModalProps {
   opened: boolean
@@ -25,7 +25,7 @@ export function EditItemModal({
       storeId: '',
       quantity: 1,
       unit: 'pcs',
-      price: '' as string | number,
+      price: undefined as number | undefined,
     },
   })
 
@@ -36,7 +36,7 @@ export function EditItemModal({
         storeId: item.store?.id?.toString() || '',
         quantity: item.quantity,
         unit: item.unit,
-        price: item.price ?? '',
+        price: item.price ?? undefined,
       })
     } else {
       form.reset()

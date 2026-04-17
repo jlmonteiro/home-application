@@ -10,6 +10,7 @@ import { Dashboard } from './pages/dashboard/Dashboard'
 import { ProfilePage } from './pages/user/ProfilePage'
 import { SettingsPage } from './pages/settings/SettingsPage'
 import { PreferencesPage } from './pages/settings/PreferencesPage'
+import MealTimesPage from './pages/settings/MealTimesPage'
 import { ShoppingCategoriesPage } from './pages/shopping/ShoppingCategoriesPage'
 import { ShoppingItemsPage } from './pages/shopping/ShoppingItemsPage'
 import { StoresPage } from './pages/shopping/StoresPage'
@@ -19,6 +20,9 @@ import { ShoppingListDetailsPage } from './pages/shopping/ShoppingListDetailsPag
 import RecipesListPage from './pages/recipes/RecipesListPage'
 import RecipeDetailPage from './pages/recipes/RecipeDetailPage'
 import RecipeFormPage from './pages/recipes/RecipeFormPage'
+import MealPlannerPage from './pages/recipes/MealPlannerPage'
+import NotificationsPage from './pages/notifications/NotificationsPage'
+import MessagingPage from './pages/notifications/MessagingPage'
 import './App.css'
 
 const queryClient = new QueryClient({
@@ -51,7 +55,12 @@ function App() {
                 <Route index element={<Dashboard />} />
                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="preferences" element={<PreferencesPage />} />
-                <Route path="settings" element={<SettingsPage />} />
+                <Route path="notifications" element={<NotificationsPage />} />
+                <Route path="messages/:recipientId" element={<MessagingPage />} />
+                <Route path="settings">
+                  <Route index element={<SettingsPage />} />
+                  <Route path="meal-times" element={<MealTimesPage />} />
+                </Route>
 
                 {/* Shopping Routes */}
                 <Route path="shopping">
@@ -66,6 +75,7 @@ function App() {
                 {/* Recipe Routes */}
                 <Route path="recipes">
                   <Route index element={<RecipesListPage />} />
+                  <Route path="planner" element={<MealPlannerPage />} />
                   <Route path="new" element={<RecipeFormPage />} />
                   <Route path=":id" element={<RecipeDetailPage />} />
                   <Route path=":id/edit" element={<RecipeFormPage />} />

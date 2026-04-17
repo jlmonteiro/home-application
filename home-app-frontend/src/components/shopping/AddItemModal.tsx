@@ -16,7 +16,7 @@ import {
 import { useForm } from '@mantine/form'
 import { useCombobox } from '@mantine/core'
 import { IconPlus, IconBasket } from '@tabler/icons-react'
-import type { ShoppingItem, ShoppingStore } from '../../services/api'
+import type { ShoppingItem } from '../../services/api'
 import { getPhotoSrc } from '../../utils/photo'
 import { fetchSuggestedPrice } from '../../services/api'
 
@@ -58,7 +58,7 @@ export function AddItemModal({
       storeId: '',
       quantity: 1,
       unit: 'pcs',
-      price: '' as string | number,
+      price: undefined as number | undefined,
     },
     validate: {
       itemId: (v) => (!v ? 'Select an item' : null),

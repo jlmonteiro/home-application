@@ -30,8 +30,9 @@ import {
 import { QRCodeSVG } from 'qrcode.react'
 import Barcode from 'react-barcode'
 import { useAuth } from '../../context/AuthContext'
-import { fetchLists, fetchUserPreferences, fetchExpiringCoupons } from '../../services/api'
+import { fetchLists, fetchUserPreferences, fetchExpiringCoupons, fetchMealPlan } from '../../services/api'
 import type { Coupon } from '../../services/api'
+import dayjs from 'dayjs'
 
 export function Dashboard() {
   const { user } = useAuth()
@@ -53,10 +54,18 @@ export function Dashboard() {
     enabled: preferences?.showCouponsWidget ?? true,
   })
 
+  const { data: mealPlan, isLoading: mealPlanLoading } = useQuery({
+    queryKey: ['meal-plan-today'],
+    queryFn: () => fetchMealPlan(),
+  })
+
   const [fullscreenCoupon, setFullscreenCoupon] = useState<Coupon | null>(null)
 
   const pendingLists = lists?.filter((l) => l.status === 'PENDING') || []
   const expiringCoupons = coupons || []
+  
+  const todayNum = dayjs().day() === 0 ? 7 : dayjs().day(); // ISO 1=Mon, 7=Sun
+  const todayMeals = mealPlan?.entries.filter(e => e.dayOfWeek === todayNum) || [];
 
   const showShopping = preferences?.showShoppingWidget ?? true
   const showCoupons = preferences?.showCouponsWidget ?? true
@@ -150,6 +159,55 @@ export function Dashboard() {
             </Paper>
           </Stack>
         )}
+
+        <Stack style={{ minWidth: rem(350), flex: 1 }}>
+          <Group justify="space-between" align="center">
+            <Title order={3}>Today's Meals</Title>
+            <Button
+              variant="subtle"
+              size="compact-sm"
+              component={Link}
+              to="/recipes/planner"
+              rightSection={<IconArrowRight size={14} />}
+            >
+              Full Planner
+            </Button>
+          </Group>
+
+          <Paper withBorder radius="md" p="md">
+            {mealPlanLoading ? (
+              <Group justify="center" py="xl"><Loader size="sm" /></Group>
+            ) : todayMeals.length === 0 ? (
+              <Stack align="center" py="xl" gap="xs">
+                <ThemeIcon variant="light" size="xl" radius="md" color="gray">
+                  <IconCalendarClock size={24} />
+                </ThemeIcon>
+                <Text size="sm" c="dimmed">No meals planned for today</Text>
+              </Stack>
+            ) : (
+              <Stack gap="sm">
+                {todayMeals.map(meal => (
+                  <Paper key={meal.id} withBorder p="sm" radius="sm">
+                    <Group justify="space-between">
+                      <Box>
+                        <Text size="xs" fw={700} c="dimmed" tt="uppercase">{meal.mealTimeName}</Text>
+                        <Stack gap={2} mt={4}>
+                          {meal.recipes.map((r, i) => (
+                            <Text key={i} size="sm" fw={500}>
+                              {r.recipeName}
+                              {r.userName && <Text component="span" c="blue" size="xs" ml={5}>({r.userName})</Text>}
+                            </Text>
+                          ))}
+                        </Stack>
+                      </Box>
+                      {meal.isDone && <Badge color="green" variant="light" size="xs">DONE</Badge>}
+                    </Group>
+                  </Paper>
+                ))}
+              </Stack>
+            )}
+          </Paper>
+        </Stack>
 
         {showCoupons && (
           <Stack style={{ minWidth: rem(350), flex: 1 }}>
@@ -256,28 +314,6 @@ export function Dashboard() {
             </Paper>
           </Stack>
         )}
-
-        <Stack style={{ minWidth: rem(350), flex: 1 }}>
-          <Title order={3}>Quick Actions</Title>
-          <Paper withBorder p="md" radius="md">
-            <Text size="sm" c="dimmed">
-              More dashboard widgets coming soon, including family member activities and household
-              tasks.
-            </Text>
-            {(!showShopping || !showCoupons) && (
-              <Text
-                size="xs"
-                mt="sm"
-                c="indigo"
-                component={Link}
-                to="/preferences"
-                style={{ textDecoration: 'none' }}
-              >
-                Enable widgets in your preferences →
-              </Text>
-            )}
-          </Paper>
-        </Stack>
       </Group>
 
       {/* Fullscreen Coupon Code View */}

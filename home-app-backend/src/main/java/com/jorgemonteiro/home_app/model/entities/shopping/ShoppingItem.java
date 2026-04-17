@@ -50,4 +50,7 @@ public class ShoppingItem {
     /** Version number for optimistic locking. */
     @Version
     private Long version;
+
+    @OneToMany(mappedBy = "item", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<com.jorgemonteiro.home_app.model.entities.recipes.NutritionEntry> nutritionEntries = new java.util.ArrayList<>();
 }

@@ -15,6 +15,7 @@ import {
   Loader,
   Center,
   Pagination,
+  Image as MantineImage,
 } from '@mantine/core';
 import { IconPlus, IconPencil, IconTrash, IconChefHat, IconClock } from '@tabler/icons-react';
 import { fetchRecipes, deleteRecipe } from '../../services/api';
@@ -101,13 +102,32 @@ export default function RecipesListPage() {
                 style={{ cursor: 'pointer' }}
                 onClick={() => navigate(`/recipes/${recipe.id}`)}
               >
-                <Stack justify="space-between" h="100%">
+                {recipe.photos?.find(p => p.isDefault) && (
+                  <Card.Section>
+                    <MantineImage
+                      src={recipe.photos.find(p => p.isDefault)?.photoData}
+                      height={160}
+                      alt={recipe.name}
+                    />
+                  </Card.Section>
+                )}
+                <Stack justify="space-between" h="100%" mt="md">
                   <div>
                     <Group justify="space-between" mb="xs">
                       <Title order={3} lineClamp={1}>
                         {recipe.name}
                       </Title>
                     </Group>
+
+                    {recipe.labels && recipe.labels.length > 0 && (
+                      <Group gap={5} mb="xs">
+                        {recipe.labels.map(label => (
+                          <Badge key={label} variant="outline" size="xs" color="indigo">
+                            {label}
+                          </Badge>
+                        ))}
+                      </Group>
+                    )}
 
                     <Group gap="xs" mb="md">
                       <Badge color="blue" variant="light" leftSection={<IconChefHat size={12} />}>

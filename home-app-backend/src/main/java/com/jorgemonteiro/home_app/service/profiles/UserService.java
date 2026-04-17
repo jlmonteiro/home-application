@@ -46,6 +46,11 @@ public class UserService {
                 .orElseGet(() -> createNewUser(email, firstName, lastName, pictureUrl, birthdate));
     }
 
+    @Transactional(readOnly = true)
+    public java.util.List<User> listAllUsers() {
+        return userRepository.findAll();
+    }
+
     private User syncExistingUser(User user, Optional<LocalDate> birthdate) {
         UserProfile profile = user.getUserProfile();
         if (profile != null && birthdate.isPresent() && !birthdate.get().equals(profile.getBirthdate())) {

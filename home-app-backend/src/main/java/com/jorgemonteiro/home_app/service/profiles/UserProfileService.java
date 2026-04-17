@@ -7,6 +7,7 @@ import com.jorgemonteiro.home_app.model.entities.profiles.FamilyRole;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile;
 import com.jorgemonteiro.home_app.repository.profiles.FamilyRoleRepository;
+import com.jorgemonteiro.home_app.repository.profiles.UserProfileRepository;
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import java.util.Optional;
 public class UserProfileService {
 
     private final UserRepository userRepository;
+    private final UserProfileRepository userProfileRepository;
     private final FamilyRoleRepository familyRoleRepository;
     private final PhotoService photoService;
     private final AgeClassificationService ageClassificationService;
@@ -45,7 +47,14 @@ public class UserProfileService {
 
     @Transactional(readOnly = true)
     public Optional<UserProfileDTO> getUserProfile(String email) {
-        return userRepository.findByEmail(email).map(UserProfileAdapter::toDTO);
+        return userProfileRepository.findByUserEmail(email).map(up -> UserProfileAdapter.toDTO(up.getUser()));
+    }
+
+    @Transactional(readOnly = true)
+    public java.util.List<com.jorgemonteiro.home_app.model.dtos.profiles.UserDTO> listAllUsers() {
+        return userRepository.findAll().stream()
+                .map(com.jorgemonteiro.home_app.model.adapter.profiles.UserAdapter::toDTO)
+                .collect(java.util.stream.Collectors.toList());
     }
 
     public UserProfileDTO updateUserProfile(@Valid UserProfileDTO dto) {

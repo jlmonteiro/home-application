@@ -12,7 +12,7 @@ Implement a comprehensive recipes and meal planning module that allows household
 
 ## 2. User Stories
 
-### US-1: Recipe CRUD :material-play-circle: {: #us-1 }
+### US-1: Recipe CRUD :material-check-circle: {: #us-1 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to create, view, edit, and delete recipes, **so that** our family can build a shared cookbook.
@@ -37,7 +37,7 @@ Implement a comprehensive recipes and meal planning module that allows household
 
 ---
 
-### US-2: Recipe Photos & Dynamic Labels :material-clock-outline: {: #us-2 }
+### US-2: Recipe Photos & Dynamic Labels :material-check-circle: {: #us-2 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to add photos and labels to my recipes, **so that** they are visually appealing and easy to find.
@@ -57,15 +57,15 @@ Implement a comprehensive recipes and meal planning module that allows household
     4. :material-play-circle:{ title="Event-driven" } When a label is orphaned, the system shall delete it.
 
 !!! example "Implementation Tasks"
-    - [ ] :material-database-sync: Create Liquibase migration for `recipe_photos`, `labels`, and `recipe_labels` tables.
-    - [ ] :material-file-code: Implement entities, repositories, and services for photos and labels.
-    - [ ] :material-api: Implement photo upload/delete and default selection endpoints.
-    - [ ] :material-api: Implement label autocomplete endpoint (`GET /labels?q=`).
-    - [ ] :material-layers: Build photo gallery and label tag input components.
+    - [x] :material-database-sync: Create Liquibase migration for `recipe_photos`, `labels`, and `recipe_labels` tables.
+    - [x] :material-file-code: Implement entities, repositories, and services for photos and labels.
+    - [x] :material-api: Implement photo upload/delete and default selection endpoints.
+    - [x] :material-api: Implement label autocomplete endpoint (`GET /labels?q=`).
+    - [x] :material-layers: Build photo gallery and label tag input components.
 
 ---
 
-### US-3: Ingredients & Nutrition Data :material-clock-outline: {: #us-3 }
+### US-3: Ingredients & Nutrition Data :material-check-circle: {: #us-3 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to add ingredients from the shopping catalog and see nutrition totals, **so that** I know what I need and can track dietary intake.
@@ -84,15 +84,15 @@ Implement a comprehensive recipes and meal planning module that allows household
     3. :material-alert-circle:{ title="Unwanted Behavior" } If an ingredient has no nutrition entries, the system shall exclude it from totals and indicate the gap.
 
 !!! example "Implementation Tasks"
-    - [ ] :material-database-sync: Create Liquibase migration for `recipe_ingredients` and `nutrition_entries` tables.
-    - [ ] :material-file-code: Implement entities, repositories, and services.
-    - [ ] :material-cog: Implement on-the-fly nutrition calculation in RecipeService (sum entries grouped by nutrient key × ingredient quantity).
-    - [ ] :material-api: Implement ingredient CRUD and nutrition GET/PUT endpoints.
-    - [ ] :material-layers: Build ingredient selector and nutrition summary UI.
+    - [x] :material-database-sync: Create Liquibase migration for `recipe_ingredients` and `nutrition_entries` tables.
+    - [x] :material-file-code: Implement entities, repositories, and services.
+    - [x] :material-cog: Implement on-the-fly nutrition calculation in RecipeService (sum entries grouped by nutrient key × ingredient quantity).
+    - [x] :material-api: Implement ingredient CRUD and nutrition GET/PUT endpoints.
+    - [x] :material-layers: Build ingredient selector and nutrition summary UI.
 
 ---
 
-### US-4: Preparation Steps with Drag-and-Drop :material-clock-outline: {: #us-4 }
+### US-4: Preparation Steps with Drag-and-Drop :material-check-circle: {: #us-4 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to add ordered preparation steps and reorder them via drag-and-drop, **so that** anyone can follow the recipe.
@@ -110,14 +110,14 @@ Implement a comprehensive recipes and meal planning module that allows household
     3. :material-play-circle:{ title="Event-driven" } When steps are reordered, the system shall update all sort_order values in a single transaction.
 
 !!! example "Implementation Tasks"
-    - [ ] :material-database-sync: Create Liquibase migration for `recipe_steps` table.
-    - [ ] :material-file-code: Implement entity, repository, and service with reorder logic.
-    - [ ] :material-api: Implement step CRUD and `PUT /recipes/{id}/steps/reorder` endpoint.
-    - [ ] :material-layers: Build step list with `@dnd-kit/core` drag-and-drop.
+    - [x] :material-database-sync: Create Liquibase migration for `recipe_steps` table.
+    - [x] :material-file-code: Implement entity, repository, and service with reorder logic.
+    - [x] :material-api: Implement step CRUD and `PUT /recipes/{id}/steps/reorder` endpoint.
+    - [x] :material-layers: Build step list with `@dnd-kit/core` drag-and-drop.
 
 ---
 
-### US-5: Comments & Ratings :material-clock-outline: {: #us-5 }
+### US-5: Comments & Ratings :material-check-circle: {: #us-5 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to comment on and rate recipes, **so that** we can share feedback and identify favorites.
@@ -137,14 +137,14 @@ Implement a comprehensive recipes and meal planning module that allows household
     4. :material-play-circle:{ title="Event-driven" } When a comment is added, create a `NEW_RECIPE_COMMENT` notification.
 
 !!! example "Implementation Tasks"
-    - [ ] :material-database-sync: Create Liquibase migration for `recipe_comments` and `recipe_ratings` tables.
-    - [ ] :material-file-code: Implement entities, repositories, and services.
-    - [ ] :material-api: Implement comment and rating endpoints.
-    - [ ] :material-layers: Build comments section and star rating component with expandable votes.
+    - [x] :material-database-sync: Create Liquibase migration for `recipe_comments` and `recipe_ratings` tables.
+    - [x] :material-file-code: Implement entities, repositories, and services.
+    - [x] :material-api: Implement comment and rating endpoints.
+    - [x] :material-layers: Build comments section and star rating component with expandable votes.
 
 ---
 
-### US-6: Meal Time Configuration :material-clock-outline: {: #us-6 }
+### US-6: Meal Time Configuration :material-check-circle: {: #us-6 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to configure meal times with different schedules per day, **so that** the planner reflects our actual routine.
@@ -161,14 +161,14 @@ Implement a comprehensive recipes and meal planning module that allows household
     2. :material-check-all:{ title="Ubiquitous" } Configure different times per day of the week (ISO 8601: 1=Monday, 7=Sunday).
 
 !!! example "Implementation Tasks"
-    - [ ] :material-database-sync: Create Liquibase migration for `meals` schema, `meal_times` and `meal_time_schedules` tables.
-    - [ ] :material-file-code: Implement entities, repositories, and services.
-    - [ ] :material-api: Implement CRUD endpoints for meal times with schedules.
-    - [ ] :material-layers: Build MealTimesConfigPage with per-day time inputs.
+    - [x] :material-database-sync: Create Liquibase migration for `meals` schema, `meal_times` and `meal_time_schedules` tables.
+    - [x] :material-file-code: Implement entities, repositories, and services.
+    - [x] :material-api: Implement CRUD endpoints for meal times with schedules.
+    - [x] :material-layers: Build MealTimesConfigPage with per-day time inputs.
 
 ---
 
-### US-7: Weekly Meal Planner :material-clock-outline: {: #us-7 }
+### US-7: Weekly Meal Planner :material-check-circle: {: #us-7 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to plan weekly meals by assigning recipes to meal times and members, **so that** our family knows what to eat each day.
@@ -187,14 +187,14 @@ Implement a comprehensive recipes and meal planning module that allows household
     4. :material-play-circle:{ title="Event-driven" } When a user marks an entry as "done", update the `is_done` flag.
 
 !!! example "Implementation Tasks"
-    - [ ] :material-database-sync: Create Liquibase migration for `meal_plans`, `meal_plan_entries`, and `meal_plan_entry_recipes` tables.
-    - [ ] :material-file-code: Implement entities, repositories, and services.
-    - [ ] :material-api: Implement CRUD endpoints for plans, entries, and recipe assignments.
-    - [ ] :material-layers: Build MealPlannerPage with weekly grid (7 columns × N meal times).
+    - [x] :material-database-sync: Create Liquibase migration for `meal_plans`, `meal_plan_entries`, and `meal_plan_entry_recipes` tables.
+    - [x] :material-file-code: Implement entities, repositories, and services.
+    - [x] :material-api: Implement CRUD endpoints for plans, entries, and recipe assignments.
+    - [x] :material-layers: Build MealPlannerPage with weekly grid (7 columns × N meal times).
 
 ---
 
-### US-8: Meal Plan Approval, Thumbs Up/Down & Reminders :material-clock-outline: {: #us-8 }
+### US-8: Meal Plan Approval, Thumbs Up/Down & Reminders :material-check-circle: {: #us-8 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to review meal plans, give feedback, and receive reminders, **so that** everyone has a say and nobody forgets to cook.
@@ -216,15 +216,15 @@ Implement a comprehensive recipes and meal planning module that allows household
     5. :material-check-all:{ title="Ubiquitous" } Reminder scheduler runs every 15 minutes and creates MEAL_REMINDER notifications.
 
 !!! example "Implementation Tasks"
-    - [ ] :material-database-sync: Create Liquibase migration for `meal_plan_entry_members` table.
-    - [ ] :material-file-code: Implement member response and vote services.
-    - [ ] :material-api: Implement notify, respond, vote, and done endpoints.
-    - [ ] :material-cog: Implement `MealReminderScheduler` (every 15 min).
-    - [ ] :material-layers: Build approval UI with accept/suggest actions and thumbs up/down buttons.
+    - [x] :material-database-sync: Create Liquibase migration for `meal_plan_votes` table.
+    - [x] :material-file-code: Implement member response and vote services.
+    - [x] :material-api: Implement notify, respond, vote, and done endpoints.
+    - [x] :material-cog: Implement `MealReminderScheduler` (every 15 min).
+    - [x] :material-layers: Build approval UI with accept/suggest actions and thumbs up/down buttons.
 
 ---
 
-### US-9: Shopping List Integration :material-clock-outline: {: #us-9 }
+### US-9: Shopping List Integration :material-check-circle: {: #us-9 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to export meal ingredients to a shopping list, **so that** I can shop for what I need to cook.
@@ -243,13 +243,13 @@ Implement a comprehensive recipes and meal planning module that allows household
     4. :material-alert-circle:{ title="Unwanted Behavior" } If an item already exists, increase quantity rather than creating a duplicate.
 
 !!! example "Implementation Tasks"
-    - [ ] :material-cog: Implement export preview and merge logic in MealPlanService.
-    - [ ] :material-api: Implement preview and export endpoints.
-    - [ ] :material-layers: Build merge confirmation modal with item summary.
+    - [x] :material-cog: Implement export preview and merge logic in MealPlanService.
+    - [x] :material-api: Implement preview and export endpoints.
+    - [x] :material-layers: Build merge confirmation modal with item summary.
 
 ---
 
-### US-10: Notifications & Messaging :material-clock-outline: {: #us-10 }
+### US-10: Notifications & Messaging :material-check-circle: {: #us-10 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to receive notifications and send messages, **so that** I stay informed and can communicate within the app.
@@ -269,14 +269,14 @@ Implement a comprehensive recipes and meal planning module that allows household
     4. :material-check-all:{ title="Ubiquitous" } Direct messaging between household members with read status.
 
 !!! example "Implementation Tasks"
-    - [ ] :material-database-sync: Create Liquibase migration for `notifications` schema, `notifications` and `messages` tables.
-    - [ ] :material-file-code: Implement entities, repositories, and services.
-    - [ ] :material-api: Implement notification and messaging endpoints.
-    - [ ] :material-layers: Build NotificationBell component, NotificationsPage, and messaging UI.
+    - [x] :material-database-sync: Create Liquibase migration for `notifications` schema, `notifications` and `messages` tables.
+    - [x] :material-file-code: Implement entities, repositories, and services.
+    - [x] :material-api: Implement notification and messaging endpoints.
+    - [x] :material-layers: Build NotificationBell component, NotificationsPage, and messaging UI.
 
 ---
 
-### US-11: Dashboard Widget & Meals This Week Page :material-clock-outline: {: #us-11 }
+### US-11: Dashboard Widget & Meals This Week Page :material-check-circle: {: #us-11 }
 
 !!! abstract "Story Definition"
     **As a** household member, **I want** to see this week's meals at a glance, **so that** I can quickly check what's planned.
@@ -294,6 +294,6 @@ Implement a comprehensive recipes and meal planning module that allows household
     3. :material-check-all:{ title="Ubiquitous" } Current week determined by ISO 8601 Monday.
 
 !!! example "Implementation Tasks"
-    - [ ] :material-api: Implement `GET /meals/this-week` endpoint.
-    - [ ] :material-layers: Build "Meals This Week" dashboard card.
-    - [ ] :material-layers: Build MealsThisWeekPage with full weekly grid.
+    - [x] :material-api: Implement `GET /meals/this-week` endpoint.
+    - [x] :material-layers: Build "Meals This Week" dashboard card.
+    - [x] :material-layers: Build MealsThisWeekPage with full weekly grid.

@@ -46,6 +46,7 @@ import {
 } from '../../services/api'
 import type { Coupon } from '../../services/api'
 import { useState } from 'react'
+import dayjs from 'dayjs'
 import { getPhotoSrc } from '../../utils/photo'
 import { formatEuro } from '../../utils/currency'
 import { AddCardModal, type CardFormValues } from '../../components/shopping/AddCardModal'
@@ -174,7 +175,7 @@ export function StoreDetailsPage() {
       name: values.name,
       description: values.description || undefined,
       value: values.value || undefined,
-      dueDate: values.dueDate || undefined,
+      dueDate: values.dueDate ? dayjs(values.dueDate).format('YYYY-MM-DD') : undefined,
       barcode: values.code ? { code: values.code, type: values.barcodeType } : undefined,
     }
 
