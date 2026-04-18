@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useMemo } from 'react';
 import {
   Container,
   Title,
@@ -17,6 +18,7 @@ import {
   Card,
   Table,
   Avatar,
+  Box,
 } from '@mantine/core';
 import {
   IconArrowLeft,
@@ -45,6 +47,19 @@ export function RecipeDetailPage() {
     queryFn: () => fetchRecipe(Number(id)),
     enabled: !!id,
   });
+
+  const groupedIngredients = useMemo(() => {
+    if (!recipe?.ingredients) return {};
+    const groups: Record<string, typeof recipe.ingredients> = {};
+    
+    recipe.ingredients.forEach(ing => {
+      const g = ing.groupName || 'Ingredients';
+      if (!groups[g]) groups[g] = [];
+      groups[g].push(ing);
+    });
+    
+    return groups;
+  }, [recipe]);
 
   if (isLoading) {
     return (
@@ -186,32 +201,43 @@ export function RecipeDetailPage() {
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl">
               <Stack gap="md">
                 <Title order={3}>Ingredients</Title>
-                <Table layout="fixed" verticalSpacing="sm">
-                  <Table.Tbody>
-                    {recipe.ingredients?.map((ing, index) => (
-                      <Table.Tr key={index}>
-                        <Table.Td w={40}>
-                          <Avatar 
-                            src={getPhotoSrc(ing.itemPhoto)} 
-                            size="sm" 
-                            radius="xs"
-                            variant="light"
-                          >
-                            <IconChefHat size={14} />
-                          </Avatar>
-                        </Table.Td>
-                        <Table.Td>
-                          <Text fw={500}>{ing.itemName}</Text>
-                        </Table.Td>
-                        <Table.Td w={120} style={{ textAlign: 'right' }}>
-                          <Text fw={700}>
-                            {ing.quantity} {ing.unit}
-                          </Text>
-                        </Table.Td>
-                      </Table.Tr>
-                    ))}
-                  </Table.Tbody>
-                </Table>
+                <Stack gap="lg">
+                  {Object.entries(groupedIngredients).map(([group, ingredients]) => (
+                    <Box key={group}>
+                      {group !== 'Ingredients' && (
+                        <Text fw={700} size="sm" c="indigo" tt="uppercase" mb="xs" style={{ letterSpacing: '1px' }}>
+                          {group}
+                        </Text>
+                      )}
+                      <Table layout="fixed" verticalSpacing="sm">
+                        <Table.Tbody>
+                          {ingredients.map((ing, index) => (
+                            <Table.Tr key={index}>
+                              <Table.Td w={40}>
+                                <Avatar 
+                                  src={getPhotoSrc(ing.itemPhoto)} 
+                                  size="sm" 
+                                  radius="xs"
+                                  variant="light"
+                                >
+                                  <IconChefHat size={14} />
+                                </Avatar>
+                              </Table.Td>
+                              <Table.Td>
+                                <Text fw={500}>{ing.itemName}</Text>
+                              </Table.Td>
+                              <Table.Td w={120} style={{ textAlign: 'right' }}>
+                                <Text fw={700}>
+                                  {ing.quantity} {ing.unit}
+                                </Text>
+                              </Table.Td>
+                            </Table.Tr>
+                          ))}
+                        </Table.Tbody>
+                      </Table>
+                    </Box>
+                  ))}
+                </Stack>
               </Stack>
 
               <Stack gap="md">

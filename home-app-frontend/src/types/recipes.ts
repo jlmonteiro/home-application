@@ -37,6 +37,7 @@ export interface RecipeIngredient {
   itemPhoto?: string;
   quantity: number;
   unit: string;
+  groupName?: string;
   nutritionEntries?: NutritionEntry[];
 }
 

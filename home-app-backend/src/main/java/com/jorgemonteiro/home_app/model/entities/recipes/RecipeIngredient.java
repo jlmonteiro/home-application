@@ -37,6 +37,9 @@ public class RecipeIngredient {
     @Column(name = "quantity", nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity = BigDecimal.ONE;
 
+    @Column(name = "group_name", length = 50)
+    private String groupName;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

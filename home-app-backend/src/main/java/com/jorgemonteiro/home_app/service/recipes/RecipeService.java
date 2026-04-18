@@ -164,6 +164,7 @@ public class RecipeService {
                             ing.setRecipe(recipe);
                         }
                         ing.setQuantity(ingDto.getQuantity());
+                        ing.setGroupName(ingDto.getGroupName());
                         
                         ShoppingItem item = shoppingItemRepository.findById(ingDto.getItemId())
                                 .orElseThrow(() -> new ObjectNotFoundException("ShoppingItem with id " + ingDto.getItemId() + " not found"));

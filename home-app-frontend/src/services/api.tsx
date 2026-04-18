@@ -166,16 +166,18 @@ async function apiFetch(url: string, options: RequestInit = {}): Promise<Respons
                           backgroundColor: '#2d2d2d',
                           color: '#ccc',
                           borderRadius: 'var(--mantine-radius-md)',
-                          fontSize: '12px'
+                          fontSize: '12px',
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-all'
                         }}
                         dangerouslySetInnerHTML={{
-                          __html: highlight(
+                          __html: bodyContent ? highlight(
                             errorDetail
                               ? JSON.stringify(errorDetail, null, 2)
-                              : bodyContent || 'Empty response body',
+                              : bodyContent,
                             languages.json,
                             'json'
-                          )
+                          ) : 'Empty response body'
                         }}
                       />
                     </ScrollArea.Autosize>

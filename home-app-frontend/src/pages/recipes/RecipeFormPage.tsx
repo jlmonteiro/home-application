@@ -145,7 +145,10 @@ export function RecipeFormPage() {
         videoLink: recipe.videoLink || '',
         labels: recipe.labels || [],
         photos: recipe.photos || [],
-        ingredients: recipe.ingredients || [],
+        ingredients: (recipe.ingredients || []).map(ing => ({
+          ...ing,
+          groupName: ing.groupName || ''
+        })),
         steps: recipe.steps || [],
       });
     }
@@ -200,7 +203,7 @@ export function RecipeFormPage() {
   };
 
   const addIngredient = () => {
-    form.insertListItem('ingredients', { itemId: 0, quantity: 1, unit: '' });
+    form.insertListItem('ingredients', { itemId: 0, quantity: 1, unit: '', groupName: '' });
   };
 
   const addStep = () => {
@@ -354,12 +357,14 @@ export function RecipeFormPage() {
                 <Table>
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th>Item</Table.Th>
+                      <Table.Th>Ingredient Item</Table.Th>
                       <Table.Th w={100}>Quantity</Table.Th>
-                      <Table.Th w={120}>Unit</Table.Th>
-                      <Table.Th w={50}></Table.Th>
+                      <Table.Th w={80}>Unit</Table.Th>
+                      <Table.Th w={150}>Group (Optional)</Table.Th>
+                      <Table.Th w={40}></Table.Th>
                     </Table.Tr>
                   </Table.Thead>
+
                   <Table.Tbody>
                     {form.values.ingredients.map((_, index) => (
                       <Table.Tr key={index}>
@@ -398,6 +403,12 @@ export function RecipeFormPage() {
                               {form.values.ingredients[index].unit || '-'}
                             </Badge>
                           </Box>
+                        </Table.Td>
+                        <Table.Td>
+                          <TextInput
+                            placeholder="e.g. Dough"
+                            {...form.getInputProps(`ingredients.${index}.groupName`)}
+                          />
                         </Table.Td>
                         <Table.Td>
                           <ActionIcon
