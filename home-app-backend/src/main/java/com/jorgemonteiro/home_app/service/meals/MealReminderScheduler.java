@@ -1,9 +1,6 @@
 package com.jorgemonteiro.home_app.service.meals;
 
-import com.jorgemonteiro.home_app.model.entities.meals.MealPlan;
-import com.jorgemonteiro.home_app.model.entities.meals.MealPlanEntry;
-import com.jorgemonteiro.home_app.model.entities.meals.MealPlanEntryRecipe;
-import com.jorgemonteiro.home_app.model.entities.meals.MealTimeSchedule;
+import com.jorgemonteiro.home_app.model.entities.meals.*;
 import com.jorgemonteiro.home_app.repository.meals.MealPlanRepository;
 import com.jorgemonteiro.home_app.service.notifications.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -38,10 +35,10 @@ public class MealReminderScheduler {
     public void sendMealReminders() {
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
-        int dayOfWeek = today.getDayOfWeek().getValue();
+        DayOfWeek dayOfWeek = today.getDayOfWeek();
 
         mealPlanRepository.findByWeekStartDate(today.with(DayOfWeek.MONDAY)).ifPresent(plan -> {
-            if (!"ACCEPTED".equals(plan.getStatus()) && !"PUBLISHED".equals(plan.getStatus())) return;
+            if (plan.getStatus() == MealPlanStatus.PENDING) return;
 
             for (MealPlanEntry entry : plan.getEntries()) {
                 if (entry.getDayOfWeek() != dayOfWeek || entry.getIsDone()) continue;

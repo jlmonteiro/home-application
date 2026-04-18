@@ -56,11 +56,7 @@ export function Layout() {
   const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
 
-  const photoSrc = user?.photo?.startsWith('http')
-    ? user.photo
-    : user?.photo?.startsWith('data:image')
-      ? user.photo
-      : `data:image/png;base64,${user?.photo}`
+  const photoSrc = user?.photo?.url || null
 
   const isAdult = user?.ageGroupName === 'Adult'
 

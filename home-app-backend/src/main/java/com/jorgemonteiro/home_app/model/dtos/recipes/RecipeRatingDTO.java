@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.dtos.recipes;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.UserSummaryDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,12 +15,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class RecipeRatingDTO {
     private Long id;
-    private String userName;
+    private UserSummaryDTO user;
     private Integer rating;
     private LocalDateTime createdAt;
 
     public RecipeRatingDTO(String userName, Integer rating) {
-        this.userName = userName;
+        this.user = new UserSummaryDTO(null, userName);
         this.rating = rating;
     }
 }

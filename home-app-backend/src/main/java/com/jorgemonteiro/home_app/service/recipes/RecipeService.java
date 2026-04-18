@@ -168,8 +168,9 @@ public class RecipeService {
                         ing.setQuantity(ingDto.getQuantity());
                         ing.setGroupName(ingDto.getGroupName());
                         
-                        ShoppingItem item = shoppingItemRepository.findById(ingDto.getItemId())
-                                .orElseThrow(() -> new ObjectNotFoundException("ShoppingItem with id " + ingDto.getItemId() + " not found"));
+                        Long itemId = ingDto.getItem().getId();
+                        ShoppingItem item = shoppingItemRepository.findById(itemId)
+                                .orElseThrow(() -> new ObjectNotFoundException("ShoppingItem with id " + itemId + " not found"));
                         ing.setItem(item);
                         return ing;
                     })
@@ -224,7 +225,7 @@ public class RecipeService {
                                     ne.getNutrient().getUnit()
                             ));
                 })
-                .collect(Collectors.groupingBy(NutritionEntryDTO::getNutrientName));
+                .collect(Collectors.groupingBy(dto -> dto.getNutrient().getName()));
 
         return groupedNutrients.entrySet().stream()
                 .map(entry -> {
@@ -233,7 +234,7 @@ public class RecipeService {
                     BigDecimal totalValue = values.stream()
                             .map(NutritionEntryDTO::getValue)
                             .reduce(BigDecimal.ZERO, BigDecimal::add);
-                    String unit = values.get(0).getUnit();
+                    String unit = values.get(0).getNutrient().getUnit();
                     return new NutritionEntryDTO(key, totalValue, unit);
                 })
                 .collect(Collectors.toList());

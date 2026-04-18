@@ -109,9 +109,9 @@ public class UserProfileService {
     }
 
     private void applyProfileUpdates(UserProfile profile, UserProfileDTO dto) {
-        if (dto.getPhoto() != null) {
+        if (dto.getPhoto() != null && dto.getPhoto().getData() != null) {
             String fileName = "user-" + profile.getUser().getId() + "-profile";
-            profile.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "profile"));
+            profile.setPhoto(photoService.savePhoto(dto.getPhoto().getData(), fileName, "profile"));
         }
 
         profile.setFacebook(dto.getFacebook());

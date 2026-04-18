@@ -102,9 +102,9 @@ public class ShoppingCatalogService {
         ShoppingItem entity = shoppingAdapter.toItemEntity(dto);
         
         // Handle photo saving to central storage
-        if (dto.getPhoto() != null && dto.getPhoto().startsWith("data:image")) {
+        if (dto.getPhoto() != null && dto.getPhoto().getData() != null && dto.getPhoto().getData().startsWith("data:image")) {
             String fileName = photoService.generateFileName(dto.getName(), "item");
-            entity.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "item"));
+            entity.setPhoto(photoService.savePhoto(dto.getPhoto().getData(), fileName, "item"));
         }
         
         category.addItem(entity);
@@ -125,14 +125,14 @@ public class ShoppingCatalogService {
         existing.setCategory(category);
         
         // Handle photo update/saving to central storage
-        if (dto.getPhoto() != null && dto.getPhoto().startsWith("data:image")) {
+        if (dto.getPhoto() != null && dto.getPhoto().getData() != null && dto.getPhoto().getData().startsWith("data:image")) {
             String fileName = photoService.generateFileName(dto.getName(), "item");
-            existing.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "item"));
-        } else if (dto.getPhoto() == null) {
+            existing.setPhoto(photoService.savePhoto(dto.getPhoto().getData(), fileName, "item"));
+        } else if (dto.getPhoto() != null && dto.getPhoto().getData() == null) {
             existing.setPhoto(null);
-        } else if (!dto.getPhoto().startsWith("/api/images/")) {
+        } else if (dto.getPhoto() != null && !dto.getPhoto().getData().startsWith("/api/images/")) {
             // If it's a URL or another name, keep it (though usually it's base64 from UI)
-            existing.setPhoto(dto.getPhoto());
+            existing.setPhoto(dto.getPhoto().getData());
         }
 
         return shoppingAdapter.toItemDTO(itemRepository.save(existing));

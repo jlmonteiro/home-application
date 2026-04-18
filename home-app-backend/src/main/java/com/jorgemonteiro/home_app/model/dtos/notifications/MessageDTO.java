@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.dtos.notifications;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.UserSummaryDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,10 +13,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class MessageDTO {
     private Long id;
-    private Long senderId;
-    private String senderName;
-    private Long recipientId;
-    private String recipientName;
+    private UserSummaryDTO sender;
+    private UserSummaryDTO recipient;
     private String content;
     private Boolean isRead;
     private LocalDateTime createdAt;

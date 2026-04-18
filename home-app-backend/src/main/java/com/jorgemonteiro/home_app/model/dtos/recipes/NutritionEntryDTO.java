@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.dtos.recipes;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.NutrientSummaryDTO;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,22 +19,17 @@ import java.math.BigDecimal;
 public class NutritionEntryDTO {
     private Long id;
 
-    @NotNull(message = "Nutrient ID is required")
-    private Long nutrientId;
-
-    private String nutrientName;
+    @NotNull(message = "Nutrient info is required")
+    private NutrientSummaryDTO nutrient;
 
     @NotNull(message = "Value is required")
     private BigDecimal value;
-
-    private String unit;
 
     /**
      * Legacy constructor for backward compatibility and simplified mapping
      */
     public NutritionEntryDTO(String nutrientName, BigDecimal value, String unit) {
-        this.nutrientName = nutrientName;
+        this.nutrient = new NutrientSummaryDTO(null, nutrientName, unit);
         this.value = value;
-        this.unit = unit;
     }
 }

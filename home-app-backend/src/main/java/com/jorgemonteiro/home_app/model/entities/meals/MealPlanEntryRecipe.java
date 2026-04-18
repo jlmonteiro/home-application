@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
@@ -39,7 +40,7 @@ public class MealPlanEntryRecipe {
     private User user;
 
     @Column(name = "multiplier", nullable = false, precision = 10, scale = 2)
-    private java.math.BigDecimal multiplier = java.math.BigDecimal.ONE;
+    private BigDecimal multiplier = BigDecimal.ONE;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

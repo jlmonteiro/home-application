@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -29,8 +30,9 @@ public class MealTimeSchedule {
     @JoinColumn(name = "meal_time_id", nullable = false)
     private MealTime mealTime;
 
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "day_of_week", nullable = false)
-    private Integer dayOfWeek;
+    private DayOfWeek dayOfWeek;
 
     @Column(name = "start_time", nullable = false)
     private LocalTime startTime;

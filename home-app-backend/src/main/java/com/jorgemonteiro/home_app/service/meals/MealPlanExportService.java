@@ -2,6 +2,7 @@ package com.jorgemonteiro.home_app.service.meals;
 
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.model.dtos.meals.MealPlanExportItemDTO;
+import com.jorgemonteiro.home_app.model.dtos.shared.PhotoDTO;
 import com.jorgemonteiro.home_app.model.entities.meals.MealPlan;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingItem;
@@ -70,7 +71,7 @@ public class MealPlanExportService {
                             BigDecimal.ZERO
                     ));
                     
-                    exportItem.setItemPhoto(photoService.getPhotoUrl(item.getPhoto()));
+                    exportItem.setItemPhoto(new PhotoDTO(null, photoService.getPhotoUrl(item.getPhoto())));
                     
                     BigDecimal scaledQuantity = ing.getQuantity().multiply(multiplier);
                     exportItem.setQuantity(exportItem.getQuantity().add(scaledQuantity));

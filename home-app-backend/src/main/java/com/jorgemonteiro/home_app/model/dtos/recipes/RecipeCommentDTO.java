@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.dtos.recipes;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.UserSummaryDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,9 +13,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class RecipeCommentDTO {
     private Long id;
-    private Long userId;
-    private String userName;
-    private String userPhoto;
+    private UserSummaryDTO user;
     private String comment;
     private LocalDateTime createdAt;
 }

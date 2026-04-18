@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.dtos.shopping;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.StoreSummaryDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,8 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ShoppingItemPriceHistoryDTO {
     private Long id;
-    private Long storeId;
-    private String storeName;
+    private StoreSummaryDTO store;
     private BigDecimal price;
     private LocalDateTime recordedAt;
 }

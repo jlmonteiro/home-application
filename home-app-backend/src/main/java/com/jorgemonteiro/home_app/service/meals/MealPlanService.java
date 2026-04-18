@@ -4,11 +4,7 @@ import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.model.adapter.meals.MealAdapter;
 import com.jorgemonteiro.home_app.model.dtos.meals.MealPlanDTO;
 import com.jorgemonteiro.home_app.model.dtos.meals.MealPlanExportItemDTO;
-import com.jorgemonteiro.home_app.model.entities.meals.MealPlan;
-import com.jorgemonteiro.home_app.model.entities.meals.MealPlanEntry;
-import com.jorgemonteiro.home_app.model.entities.meals.MealPlanEntryRecipe;
-import com.jorgemonteiro.home_app.model.entities.meals.MealPlanVote;
-import com.jorgemonteiro.home_app.model.entities.meals.MealTime;
+import com.jorgemonteiro.home_app.model.entities.meals.*;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import com.jorgemonteiro.home_app.repository.meals.MealPlanEntryRepository;
 import com.jorgemonteiro.home_app.repository.meals.MealPlanRepository;
@@ -68,7 +64,7 @@ public class MealPlanService {
                 .orElseGet(() -> {
                     MealPlan newPlan = new MealPlan();
                     newPlan.setWeekStartDate(weekStart);
-                    newPlan.setStatus("PENDING");
+                    newPlan.setStatus(MealPlanStatus.PENDING);
                     return MealAdapter.toMealPlanDTO(mealPlanRepository.save(newPlan));
                 });
     }
@@ -87,7 +83,7 @@ public class MealPlanService {
                 .orElseThrow(() -> new ObjectNotFoundException("MealPlan with id " + id + " not found"));
         User sender = userRepository.findByEmail(senderEmail).orElseThrow(() -> new ObjectNotFoundException("User with email " + senderEmail + " not found"));
 
-        plan.setStatus("PUBLISHED");
+        plan.setStatus(MealPlanStatus.PUBLISHED);
         mealPlanRepository.save(plan);
 
         List<User> users = userRepository.findAll();
@@ -106,7 +102,7 @@ public class MealPlanService {
     public void acceptPlan(Long id) {
         MealPlan plan = mealPlanRepository.findById(id)
                 .orElseThrow(() -> new ObjectNotFoundException("MealPlan with id " + id + " not found"));
-        plan.setStatus("ACCEPTED");
+        plan.setStatus(MealPlanStatus.ACCEPTED);
         mealPlanRepository.save(plan);
     }
 
@@ -143,14 +139,15 @@ public class MealPlanService {
                                     .map(rDto -> {
                                         MealPlanEntryRecipe er = new MealPlanEntryRecipe();
                                         er.setEntry(entry);
-                                        er.setRecipe(recipeRepository.findById(rDto.getRecipeId())
-                                                .orElseThrow(() -> new ObjectNotFoundException("Recipe with id " + rDto.getRecipeId() + " not found")));
+                                        er.setRecipe(recipeRepository.findById(rDto.getRecipe().getId())
+                                                .orElseThrow(() -> new ObjectNotFoundException("Recipe with id " + rDto.getRecipe().getId() + " not found")));
                                         
                                         er.setMultiplier(rDto.getMultiplier() != null ? rDto.getMultiplier() : BigDecimal.ONE);
 
-                                        if (rDto.getUserId() != null) {
-                                            er.setUser(userRepository.findById(rDto.getUserId())
-                                                    .orElseThrow(() -> new ObjectNotFoundException("User with id " + rDto.getUserId() + " not found")));
+                                        if (rDto.getUsers() != null && !rDto.getUsers().isEmpty()) {
+                                            Long userId = rDto.getUsers().get(0).getId();
+                                            er.setUser(userRepository.findById(userId)
+                                                    .orElseThrow(() -> new ObjectNotFoundException("User with id " + userId + " not found")));
                                         }
                                         return er;
                                     })

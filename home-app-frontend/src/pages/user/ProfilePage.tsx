@@ -52,7 +52,7 @@ export function ProfilePage() {
 
   const form = useForm<Partial<UserProfile>>({
     initialValues: {
-      photo: user?.photo || '',
+      photo: user?.photo || {},
       facebook: user?.facebook || '',
       mobilePhone: user?.mobilePhone || '',
       instagram: user?.instagram || '',
@@ -117,7 +117,7 @@ export function ProfilePage() {
 
       const reader = new FileReader()
       reader.onloadend = () => {
-        form.setFieldValue('photo', reader.result as string)
+        form.setFieldValue('photo', { data: reader.result as string })
       }
       reader.readAsDataURL(file)
     }
@@ -165,7 +165,7 @@ export function ProfilePage() {
               <Group align="flex-start" wrap="nowrap">
                 <Stack align="center" gap="xs">
                   <Avatar
-                    src={getPhotoSrc(form.values.photo)}
+                    src={getPhotoSrc(form.values.photo?.data || form.values.photo?.url)}
                     size={120}
                     radius={120}
                     variant="filled"

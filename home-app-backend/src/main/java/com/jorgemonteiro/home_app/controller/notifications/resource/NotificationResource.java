@@ -3,7 +3,7 @@ package com.jorgemonteiro.home_app.controller.notifications.resource;
 import com.jorgemonteiro.home_app.model.dtos.notifications.NotificationDTO;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.time.LocalDateTime;
@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Relation(collectionRelation = "notifications", itemRelation = "notification")
-public class NotificationResource extends EntityModel<NotificationDTO> {
+public class NotificationResource extends RepresentationModel<NotificationResource> {
     private Long id;
     private String type;
     private String title;
@@ -24,11 +24,15 @@ public class NotificationResource extends EntityModel<NotificationDTO> {
     public NotificationResource(NotificationDTO dto) {
         this.id = dto.getId();
         this.type = dto.getType();
-        this.title = dto.getTitle();
-        this.message = dto.getMessage();
+        if (dto.getMessage() != null) {
+            this.title = dto.getMessage().getTitle();
+            this.message = dto.getMessage().getContent();
+        }
         this.link = dto.getLink();
-        this.isRead = dto.getIsRead();
+        this.isRead = dto.getIsRead() != null ? dto.getIsRead() : false;
         this.createdAt = dto.getCreatedAt();
-        this.senderName = dto.getSenderName();
+        if (dto.getSender() != null) {
+            this.senderName = dto.getSender().getName();
+        }
     }
 }

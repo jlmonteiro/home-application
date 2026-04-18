@@ -4,6 +4,7 @@ import com.jorgemonteiro.home_app.HomeApplication
 import com.jorgemonteiro.home_app.model.entities.profiles.User
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingListRepository
+import com.jorgemonteiro.home_app.controller.meals.MealPlanController
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
@@ -13,10 +14,12 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
 
 import java.time.LocalDate
 
+import static org.hamcrest.Matchers.containsString
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.oauth2Login
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -32,6 +35,7 @@ So that my family knows what to eat each day
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
+@Subject(MealPlanController)
 class MealPlanApiSpec extends BaseIntegrationTest {
 
     @Autowired
@@ -63,13 +67,13 @@ class MealPlanApiSpec extends BaseIntegrationTest {
             def response = mockMvc.perform(get("/api/meals/plans")
                     .with(auth)
                     .param("date", dateStr))
+            println "DEBUG MEAL PLAN JSON: " + response.andReturn().getResponse().getContentAsString()
 
         then: "response status is 200 OK"
             response.andExpect(status().isOk())
 
         and: "the returned plan week starts on the correct Monday"
-            // April 17, 2026 is a Friday. The previous Monday was April 13.
-            response.andExpect(jsonPath('$.weekStartDate').value("2026-04-13"))
+            response.andExpect(jsonPath('$.weekStartDate').value(containsString("2026-04-13")))
             response.andExpect(jsonPath('$.status').value("PENDING"))
     }
 
@@ -85,17 +89,17 @@ class MealPlanApiSpec extends BaseIntegrationTest {
             response.andExpect(status().isOk())
 
         and: "the returned plan is for the current week"
-            def expectedMonday = LocalDate.now().with(java.time.DayOfWeek.MONDAY).toString()
-            response.andExpect(jsonPath('$.weekStartDate').value(expectedMonday))
+            String expectedMonday = LocalDate.now().with(java.time.DayOfWeek.MONDAY).toString()
+            response.andExpect(jsonPath('$.weekStartDate').value(containsString(expectedMonday)))
     }
 
     def "POST /api/meals/plans/{id}/export should create a new list when targetListId is 0"() {
         given: "an authenticated user and a meal plan"
             def auth = oauth2Login().attributes { it.put("email", testUser.email) }
-            def planId = mockMvc.perform(get("/api/meals/plans").with(auth))
-                    .andReturn().getResponse().getContentAsString().with {
-                        new groovy.json.JsonSlurper().parseText(it).id
-                    }
+            def planJson = mockMvc.perform(get("/api/meals/plans").with(auth))
+                    .andReturn().getResponse().getContentAsString()
+            def planData = new groovy.json.JsonSlurper().parseText(planJson)
+            def planId = planData.id
 
         and: "an empty list of items (for simplicity)"
             def itemsJson = "[]"

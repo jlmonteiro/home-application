@@ -2,6 +2,7 @@ package com.jorgemonteiro.home_app.model.adapter.profiles;
 
 import com.jorgemonteiro.home_app.model.dtos.profiles.FamilyRoleDTO;
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO;
+import com.jorgemonteiro.home_app.model.dtos.shared.PhotoDTO;
 import com.jorgemonteiro.home_app.model.entities.profiles.FamilyRole;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile;
@@ -37,7 +38,7 @@ public class UserProfileAdapter {
         dto.setEnabled(user.getEnabled());
 
         if (user.getUserProfile() != null) {
-            dto.setPhoto(photoService.getPhotoUrl(user.getUserProfile().getPhoto()));
+            dto.setPhoto(new PhotoDTO(null, photoService.getPhotoUrl(user.getUserProfile().getPhoto())));
             dto.setFacebook(user.getUserProfile().getFacebook());
             dto.setMobilePhone(user.getUserProfile().getMobilePhone());
             dto.setInstagram(user.getUserProfile().getInstagram());
@@ -86,7 +87,7 @@ public class UserProfileAdapter {
 
         UserProfile userProfile = new UserProfile();
         userProfile.setUser(user);
-        userProfile.setPhoto(dto.getPhoto());
+        userProfile.setPhoto(dto.getPhoto() != null ? dto.getPhoto().getData() : null);
         userProfile.setFacebook(dto.getFacebook());
         userProfile.setMobilePhone(dto.getMobilePhone());
         userProfile.setInstagram(dto.getInstagram());

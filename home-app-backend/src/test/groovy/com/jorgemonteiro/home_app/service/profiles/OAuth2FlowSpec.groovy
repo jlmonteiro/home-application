@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 
 import java.util.Optional
 import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
 
 import static org.mockito.Mockito.when
@@ -28,6 +29,7 @@ So that I can maintain a local profile for authenticated users
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Subject(CustomOAuth2UserService)
 class OAuth2FlowSpec extends BaseIntegrationTest {
 
     @Autowired
@@ -45,7 +47,6 @@ class OAuth2FlowSpec extends BaseIntegrationTest {
             def targetFirstName = "Google"
             def targetLastName = "User"
             def targetPicture = "https://lh3.googleusercontent.com/photo.jpg"
-            def targetPhotoData = "base64-mock-data"
 
             def oauth2User = Mock(OAuth2User)
             def attributes = [
@@ -59,14 +60,11 @@ class OAuth2FlowSpec extends BaseIntegrationTest {
 
             def userRequest = Mock(OAuth2UserRequest)
 
-        and: "a mocked photo download"
-            when(photoService.downloadAndConvertToBase64(targetPicture)).thenReturn(targetPhotoData)
-
         and: "a test version of the service that uses the real UserService"
-            def service = new CustomOAuth2UserService(userService, null) {
+            def googlePeopleServiceMock = Mock(GooglePeopleService)
+            def service = new CustomOAuth2UserService(userService, googlePeopleServiceMock) {
                 @Override
                 OAuth2User loadUser(OAuth2UserRequest request) {
-                    // Simulate production behavior which calls userService.findOrCreateUser
                     userService.findOrCreateUser(
                         oauth2User.getAttribute("email"),
                         oauth2User.getAttribute("given_name"),
@@ -93,10 +91,10 @@ class OAuth2FlowSpec extends BaseIntegrationTest {
                 enabled == true
             }
 
-        and: "the associated profile is initialized with the photo and no other details"
+        and: "the associated profile is initialized with the photo URL and no other details"
             with(localUser.userProfile) {
                 it != null
-                photo == targetPhotoData
+                photo == targetPicture
                 facebook == null
                 mobilePhone == null
                 instagram == null
@@ -127,7 +125,8 @@ class OAuth2FlowSpec extends BaseIntegrationTest {
 
             def userRequest = Mock(OAuth2UserRequest)
 
-            def service = new CustomOAuth2UserService(userService, null) {
+            def googlePeopleServiceMock = Mock(GooglePeopleService)
+            def service = new CustomOAuth2UserService(userService, googlePeopleServiceMock) {
                 @Override
                 OAuth2User loadUser(OAuth2UserRequest request) {
                     userService.findOrCreateUser(

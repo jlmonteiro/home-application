@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * JPA entity representing a type of meal (e.g. Breakfast, Dinner).
@@ -32,7 +33,7 @@ public class MealTime {
 
     @OneToMany(mappedBy = "mealTime", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("dayOfWeek ASC")
-    private java.util.List<MealTimeSchedule> schedules = new java.util.ArrayList<>();
+    private List<MealTimeSchedule> schedules = new java.util.ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.dtos.meals;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.PhotoDTO;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,7 +16,7 @@ import java.math.BigDecimal;
 public class MealPlanExportItemDTO {
     private Long itemId;
     private String itemName;
-    private String itemPhoto;
+    private PhotoDTO itemPhoto;
     private BigDecimal quantity;
     private String unit;
     private BigDecimal existingQuantity;

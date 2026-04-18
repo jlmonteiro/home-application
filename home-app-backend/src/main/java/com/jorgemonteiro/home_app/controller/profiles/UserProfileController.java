@@ -4,8 +4,6 @@ import com.jorgemonteiro.home_app.controller.profiles.resource.user.UserProfileR
 import com.jorgemonteiro.home_app.controller.profiles.resource.user.UserProfileResourceAssembler;
 import com.jorgemonteiro.home_app.exception.AuthenticationException;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
-import com.jorgemonteiro.home_app.model.adapter.profiles.UserAdapter;
-import com.jorgemonteiro.home_app.model.adapter.profiles.UserProfileAdapter;
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserDTO;
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO;
 import com.jorgemonteiro.home_app.service.profiles.UserProfileService;
@@ -35,6 +33,17 @@ public class UserProfileController {
     private final UserProfileService userProfileService;
     private final UserProfileResourceAssembler resourceAssembler;
     private final PagedResourcesAssembler<UserProfileDTO> pagedResourcesAssembler;
+
+    /**
+     * Returns a paginated list of all user profiles.
+     *
+     * @param pageable pagination parameters
+     * @return 200 with a PagedUserProfileResource
+     */
+    @GetMapping
+    public PagedModel<UserProfileResource> getAllProfiles(Pageable pageable) {
+        return pagedResourcesAssembler.toModel(userProfileService.findAll(pageable), resourceAssembler);
+    }
 
     /**
      * Returns the profile of the currently authenticated user.
@@ -79,14 +88,19 @@ public class UserProfileController {
     }
 
     /**
-     * Returns a paginated list of all user profiles.
+     * Updates a user profile by ID.
      *
-     * @param pageable pagination parameters
-     * @return 200 with a PagedUserProfileResource (hides PagedModel<EntityModel<T>>)
+     * @param id the ID of the user to update
+     * @param dto the profile data to update
+     * @return 200 with the updated UserProfileResource
      */
-    @GetMapping("/profiles")
-    public PagedModel<UserProfileResource> getAllProfiles(Pageable pageable) {
-        return pagedResourcesAssembler.toModel(userProfileService.findAll(pageable), resourceAssembler);
+    @PutMapping("/{id}")
+    public ResponseEntity<UserProfileResource> updateUserProfile(
+            @PathVariable Long id,
+            @Valid @RequestBody UserProfileDTO dto) {
+        dto.setId(id);
+        UserProfileDTO updated = userProfileService.updateUserProfile(dto);
+        return ResponseEntity.ok(resourceAssembler.toModel(updated));
     }
 
     /**
@@ -96,7 +110,7 @@ public class UserProfileController {
      * @param profileDTO the profile data to update
      * @return 200 with the updated UserProfileResource
      */
-    @PutMapping("/profile")
+    @PutMapping("/me")
     public ResponseEntity<UserProfileResource> updateMyProfile(
             @AuthenticationPrincipal OAuth2User principal,
             @Valid @RequestBody UserProfileDTO profileDTO) {

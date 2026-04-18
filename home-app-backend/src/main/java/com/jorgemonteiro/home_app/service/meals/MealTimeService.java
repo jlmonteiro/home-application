@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -67,10 +68,11 @@ public class MealTimeService {
     private void syncSchedules(MealTime entity, MealTimeDTO dto) {
         if (dto.getSchedules() != null) {
             // Use surgical updates to avoid OptimisticLockingFailureException
-            Map<Integer, MealTimeSchedule> existingMap = entity.getSchedules().stream()
+            Map<DayOfWeek, MealTimeSchedule> existingMap = entity.getSchedules().stream()
                     .collect(Collectors.toMap(MealTimeSchedule::getDayOfWeek, s -> s));
 
             List<MealTimeSchedule> updatedSchedules = dto.getSchedules().stream()
+
                     .map(sDto -> {
                         MealTimeSchedule s = existingMap.get(sDto.getDayOfWeek());
                         if (s == null) {

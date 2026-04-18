@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.dtos.shopping;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.PhotoDTO;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -23,7 +24,7 @@ public class ShoppingStoreDTO {
     @Size(max = 100, message = "Icon name must not exceed 100 characters")
     private String icon;
 
-    private String photo;
+    private PhotoDTO photo;
 
     private Integer validCouponsCount;
 

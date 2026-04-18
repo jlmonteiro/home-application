@@ -39,10 +39,11 @@ public class NutritionEntryService {
         ShoppingItem item = shoppingItemRepository.findById(itemId)
                 .orElseThrow(() -> new ObjectNotFoundException("ShoppingItem with id " + itemId + " not found"));
 
-        Nutrient nutrient = nutrientRepository.findById(dto.getNutrientId())
-                .orElseThrow(() -> new ObjectNotFoundException("Nutrient with id " + dto.getNutrientId() + " not found"));
+        Long nutrientId = dto.getNutrient().getId();
+        Nutrient nutrient = nutrientRepository.findById(nutrientId)
+                .orElseThrow(() -> new ObjectNotFoundException("Nutrient with id " + nutrientId + " not found"));
 
-        NutritionEntry entry = nutritionEntryRepository.findByItemIdAndNutrientId(itemId, dto.getNutrientId())
+        NutritionEntry entry = nutritionEntryRepository.findByItemIdAndNutrientId(itemId, nutrientId)
                 .orElse(new NutritionEntry());
         
         entry.setItem(item);

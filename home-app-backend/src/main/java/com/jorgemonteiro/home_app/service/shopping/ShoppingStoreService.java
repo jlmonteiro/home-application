@@ -58,9 +58,9 @@ public class ShoppingStoreService {
         assertStoreNameUnique(dto.getName());
         ShoppingStore entity = shoppingAdapter.toStoreEntity(dto);
         
-        if (dto.getPhoto() != null && dto.getPhoto().startsWith("data:image")) {
+        if (dto.getPhoto() != null && dto.getPhoto().getData() != null && dto.getPhoto().getData().startsWith("data:image")) {
             String fileName = "store-" + UUID.randomUUID();
-            entity.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "store"));
+            entity.setPhoto(photoService.savePhoto(dto.getPhoto().getData(), fileName, "store"));
         }
 
         return shoppingAdapter.toStoreDTO(storeRepository.save(entity));
@@ -76,10 +76,10 @@ public class ShoppingStoreService {
         existing.setDescription(dto.getDescription());
         existing.setIcon(dto.getIcon());
         
-        if (dto.getPhoto() != null && dto.getPhoto().startsWith("data:image")) {
+        if (dto.getPhoto() != null && dto.getPhoto().getData() != null && dto.getPhoto().getData().startsWith("data:image")) {
             String fileName = "store-" + UUID.randomUUID();
-            existing.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "store"));
-        } else if (dto.getPhoto() == null) {
+            existing.setPhoto(photoService.savePhoto(dto.getPhoto().getData(), fileName, "store"));
+        } else if (dto.getPhoto() != null && dto.getPhoto().getData() == null) {
             existing.setPhoto(null);
         }
 
@@ -139,9 +139,9 @@ public class ShoppingStoreService {
         ShoppingStore store = requireStore(storeId);
         Coupon entity = shoppingAdapter.toCouponEntity(dto, store);
         
-        if (dto.getPhoto() != null && dto.getPhoto().startsWith("data:image")) {
+        if (dto.getPhoto() != null && dto.getPhoto().getData() != null && dto.getPhoto().getData().startsWith("data:image")) {
             String fileName = "coupon-" + UUID.randomUUID();
-            entity.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "coupon"));
+            entity.setPhoto(photoService.savePhoto(dto.getPhoto().getData(), fileName, "coupon"));
         }
         
         store.addCoupon(entity);
@@ -159,11 +159,16 @@ public class ShoppingStoreService {
             existing.setDueDate(dto.getDueDate().atStartOfDay());
         }
         existing.setUsed(dto.isUsed());
+
+        if (dto.getBarcode() != null) {
+            existing.setCode(dto.getBarcode().getCode());
+            existing.setBarcodeType(dto.getBarcode().getType());
+        }
         
-        if (dto.getPhoto() != null && dto.getPhoto().startsWith("data:image")) {
+        if (dto.getPhoto() != null && dto.getPhoto().getData() != null && dto.getPhoto().getData().startsWith("data:image")) {
             String fileName = "coupon-" + UUID.randomUUID();
-            existing.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "coupon"));
-        } else if (dto.getPhoto() == null) {
+            existing.setPhoto(photoService.savePhoto(dto.getPhoto().getData(), fileName, "coupon"));
+        } else if (dto.getPhoto() != null && dto.getPhoto().getData() == null) {
             existing.setPhoto(null);
         }
 

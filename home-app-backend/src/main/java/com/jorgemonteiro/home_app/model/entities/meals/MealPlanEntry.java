@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * JPA entity representing a specific meal slot in a weekly plan.
@@ -32,17 +34,18 @@ public class MealPlanEntry {
     @JoinColumn(name = "meal_time_id", nullable = false)
     private MealTime mealTime;
 
+    @Enumerated(EnumType.ORDINAL)
     @Column(name = "day_of_week", nullable = false)
-    private Integer dayOfWeek;
+    private DayOfWeek dayOfWeek;
 
     @Column(name = "is_done", nullable = false)
     private Boolean isDone = false;
 
     @OneToMany(mappedBy = "entry", cascade = CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<MealPlanEntryRecipe> recipes = new java.util.ArrayList<>();
+    private List<MealPlanEntryRecipe> recipes = new java.util.ArrayList<>();
 
     @OneToMany(mappedBy = "entry", cascade = CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<MealPlanVote> votes = new java.util.ArrayList<>();
+    private List<MealPlanVote> votes = new java.util.ArrayList<>();
 
     public long getThumbsUpCount() {
         return votes == null ? 0 : votes.stream().filter(MealPlanVote::getVote).count();

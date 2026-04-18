@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.adapter.shopping;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.*;
 import com.jorgemonteiro.home_app.model.dtos.shopping.*;
 import com.jorgemonteiro.home_app.model.entities.shopping.*;
 import com.jorgemonteiro.home_app.service.media.PhotoService;
@@ -39,7 +40,7 @@ public class ShoppingAdapter {
         entity.setName(dto.getName());
         entity.setDescription(dto.getDescription());
         entity.setIcon(dto.getIcon());
-        entity.setVersion(dto.getVersion());
+        entity.setVersion(entity.getVersion());
         return entity;
     }
 
@@ -53,10 +54,10 @@ public class ShoppingAdapter {
         dto.setUnit(entity.getUnit());
         dto.setNutritionSampleSize(entity.getNutritionSampleSize());
         dto.setNutritionSampleUnit(entity.getNutritionSampleUnit());
-        dto.setPhoto(photoService.getPhotoUrl(entity.getPhoto()));
+        dto.setPhoto(new PhotoDTO(null, photoService.getPhotoUrl(entity.getPhoto())));
         dto.setVersion(entity.getVersion());
         if (entity.getCategory() != null) {
-            dto.setCategory(new ShoppingItemDTO.Category(
+            dto.setCategory(new CategorySummaryDTO(
                 entity.getCategory().getId(),
                 entity.getCategory().getName(),
                 entity.getCategory().getIcon()
@@ -92,7 +93,7 @@ public class ShoppingAdapter {
         dto.setName(entity.getName());
         dto.setDescription(entity.getDescription());
         dto.setIcon(entity.getIcon());
-        dto.setPhoto(photoService.getPhotoUrl(entity.getPhoto()));
+        dto.setPhoto(new PhotoDTO(null, photoService.getPhotoUrl(entity.getPhoto())));
         dto.setVersion(entity.getVersion());
         return dto;
     }
@@ -118,7 +119,7 @@ public class ShoppingAdapter {
         dto.setBarcode(new LoyaltyCardDTO.Barcode(entity.getNumber(), entity.getBarcodeType()));
         dto.setVersion(entity.getVersion());
         if (entity.getStore() != null) {
-            dto.setStore(new LoyaltyCardDTO.Store(entity.getStore().getId(), entity.getStore().getName()));
+            dto.setStore(new StoreSummaryDTO(entity.getStore().getId(), entity.getStore().getName()));
         }
         return dto;
     }
@@ -144,12 +145,12 @@ public class ShoppingAdapter {
         CouponDTO dto = new CouponDTO();
         dto.setId(entity.getId());
         if (entity.getStore() != null) {
-            dto.setStore(new CouponDTO.Store(entity.getStore().getId(), entity.getStore().getName()));
+            dto.setStore(new StoreSummaryDTO(entity.getStore().getId(), entity.getStore().getName()));
         }
         dto.setName(entity.getName());
         dto.setDescription(entity.getDescription());
         dto.setValue(entity.getValue());
-        dto.setPhoto(photoService.getPhotoUrl(entity.getPhoto()));
+        dto.setPhoto(new PhotoDTO(null, photoService.getPhotoUrl(entity.getPhoto())));
         dto.setDueDate(entity.getDueDate() != null ? entity.getDueDate().toLocalDate() : null);
         dto.setBarcode(new CouponDTO.Barcode(entity.getCode(), entity.getBarcodeType()));
         dto.setUsed(entity.isUsed());
@@ -224,30 +225,39 @@ public class ShoppingAdapter {
         if (entity == null) return null;
         ShoppingListItemDTO dto = new ShoppingListItemDTO();
         dto.setId(entity.getId());
-        dto.setItemId(entity.getItem().getId());
-        dto.setItemName(entity.getItem().getName());
-        dto.setItemPhoto(photoService.getPhotoUrl(entity.getItem().getPhoto()));
-        dto.setUnit(entity.getItem().getUnit());
         
+        CategorySummaryDTO category = null;
         if (entity.getItem().getCategory() != null) {
-            dto.setCategory(new ShoppingListItemDTO.Category(
+            category = new CategorySummaryDTO(
                 entity.getItem().getCategory().getName(),
                 entity.getItem().getCategory().getIcon()
-            ));
+            );
         }
 
+        dto.setItem(new ItemSummaryDTO(
+            entity.getItem().getId(),
+            entity.getItem().getName(),
+            photoService.getPhotoUrl(entity.getItem().getPhoto()),
+            entity.getItem().getUnit()
+        ));
+        dto.getItem().setCategory(category);
+
+        dto.setUnit(entity.getItem().getUnit());
+        
         if (entity.getStore() != null) {
-            dto.setStore(new ShoppingListItemDTO.Store(
+            dto.setStore(new StoreSummaryDTO(
                 entity.getStore().getId(),
                 entity.getStore().getName()
             ));
         }
 
         dto.setQuantity(entity.getQuantity());
-        dto.setPrice(entity.getPrice());
         
         String key = entity.getItem().getId() + (entity.getStore() != null ? ":" + entity.getStore().getId() : "");
-        dto.setPreviousPrice(previousPriceMap.get(key));
+        dto.setPricing(new ShoppingListItemDTO.Pricing(
+            entity.getPrice(),
+            previousPriceMap.get(key)
+        ));
 
         dto.setBought(entity.isBought());
         dto.setUnavailable(entity.isUnavailable());
@@ -260,7 +270,11 @@ public class ShoppingAdapter {
         ShoppingListItem entity = new ShoppingListItem();
         entity.setId(dto.getId());
         entity.setQuantity(dto.getQuantity());
-        entity.setPrice(dto.getPrice());
+        
+        if (dto.getPricing() != null) {
+            entity.setPrice(dto.getPricing().getPrice());
+        }
+        
         entity.setBought(dto.getBought() != null ? dto.getBought() : false);
         entity.setUnavailable(dto.getUnavailable() != null ? dto.getUnavailable() : false);
         entity.setVersion(dto.getVersion());
@@ -273,7 +287,12 @@ public class ShoppingAdapter {
         if (entity == null) return null;
         ShoppingItemPriceHistoryDTO dto = new ShoppingItemPriceHistoryDTO();
         dto.setId(entity.getId());
-        dto.setStoreName(entity.getStore() != null ? entity.getStore().getName() : null);
+        if (entity.getStore() != null) {
+            dto.setStore(new StoreSummaryDTO(
+                    entity.getStore().getId(),
+                    entity.getStore().getName()
+            ));
+        }
         dto.setPrice(entity.getPrice());
         dto.setRecordedAt(entity.getRecordedAt());
         return dto;

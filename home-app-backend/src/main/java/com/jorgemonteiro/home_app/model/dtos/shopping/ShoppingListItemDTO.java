@@ -1,5 +1,7 @@
 package com.jorgemonteiro.home_app.model.dtos.shopping;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.ItemSummaryDTO;
+import com.jorgemonteiro.home_app.model.dtos.shared.StoreSummaryDTO;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,24 +19,16 @@ public class ShoppingListItemDTO {
 
     private Long id;
 
-    private Long itemId;
+    private ItemSummaryDTO item;
 
-    private String itemName;
-
-    private String itemPhoto;
-
-    private Category category;
-
-    private Store store;
+    private StoreSummaryDTO store;
 
     @Positive(message = "Quantity must be positive")
     private BigDecimal quantity;
 
     private String unit;
 
-    private BigDecimal price;
-
-    private BigDecimal previousPrice;
+    private Pricing pricing;
 
     private Boolean bought;
 
@@ -45,16 +39,8 @@ public class ShoppingListItemDTO {
     @Data
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Category {
-        private String name;
-        private String icon;
-    }
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Store {
-        private Long id;
-        private String name;
+    public static class Pricing {
+        private BigDecimal price;
+        private BigDecimal previousPrice;
     }
 }

@@ -1,10 +1,14 @@
 package com.jorgemonteiro.home_app.model.dtos.recipes;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.UserSummaryDTO;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import org.springframework.hateoas.server.core.Relation;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Data Transfer Object for {@link com.jorgemonteiro.home_app.model.entities.recipes.Recipe}.
@@ -32,23 +36,23 @@ public class RecipeDTO {
     @Min(value = 0, message = "Prep time cannot be negative")
     private Integer prepTimeMinutes;
 
-    private String createdBy; // Full name of the creator
+    private UserSummaryDTO creator;
 
     private Long version;
 
-    private java.util.Set<String> labels = new java.util.HashSet<>();
+    private Set<String> labels = new java.util.HashSet<>();
 
-    private java.util.List<RecipePhotoDTO> photos = new java.util.ArrayList<>();
+    private List<RecipePhotoDTO> photos = new java.util.ArrayList<>();
 
-    private java.util.List<RecipeIngredientDTO> ingredients = new java.util.ArrayList<>();
+    private List<RecipeIngredientDTO> ingredients = new java.util.ArrayList<>();
 
-    private java.util.List<NutritionEntryDTO> nutritionTotals = new java.util.ArrayList<>();
+    private List<NutritionEntryDTO> nutritionTotals = new java.util.ArrayList<>();
 
-    private java.util.List<RecipeStepDTO> steps = new java.util.ArrayList<>();
+    private List<RecipeStepDTO> steps = new java.util.ArrayList<>();
 
     private Double averageRating = 0.0;
 
-    private java.util.List<RecipeCommentDTO> comments = new java.util.ArrayList<>();
+    private List<RecipeCommentDTO> comments = new java.util.ArrayList<>();
 
-    private java.util.List<RecipeRatingDTO> ratings = new java.util.ArrayList<>();
+    private List<RecipeRatingDTO> ratings = new java.util.ArrayList<>();
 }

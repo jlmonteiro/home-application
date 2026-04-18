@@ -1,12 +1,15 @@
 package com.jorgemonteiro.home_app.model.entities.shopping;
 
+import com.jorgemonteiro.home_app.model.entities.recipes.NutritionEntry;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 /**
  * JPA entity representing a shopping item,
@@ -41,7 +44,7 @@ public class ShoppingItem {
     private String unit = "pcs";
 
     @Column(name = "nutrition_sample_size", nullable = false, precision = 10, scale = 2)
-    private java.math.BigDecimal nutritionSampleSize = new java.math.BigDecimal("100.00");
+    private BigDecimal nutritionSampleSize = new BigDecimal("100.00");
 
     @Column(name = "nutrition_sample_unit", nullable = false, length = 20)
     private String nutritionSampleUnit = "g";
@@ -60,6 +63,6 @@ public class ShoppingItem {
     @Version
     private Long version;
 
-    @OneToMany(mappedBy = "item", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<com.jorgemonteiro.home_app.model.entities.recipes.NutritionEntry> nutritionEntries = new java.util.ArrayList<>();
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<NutritionEntry> nutritionEntries = new ArrayList<>();
 }

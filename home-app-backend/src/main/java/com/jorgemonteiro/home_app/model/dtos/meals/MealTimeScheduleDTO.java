@@ -3,6 +3,7 @@ package com.jorgemonteiro.home_app.model.dtos.meals;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.DayOfWeek;
 import java.time.LocalTime;
 
 /**
@@ -12,6 +13,6 @@ import java.time.LocalTime;
 @NoArgsConstructor
 public class MealTimeScheduleDTO {
     private Long id;
-    private Integer dayOfWeek;
+    private DayOfWeek dayOfWeek;
     private LocalTime startTime;
 }

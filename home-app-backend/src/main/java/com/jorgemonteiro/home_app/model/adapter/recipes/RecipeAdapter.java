@@ -1,6 +1,7 @@
 package com.jorgemonteiro.home_app.model.adapter.recipes;
 
 import com.jorgemonteiro.home_app.model.dtos.recipes.*;
+import com.jorgemonteiro.home_app.model.dtos.shared.*;
 import com.jorgemonteiro.home_app.model.entities.recipes.*;
 import com.jorgemonteiro.home_app.service.media.PhotoService;
 import org.springframework.stereotype.Component;
@@ -33,7 +34,10 @@ public class RecipeAdapter {
         dto.setAverageRating(entity.getAverageRating());
 
         if (entity.getCreatedBy() != null) {
-            dto.setCreatedBy(entity.getCreatedBy().getFirstName() + " " + entity.getCreatedBy().getLastName());
+            dto.setCreator(new UserSummaryDTO(
+                    entity.getCreatedBy().getId(),
+                    entity.getCreatedBy().getFirstName() + " " + entity.getCreatedBy().getLastName()
+            ));
         }
 
         if (entity.getLabels() != null) {
@@ -120,10 +124,12 @@ public class RecipeAdapter {
         dto.setGroupName(entity.getGroupName());
         
         if (entity.getItem() != null) {
-            dto.setItemId(entity.getItem().getId());
-            dto.setItemName(entity.getItem().getName());
-            dto.setItemPhoto(photoService.getPhotoUrl(entity.getItem().getPhoto()));
-            dto.setUnit(entity.getItem().getUnit());
+            dto.setItem(new ItemSummaryDTO(
+                    entity.getItem().getId(),
+                    entity.getItem().getName(),
+                    photoService.getPhotoUrl(entity.getItem().getPhoto()),
+                    entity.getItem().getUnit()
+            ));
             
             if (entity.getItem().getNutritionEntries() != null) {
                 dto.setNutritionEntries(entity.getItem().getNutritionEntries().stream()
@@ -140,9 +146,11 @@ public class RecipeAdapter {
         dto.setId(entity.getId());
         dto.setValue(entity.getValue());
         if (entity.getNutrient() != null) {
-            dto.setNutrientId(entity.getNutrient().getId());
-            dto.setNutrientName(entity.getNutrient().getName());
-            dto.setUnit(entity.getNutrient().getUnit());
+            dto.setNutrient(new NutrientSummaryDTO(
+                    entity.getNutrient().getId(),
+                    entity.getNutrient().getName(),
+                    entity.getNutrient().getUnit()
+            ));
         }
         return dto;
     }
@@ -196,11 +204,15 @@ public class RecipeAdapter {
         dto.setComment(entity.getComment());
         dto.setCreatedAt(entity.getCreatedAt());
         if (entity.getUser() != null) {
-            dto.setUserId(entity.getUser().getId());
-            dto.setUserName(entity.getUser().getFirstName() + " " + entity.getUser().getLastName());
+            String photo = null;
             if (entity.getUser().getUserProfile() != null) {
-                dto.setUserPhoto(photoService.getPhotoUrl(entity.getUser().getUserProfile().getPhoto()));
+                photo = photoService.getPhotoUrl(entity.getUser().getUserProfile().getPhoto());
             }
+            dto.setUser(new UserSummaryDTO(
+                    entity.getUser().getId(),
+                    entity.getUser().getFirstName() + " " + entity.getUser().getLastName(),
+                    new PhotoDTO(null, photo)
+            ));
         }
         return dto;
     }
@@ -212,7 +224,10 @@ public class RecipeAdapter {
         dto.setRating(entity.getRating());
         dto.setCreatedAt(entity.getCreatedAt());
         if (entity.getUser() != null) {
-            dto.setUserName(entity.getUser().getFirstName() + " " + entity.getUser().getLastName());
+            dto.setUser(new UserSummaryDTO(
+                    entity.getUser().getId(),
+                    entity.getUser().getFirstName() + " " + entity.getUser().getLastName()
+            ));
         }
         return dto;
     }

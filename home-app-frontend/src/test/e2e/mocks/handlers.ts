@@ -10,7 +10,7 @@ export const e2eHandlers = [
       email: 'test@example.com',
       firstName: 'Test',
       lastName: 'User',
-      photo: null,
+      photo: { data: null, url: null },
       familyRoleName: 'Admin',
       familyRoleId: 1,
       version: 1,

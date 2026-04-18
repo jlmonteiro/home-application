@@ -3,6 +3,7 @@ package com.jorgemonteiro.home_app.service.shopping;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.exception.ValidationException;
 import com.jorgemonteiro.home_app.model.adapter.shopping.ShoppingAdapter;
+import com.jorgemonteiro.home_app.model.dtos.shared.StoreSummaryDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListItemDTO;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
@@ -84,11 +85,11 @@ public class ShoppingListService {
     // --- List Items ---
 
     public ShoppingListItemDTO addItemToList(Long listId, ShoppingListItemDTO dto) {
-        if (dto.getItemId() == null) throw new ValidationException("Item ID is required");
+        if (dto.getItem() == null || dto.getItem().getId() == null) throw new ValidationException("Item ID is required");
         if (dto.getQuantity() == null) throw new ValidationException("Quantity is required");
 
         ShoppingList list = requireList(listId);
-        ShoppingItem item = requireItem(dto.getItemId());
+        ShoppingItem item = requireItem(dto.getItem().getId());
 
         ShoppingListItem entity = shoppingAdapter.toListItemEntity(dto);
         entity.setItem(item);
@@ -97,7 +98,10 @@ public class ShoppingListService {
         list.addItem(entity);
         ShoppingListItem saved = listItemRepository.save(entity);
 
-        ofNullable(dto.getPrice()).ifPresent(p -> recordPriceIfChanged(saved.getItem(), saved.getStore(), p));
+        if (dto.getPricing() != null) {
+            ofNullable(dto.getPricing().getPrice())
+                .ifPresent(p -> recordPriceIfChanged(saved.getItem(), saved.getStore(), p));
+        }
 
         return shoppingAdapter.toListItemDTO(saved);
     }
@@ -106,15 +110,22 @@ public class ShoppingListService {
         ShoppingListItem existing = requireListItem(itemId);
 
         ofNullable(dto.getQuantity()).ifPresent(existing::setQuantity);
-        ofNullable(dto.getPrice()).ifPresent(existing::setPrice);
+        
+        if (dto.getPricing() != null) {
+            ofNullable(dto.getPricing().getPrice()).ifPresent(existing::setPrice);
+        }
+
         ofNullable(dto.getBought()).ifPresent(existing::setBought);
         ofNullable(dto.getUnavailable()).ifPresent(existing::setUnavailable);
-        ofNullable(dto.getStore()).map(ShoppingListItemDTO.Store::getId)
+        ofNullable(dto.getStore()).map(StoreSummaryDTO::getId)
             .map(this::requireStore).ifPresent(existing::setStore);
 
         ShoppingListItem saved = listItemRepository.save(existing);
 
-        ofNullable(dto.getPrice()).ifPresent(p -> recordPriceIfChanged(saved.getItem(), saved.getStore(), p));
+        if (dto.getPricing() != null) {
+            ofNullable(dto.getPricing().getPrice())
+                .ifPresent(p -> recordPriceIfChanged(saved.getItem(), saved.getStore(), p));
+        }
 
         return shoppingAdapter.toListItemDTO(saved);
     }

@@ -18,8 +18,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.regex.Pattern;
 
 /**
  * Centralises HTTP error mapping for all application exceptions.
@@ -30,9 +31,15 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private final String errorBaseUrl;
+    private final List<Pattern> exclusionPatterns;
 
-    public GlobalExceptionHandler(@Value("${app.error-base-url}") String errorBaseUrl) {
+    public GlobalExceptionHandler(
+            @Value("${app.error-base-url}") String errorBaseUrl,
+            @Value("${app.error-stack-trace-exclusions:}") List<String> exclusions) {
         this.errorBaseUrl = errorBaseUrl;
+        this.exclusionPatterns = exclusions.stream()
+                .map(Pattern::compile)
+                .toList();
     }
 
     private URI errorType(AppErrorType type) {
@@ -58,7 +65,7 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
         problemDetail.setProperty("errors", errors);
-        
+
         return problemDetail;
     }
 
@@ -189,25 +196,58 @@ public class GlobalExceptionHandler {
     }
 
     private void enrichWithExceptionDetails(ProblemDetail problemDetail, Exception ex) {
-        if (ex.getMessage() != null) {
-            problemDetail.setProperty("exceptionMessage", ex.getMessage());
+        // Use Optional to set exception message if present
+        Optional.ofNullable(ex.getMessage())
+                .ifPresent(msg -> problemDetail.setProperty("exceptionMessage", msg));
+
+        List<String> fullTrace = new ArrayList<>();
+
+        // Helper function to process a single exception level
+        BiConsumer<Throwable, Boolean> processException = (throwable, isCause) -> {
+            // Add "Caused by" header for nested exceptions
+            if (isCause) {
+                fullTrace.add("Caused by: " + throwable.getClass().getName() +
+                              (throwable.getMessage() != null ? ": " + throwable.getMessage() : ""));
+            }
+
+            final int[] externalCount = {0};
+            // Use Stream to filter and map stack trace elements
+            Arrays.stream(throwable.getStackTrace())
+                    .map(StackTraceElement::toString)
+                    .filter(line -> {
+                        // 1. Exclude lines matching configured regex patterns
+                        return exclusionPatterns.stream().noneMatch(p -> p.matcher(line).matches());
+                    })
+                    .filter(line -> {
+                        // 2. Always include application-specific packages
+                        if (line.startsWith("com.jorgemonteiro.home_app")) {
+                            return true;
+                        }
+                        // 3. Limit external framework frames to 5 per exception level
+                        if (externalCount[0] < 5) {
+                            externalCount[0]++;
+                            return true;
+                        }
+                        return false;
+                    })
+                    .forEach(fullTrace::add);
+        };
+
+        // Recursive traversal of the "caused by" chain
+        Throwable current = ex;
+        while (current != null) {
+            processException.accept(current, current != ex);
+            current = current.getCause();
+
+            // Add a visual separator between exception levels if more remain
+            if (current != null) {
+                fullTrace.add("---");
+            }
         }
 
-        java.util.List<String> filteredTrace = java.util.Arrays.stream(ex.getStackTrace())
-                .map(StackTraceElement::toString)
-                .filter(line -> line.startsWith("com.jorgemonteiro.home_app") ||
-                                (!line.startsWith("java.base/") &&
-                                 !line.startsWith("jdk.internal.") &&
-                                 !line.startsWith("org.apache.tomcat.") &&
-                                 !line.startsWith("org.apache.catalina.") &&
-                                 !line.startsWith("org.springframework.web.filter.") &&
-                                 !line.startsWith("org.springframework.security.web.FilterChainProxy") &&
-                                 !line.startsWith("jakarta.servlet.")))
-                .limit(15)
-                .toList();
-
-        if (!filteredTrace.isEmpty()) {
-            problemDetail.setProperty("stackTrace", filteredTrace);
+        // Set the enriched stack trace if any frames were captured
+        if (!fullTrace.isEmpty()) {
+            problemDetail.setProperty("stackTrace", fullTrace);
         }
     }
 }

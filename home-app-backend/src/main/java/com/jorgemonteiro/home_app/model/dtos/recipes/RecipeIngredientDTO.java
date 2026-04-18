@@ -1,9 +1,11 @@
 package com.jorgemonteiro.home_app.model.dtos.recipes;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.ItemSummaryDTO;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Data Transfer Object for {@link com.jorgemonteiro.home_app.model.entities.recipes.RecipeIngredient}.
@@ -12,11 +14,8 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class RecipeIngredientDTO {
     private Long id;
-    private Long itemId;
-    private String itemName;
-    private String itemPhoto;
+    private ItemSummaryDTO item;
     private BigDecimal quantity;
-    private String unit;
     private String groupName;
-    private java.util.List<NutritionEntryDTO> nutritionEntries;
+    private List<NutritionEntryDTO> nutritionEntries;
 }

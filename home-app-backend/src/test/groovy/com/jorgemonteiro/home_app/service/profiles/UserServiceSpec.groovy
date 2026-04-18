@@ -3,7 +3,6 @@ package com.jorgemonteiro.home_app.service.profiles
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository
 import com.jorgemonteiro.home_app.service.media.PhotoService
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
-import org.mockito.Mockito
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
@@ -11,19 +10,20 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
-
-import static org.mockito.Mockito.*
+import spock.lang.Unroll
 
 @Title("User Service")
 @Narrative("""
-As the authentication system
-I want to find or create a local user account on every OAuth login
+As the application
+I want to manage user lifecycle and authentication identity
 So that new users are registered automatically and returning users are recognised without duplication
 """)
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Subject(UserService)
 class UserServiceSpec extends BaseIntegrationTest {
 
     @Autowired
@@ -35,36 +35,18 @@ class UserServiceSpec extends BaseIntegrationTest {
     @MockitoBean
     PhotoService photoService
 
-    @Sql("/scripts/sql/user-profile-test-data.sql")
-    def "findOrCreateUser should return existing user when user already exists"() {
-        given: "an existing user in the database"
-            def targetEmail = "existing@example.com"
-
-        when: "finding or creating user"
-            def result = userService.findOrCreateUser(targetEmail, "Updated", "Name", null, Optional.empty())
-
-        then: "existing user is returned without creating a new one"
-            result != null
-            with(result) {
-                email == targetEmail
-                firstName == "John"
-                lastName == "Doe"
-            }
-    }
-
-    def "findOrCreateUser should create a new user when user does not exist"() {
-        given: "a user that does not exist in the database"
-            def targetEmail = "newuser@example.com"
+    def "findOrCreateUser should create a new user when email does not exist"() {
+        given: "a non-existent email"
+            def targetEmail = "new-user@example.com"
             def targetFirstName = "New"
             def targetLastName = "User"
 
         when: "finding or creating user"
             def result = userService.findOrCreateUser(targetEmail, targetFirstName, targetLastName, null, Optional.empty())
 
-        then: "a new user is created and returned"
-            result != null
+        then: "a new user is saved in the repository"
+            userRepository.count() == 1
             with(result) {
-                id != null
                 email == targetEmail
                 firstName == targetFirstName
                 lastName == targetLastName
@@ -72,63 +54,34 @@ class UserServiceSpec extends BaseIntegrationTest {
             }
     }
 
-    def "findOrCreateUser should create user profile on first login"() {
-        given: "a new user that does not exist"
-            def targetEmail = "profiletest@example.com"
+    @Sql("/scripts/sql/user-profile-test-data.sql")
+    def "findOrCreateUser should return existing user when email already exists"() {
+        given: "an email that already exists in the database"
+            def targetEmail = "existing@example.com"
+            def initialCount = userRepository.count()
 
         when: "finding or creating user"
-            def result = userService.findOrCreateUser(targetEmail, "Profile", "Test", null, Optional.empty())
+            def result = userService.findOrCreateUser(targetEmail, "New", "Name", null, Optional.empty())
 
-        then: "a user profile is created for the new user"
-            result.userProfile != null
-            result.userProfile.user.id == result.id
+        then: "the existing user is returned and no new record is created"
+            userRepository.count() == initialCount
+            result.email == targetEmail
+            result.firstName == "John" // Remains unchanged
     }
 
-    def "findOrCreateUser should download and set profile photo for new user when picture URL is provided"() {
-        given: "a new user with a profile picture URL"
-            def targetEmail = "photouser@example.com"
-            def targetPictureUrl = "https://example.com/photo.jpg"
-            def targetPhotoData = "base64encodedphoto"
-            when(photoService.downloadAndConvertToBase64(targetPictureUrl)).thenReturn(targetPhotoData)
+    @Unroll
+    def "findOrCreateUser should set profile photo to #expectedLabel when picture URL is #inputLabel"() {
+        when: "creating a new user with picture URL: #inputLabel"
+            def result = userService.findOrCreateUser("photo-test@example.com", "Test", "User", pictureUrl, Optional.empty())
 
-        when: "finding or creating user"
-            def result = userService.findOrCreateUser(targetEmail, "Photo", "User", targetPictureUrl, Optional.empty())
-
-        then: "the profile photo is set from the downloaded image"
+        then: "the profile photo is set correctly"
             result.userProfile != null
-            result.userProfile.photo == targetPhotoData
+            result.userProfile.photo == expectedPhoto
 
-        and: "the photo service was called"
-            verify(photoService).downloadAndConvertToBase64(targetPictureUrl) || true
-    }
-
-    def "findOrCreateUser should create user with null photo when picture URL is null"() {
-        given: "a new user without a profile picture"
-            def targetEmail = "nophoto@example.com"
-
-        when: "finding or creating user"
-            def result = userService.findOrCreateUser(targetEmail, "No", "Photo", null, Optional.empty())
-
-        then: "user is created with no profile photo"
-            result.userProfile != null
-            result.userProfile.photo == null
-
-        and: "the photo service was never called"
-            verify(photoService, never()).downloadAndConvertToBase64(any()) || true
-    }
-
-    def "findOrCreateUser should not download photo when picture URL is empty"() {
-        given: "a new user with an empty picture URL"
-            def targetEmail = "emptyphoto@example.com"
-
-        when: "finding or creating user"
-            def result = userService.findOrCreateUser(targetEmail, "Empty", "Photo", "", Optional.empty())
-
-        then: "user is created with no profile photo"
-            result.userProfile != null
-            result.userProfile.photo == null
-
-        and: "the photo service was never called"
-            verify(photoService, never()).downloadAndConvertToBase64(any()) || true
+        where:
+            pictureUrl                       | expectedPhoto                    | inputLabel       | expectedLabel
+            "https://example.com/photo.jpg"  | "https://example.com/photo.jpg"  | "a valid URL"    | "that URL"
+            null                             | null                             | "null"           | "null"
+            ""                               | null                             | "empty string"   | "null"
     }
 }

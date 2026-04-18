@@ -3,6 +3,7 @@ package com.jorgemonteiro.home_app.controller.profiles
 import com.jorgemonteiro.home_app.HomeApplication
 import com.jorgemonteiro.home_app.model.dtos.profiles.AgeGroupConfigDTO
 import com.jorgemonteiro.home_app.repository.profiles.AgeGroupConfigRepository
+import com.jorgemonteiro.home_app.controller.profiles.SettingsController
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import groovy.json.JsonOutput
 import org.springframework.beans.factory.annotation.Autowired
@@ -13,6 +14,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
@@ -30,6 +32,7 @@ so that children and teenagers cannot modify family configurations.
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Transactional
+@Subject(SettingsController)
 class SettingsApiSpec extends BaseIntegrationTest {
 
     @Autowired

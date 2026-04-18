@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.dtos.profiles;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.PhotoDTO;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import org.springframework.hateoas.server.core.Relation;
@@ -47,8 +48,8 @@ public class UserProfileDTO {
     /** The name of the calculated age group. */
     private String ageGroupName;
 
-    /** Base64-encoded profile photo data. */
-    private String photo;
+    /** Profile photo: {@code data} for uploads, {@code url} for reads. */
+    private PhotoDTO photo;
 
     /** The user's Facebook profile URL. */
     @Pattern(regexp = "^$|^https?://(www\\.)?facebook\\.com/.+", message = "Facebook must be a valid Facebook URL")

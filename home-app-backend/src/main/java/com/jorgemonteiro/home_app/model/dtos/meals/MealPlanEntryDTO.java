@@ -3,6 +3,7 @@ package com.jorgemonteiro.home_app.model.dtos.meals;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.DayOfWeek;
 import java.util.List;
 
 /**
@@ -14,9 +15,8 @@ public class MealPlanEntryDTO {
     private Long id;
     private Long mealTimeId;
     private String mealTimeName;
-    private Integer dayOfWeek;
+    private DayOfWeek dayOfWeek;
     private Boolean isDone;
     private List<MealPlanEntryRecipeDTO> recipes;
-    private Long thumbsUpCount;
-    private Long thumbsDownCount;
+    private MealPlanReactionDTO reactions;
 }

@@ -12,7 +12,7 @@ export interface UserProfile {
   familyRoleId?: number
   familyRoleName?: string
   ageGroupName: 'Adult' | 'Teenager' | 'Child'
-  photo?: string
+  photo?: { data?: string; url?: string }
   facebook?: string
   mobilePhone?: string
   instagram?: string

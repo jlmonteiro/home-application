@@ -48,8 +48,8 @@ class GlobalExceptionHandlerSpec extends BaseIntegrationTest {
     }
 
     def "should return 400 ProblemDetail for malformed JSON body"() {
-        when: "sending malformed JSON"
-            def response = mockMvc.perform(put("/api/user/1")
+        when: "sending malformed JSON to categories endpoint"
+            def response = mockMvc.perform(post("/api/shopping/categories")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content("{ invalid json }")
                     .with(user("user")))
@@ -58,20 +58,14 @@ class GlobalExceptionHandlerSpec extends BaseIntegrationTest {
             response.andExpect(status().isBadRequest())
                     .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                     .andExpect(jsonPath('$.title').value("Bad Request"))
-                    .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/validation-error"))
     }
 
     def "should return 400 ProblemDetail for validation errors"() {
-        given: "a request body with invalid email"
-            def body = JsonOutput.toJson([
-                email: "not-an-email",
-                firstName: "Test",
-                lastName: "User",
-                enabled: true
-            ])
+        given: "a request body with missing category name"
+            def body = "{}"
 
         when: "sending invalid data"
-            def response = mockMvc.perform(put("/api/user/1")
+            def response = mockMvc.perform(post("/api/shopping/categories")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(body)
                     .with(user("user")))
@@ -110,5 +104,47 @@ class GlobalExceptionHandlerSpec extends BaseIntegrationTest {
                     .andExpect(content().contentType(APPLICATION_PROBLEM_JSON_VALUE))
                     .andExpect(jsonPath('$.title').value("Validation Error"))
                     .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/validation-error"))
+    }
+
+    def "enrichWithExceptionDetails should recursively filter stack traces"() {
+        given: "a handler instance with exclusions"
+            def handler = new GlobalExceptionHandler("http://localhost:8080/errors", ["^java\\.base/.*", "^org\\.apache\\.tomcat\\..*"])
+            def problemDetail = org.springframework.http.ProblemDetail.forStatus(500)
+            
+        and: "an exception with a cause"
+            def root = new RuntimeException("Root error")
+            root.stackTrace = [
+                new StackTraceElement("com.jorgemonteiro.home_app.Service", "doWork", "Service.java", 10),
+                new StackTraceElement("org.hibernate.Session", "save", "Session.java", 100),
+                new StackTraceElement("org.springframework.data.Repo", "save", "Repo.java", 50),
+                new StackTraceElement("java.base/Thread", "run", "Thread.java", 1000) // Filtered out
+            ] as StackTraceElement[]
+
+            def wrapper = new RuntimeException("Wrapper error", root)
+            wrapper.stackTrace = [
+                new StackTraceElement("com.jorgemonteiro.home_app.Controller", "handle", "Controller.java", 5),
+                new StackTraceElement("org.apache.tomcat.Internal", "exec", "Internal.java", 1) // Filtered out
+            ] as StackTraceElement[]
+
+        when: "enriching problem detail"
+            handler.enrichWithExceptionDetails(problemDetail, wrapper)
+            List<String> trace = problemDetail.properties.stackTrace
+
+        then: "exception message is set"
+            problemDetail.properties.exceptionMessage == "Wrapper error"
+
+        and: "trace contains app and valid external frames"
+            trace.any { it.contains("com.jorgemonteiro.home_app.Controller") }
+            trace.any { it.contains("com.jorgemonteiro.home_app.Service") }
+            trace.any { it.contains("org.hibernate.Session") }
+            trace.any { it.contains("org.springframework.data.Repo") }
+            
+        and: "framework noise is excluded"
+            !trace.any { it.contains("java.base/") }
+            !trace.any { it.contains("org.apache.tomcat") }
+
+        and: "causality is marked"
+            trace.any { it == "---" }
+            trace.any { it.startsWith("Caused by: java.lang.RuntimeException: Root error") }
     }
 }

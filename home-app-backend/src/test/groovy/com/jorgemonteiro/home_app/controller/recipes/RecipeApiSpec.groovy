@@ -16,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
 
 import static org.hamcrest.Matchers.hasItem
@@ -32,6 +33,7 @@ So that I can build a shared cookbook
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
+@Subject(RecipeController)
 class RecipeApiSpec extends BaseIntegrationTest {
 
     @Autowired
@@ -70,7 +72,7 @@ class RecipeApiSpec extends BaseIntegrationTest {
         then: "recipe is created"
             createResponse.andExpect(status().isCreated())
                 .andExpect(jsonPath('$.name').value("Pasta Carbonara"))
-                .andExpect(jsonPath('$.createdBy').value("Master Chef"))
+                .andExpect(jsonPath('$.creator.name').value("Master Chef"))
 
         when: "getting the recipe by ID"
             Long id = createResponse.andReturn().getResponse().getContentAsString().with {

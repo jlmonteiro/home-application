@@ -9,6 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * JPA entity representing a weekly meal plan.
@@ -28,11 +29,12 @@ public class MealPlan {
     @Column(name = "week_start_date", nullable = false, unique = true)
     private LocalDate weekStartDate;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private String status = "PENDING";
+    private MealPlanStatus status = MealPlanStatus.PENDING;
 
     @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    private java.util.List<MealPlanEntry> entries = new java.util.ArrayList<>();
+    private List<MealPlanEntry> entries = new java.util.ArrayList<>();
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

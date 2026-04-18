@@ -11,6 +11,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 public class MealTimeDTO {
+
     private Long id;
     private String name;
     private Integer sortOrder;

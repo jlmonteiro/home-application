@@ -4,7 +4,7 @@ import com.jorgemonteiro.home_app.model.dtos.meals.MealTimeDTO;
 import com.jorgemonteiro.home_app.model.dtos.meals.MealTimeScheduleDTO;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.RepresentationModel;
 import org.springframework.hateoas.server.core.Relation;
 
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.List;
 @Getter
 @Setter
 @Relation(collectionRelation = "mealTimes", itemRelation = "mealTime")
-public class MealTimeResource extends EntityModel<MealTimeDTO> {
+public class MealTimeResource extends RepresentationModel<MealTimeResource> {
     private Long id;
     private String name;
     private int sortOrder;

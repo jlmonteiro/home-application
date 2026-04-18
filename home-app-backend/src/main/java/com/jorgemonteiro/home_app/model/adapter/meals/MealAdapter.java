@@ -74,8 +74,12 @@ public class MealAdapter {
         dto.setId(entity.getId());
         dto.setDayOfWeek(entity.getDayOfWeek());
         dto.setIsDone(entity.getIsDone());
-        dto.setThumbsUpCount(entity.getThumbsUpCount());
-        dto.setThumbsDownCount(entity.getThumbsDownCount());
+        
+        dto.setReactions(new MealPlanReactionDTO(
+                entity.getThumbsUpCount(),
+                entity.getThumbsDownCount()
+        ));
+
         if (entity.getMealTime() != null) {
             dto.setMealTimeId(entity.getMealTime().getId());
             dto.setMealTimeName(entity.getMealTime().getName());
@@ -93,14 +97,23 @@ public class MealAdapter {
         MealPlanEntryRecipeDTO dto = new MealPlanEntryRecipeDTO();
         dto.setId(entity.getId());
         dto.setMultiplier(entity.getMultiplier());
+        
         if (entity.getRecipe() != null) {
-            dto.setRecipeId(entity.getRecipe().getId());
-            dto.setRecipeName(entity.getRecipe().getName());
+            dto.setRecipe(new com.jorgemonteiro.home_app.model.dtos.shared.EntitySummaryDTO(
+                    entity.getRecipe().getId(),
+                    entity.getRecipe().getName()
+            ));
         }
+        
         if (entity.getUser() != null) {
-            dto.setUserId(entity.getUser().getId());
-            dto.setUserName(entity.getUser().getFirstName() + " " + entity.getUser().getLastName());
+            dto.setUsers(java.util.List.of(new com.jorgemonteiro.home_app.model.dtos.shared.UserSummaryDTO(
+                    entity.getUser().getId(),
+                    entity.getUser().getFirstName() + " " + entity.getUser().getLastName()
+            )));
+        } else {
+            dto.setUsers(java.util.Collections.emptyList());
         }
+        
         return dto;
     }
 }
