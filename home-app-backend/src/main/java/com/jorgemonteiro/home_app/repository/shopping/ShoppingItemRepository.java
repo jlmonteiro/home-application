@@ -27,4 +27,11 @@ public interface ShoppingItemRepository extends JpaRepository<ShoppingItem, Long
      * @return {@code true} if it exists
      */
     boolean existsByNameAndCategoryId(String name, Long categoryId);
+
+    /**
+     * Find an item by name.
+     * @param name the item name
+     * @return the item or null if not found
+     */
+    ShoppingItem findByName(String name);
 }
