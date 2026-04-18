@@ -24,10 +24,10 @@ So that I can stay informed and coordinate household activities
 @SpringBootTest(classes = [HomeApplication])
 @ActiveProfiles("test")
 @Transactional
-@Subject(NotificationService)
 class NotificationServiceSpec extends BaseIntegrationTest {
 
     @Autowired
+    @Subject
     NotificationService notificationService
 
     @Autowired
@@ -40,89 +40,102 @@ class NotificationServiceSpec extends BaseIntegrationTest {
     UserRepository userRepository
 
     @Sql("/scripts/sql/integration-test-data.sql")
-    def "getMyNotifications should return all notifications for the user"() {
+    def "should return all notifications for the user"() {
         when: "fetching notifications for receiver"
             def result = notificationService.getMyNotifications("receiver@example.com")
 
-        then: "two notifications are returned"
+        then: "at least two notifications are returned"
             result.size() >= 2
+            
+        and: "the unread and read notifications from seed data are present"
             result.any { it.message.title == "Unread Notif" }
             result.any { it.message.title == "Read Notif" }
     }
 
     @Sql("/scripts/sql/integration-test-data.sql")
-    def "markAsRead should update the notification status"() {
-        given: "an unread notification"
+    def "should update the status of a notification to read"() {
+        given: "the receiver user and their unread notification"
             def receiver = userRepository.findByEmail("receiver@example.com").get()
             def unread = notificationRepository.findAll().find { it.getRecipient().getId() == receiver.getId() && !it.getIsRead() }
+            assert unread != null
 
-        when: "marking as read"
+        when: "marking the notification as read"
             notificationService.markAsRead(unread.getId())
 
-        then: "it is marked as read in the repository"
+        then: "the status is updated in the database"
             notificationRepository.findById(unread.getId()).get().getIsRead()
     }
 
     @Sql("/scripts/sql/integration-test-data.sql")
-    def "createNotification should persist a new notification"() {
-        given: "initial notification count"
-            def initialCount = notificationRepository.count()
+    def "should persist a new notification correctly"() {
+        given: "recipient and sender users"
             def receiver = userRepository.findByEmail("receiver@example.com").get()
             def sender = userRepository.findByEmail("sender@example.com").get()
+            def initialCount = notificationRepository.count()
 
-        when: "creating a notification"
-            notificationService.createNotification(receiver, sender, "MANUAL", "Manual Notif", "Hello", "/link")
+        when: "creating a new notification"
+            notificationService.createNotification(receiver, sender, "MANUAL", "Manual Notif", "Hello content", "/link")
 
-        then: "it is saved"
+        then: "the total notification count increases"
             notificationRepository.count() == initialCount + 1
+            
+        and: "the last saved notification has correct details"
             def saved = notificationRepository.findAll().last()
             saved.getTitle() == "Manual Notif"
+            saved.getMessage() == "Hello content"
     }
 
     @Sql("/scripts/sql/integration-test-data.sql")
-    def "getConversation should return messages and mark them as read"() {
-        given: "the IDs"
+    def "should return conversation messages and mark them as read"() {
+        given: "the receiver and sender users"
             def receiver = userRepository.findByEmail("receiver@example.com").get()
             def sender = userRepository.findByEmail("sender@example.com").get()
 
-        when: "fetching the conversation"
+        when: "fetching the conversation between them"
             def result = notificationService.getConversation("receiver@example.com", sender.getId())
 
-        then: "the message is returned"
+        then: "the expected seeded message is returned"
             result.any { it.content == "Hello there!" }
 
-        and: "the messages are now marked as read"
-            messageRepository.findAll().findAll { it.getRecipient().getId() == receiver.getId() && it.getSender().getId() == sender.getId() }.every { it.getIsRead() }
+        and: "all messages in that conversation are now marked as read"
+            def conversationMessages = messageRepository.findAll().findAll { 
+                it.getRecipient().getId() == receiver.getId() && it.getSender().getId() == sender.getId() 
+            }
+            conversationMessages.every { it.getIsRead() }
     }
 
     @Sql("/scripts/sql/integration-test-data.sql")
-    def "sendMessage should create both message and notification"() {
-        given: "initial counts"
+    def "should create both message and notification when sending a message"() {
+        given: "sender email and recipient user"
+            def senderEmail = "sender@example.com"
+            def receiver = userRepository.findByEmail("receiver@example.com").get()
             def initialNotifCount = notificationRepository.count()
             def initialMsgCount = messageRepository.count()
-            def receiver = userRepository.findByEmail("receiver@example.com").get()
 
-        when: "sending a message"
-            def result = notificationService.sendMessage("sender@example.com", receiver.getId(), "How are you?")
+        when: "sending a new message"
+            def result = notificationService.sendMessage(senderEmail, receiver.getId(), "How are you?")
 
-        then: "message is returned and saved"
+        then: "the message is returned and saved"
             result.content == "How are you?"
             messageRepository.count() == initialMsgCount + 1
 
-        and: "a new notification is created for the recipient"
+        and: " a new notification is created for the recipient"
             notificationRepository.count() == initialNotifCount + 1
+            def lastNotif = notificationRepository.findAll().last()
+            lastNotif.getRecipient().getId() == receiver.getId()
+            lastNotif.getType() == "NEW_MESSAGE"
     }
 
     @Sql("/scripts/sql/integration-test-data.sql")
-    def "getUnreadCount should return correct count of unread notifications"() {
-        expect:
+    def "should return correct count of unread notifications for a user"() {
+        expect: "the seeded data has 1 unread notification for the receiver"
             notificationService.getUnreadCount("receiver@example.com") >= 1
     }
 
-    def "getMyNotifications should throw ObjectNotFoundException for invalid user"() {
-        when:
+    def "should throw ObjectNotFoundException when user is invalid"() {
+        when: "fetching notifications for unknown user"
             notificationService.getMyNotifications("unknown@example.com")
-        then:
+        then: "ObjectNotFoundException is thrown"
             thrown(ObjectNotFoundException)
     }
 }
