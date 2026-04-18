@@ -1,9 +1,13 @@
 package com.jorgemonteiro.home_app.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 /**
  * Thrown when a requested resource cannot be found.
  * Maps to HTTP 404 via {@link com.jorgemonteiro.home_app.config.GlobalExceptionHandler}.
  */
+@ResponseStatus(HttpStatus.NOT_FOUND)
 public class ObjectNotFoundException extends HomeAppException {
 
     /**

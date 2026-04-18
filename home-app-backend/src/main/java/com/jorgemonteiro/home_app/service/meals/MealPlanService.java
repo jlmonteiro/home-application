@@ -10,32 +10,24 @@ import com.jorgemonteiro.home_app.model.entities.meals.MealPlanEntryRecipe;
 import com.jorgemonteiro.home_app.model.entities.meals.MealPlanVote;
 import com.jorgemonteiro.home_app.model.entities.meals.MealTime;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
-import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingList;
-import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingListItem;
-import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingStore;
 import com.jorgemonteiro.home_app.repository.meals.MealPlanEntryRepository;
 import com.jorgemonteiro.home_app.repository.meals.MealPlanRepository;
 import com.jorgemonteiro.home_app.repository.meals.MealPlanVoteRepository;
 import com.jorgemonteiro.home_app.repository.meals.MealTimeRepository;
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository;
 import com.jorgemonteiro.home_app.repository.recipes.RecipeRepository;
-import com.jorgemonteiro.home_app.repository.shopping.ShoppingItemRepository;
-import com.jorgemonteiro.home_app.repository.shopping.ShoppingListItemRepository;
-import com.jorgemonteiro.home_app.repository.shopping.ShoppingListRepository;
-import com.jorgemonteiro.home_app.repository.shopping.ShoppingStoreRepository;
-import com.jorgemonteiro.home_app.service.media.PhotoService;
 import com.jorgemonteiro.home_app.service.notifications.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +36,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Validated
 @Slf4j
 public class MealPlanService {
 
@@ -54,101 +47,15 @@ public class MealPlanService {
     private final RecipeRepository recipeRepository;
     private final UserRepository userRepository;
     private final NotificationService notificationService;
-    private final ShoppingListRepository shoppingListRepository;
-    private final ShoppingListItemRepository shoppingListItemRepository;
-    private final ShoppingItemRepository shoppingItemRepository;
-    private final ShoppingStoreRepository storeRepository;
-    private final PhotoService photoService;
+    private final MealPlanExportService exportService;
 
     @Transactional(readOnly = true)
     public List<MealPlanExportItemDTO> getExportPreview(Long planId, Long targetListId) {
-        MealPlan plan = mealPlanRepository.findById(planId)
-                .orElseThrow(() -> new ObjectNotFoundException("MealPlan with id " + planId + " not found"));
-
-        Map<String, MealPlanExportItemDTO> aggregated = new java.util.HashMap<>();
-
-        plan.getEntries().forEach(entry -> {
-            entry.getRecipes().forEach(recipeAssignment -> {
-                BigDecimal multiplier = recipeAssignment.getMultiplier() != null ? recipeAssignment.getMultiplier() : BigDecimal.ONE;
-                
-                recipeAssignment.getRecipe().getIngredients().forEach(ing -> {
-                    String key = ing.getItem().getId() + ":" + ing.getItem().getUnit();
-                    MealPlanExportItemDTO item = aggregated.getOrDefault(key, new MealPlanExportItemDTO(
-                            ing.getItem().getId(),
-                            ing.getItem().getName(),
-                            BigDecimal.ZERO,
-                            ing.getItem().getUnit(),
-                            BigDecimal.ZERO
-                    ));
-                    
-                    // Add photo to preview - using photoService to build the correct public URL
-                    item.setItemPhoto(photoService.getPhotoUrl(ing.getItem().getPhoto()));
-                    
-                    // SCALE BY MULTIPLIER
-                    BigDecimal scaledQuantity = ing.getQuantity().multiply(multiplier);
-                    item.setQuantity(item.getQuantity().add(scaledQuantity));
-                    
-                    aggregated.put(key, item);
-                });
-            });
-        });
-
-        if (targetListId != null && targetListId > 0) {
-            List<ShoppingListItem> existingItems = shoppingListItemRepository.findAllByListId(targetListId);
-            existingItems.forEach(existing -> {
-                String key = existing.getItem().getId() + ":" + existing.getItem().getUnit();
-                if (aggregated.containsKey(key)) {
-                    aggregated.get(key).setExistingQuantity(existing.getQuantity());
-                }
-            });
-        }
-
-        return new java.util.ArrayList<>(aggregated.values());
+        return exportService.getExportPreview(planId, targetListId);
     }
 
     public void exportToList(Long planId, Long targetListId, List<MealPlanExportItemDTO> itemsToExport, String newListName, String userEmail) {
-        ShoppingList list;
-        if (targetListId != null && targetListId > 0) {
-            log.info("Exporting to existing list: {}", targetListId);
-            list = shoppingListRepository.findById(targetListId)
-                .orElseThrow(() -> new ObjectNotFoundException("ShoppingList with id " + targetListId + " not found"));
-        } else {
-            // Create new list
-            log.info("Creating new shopping list for export: {} (user: {})", newListName, userEmail);
-            User creator = userRepository.findByEmail(userEmail)
-                    .orElseThrow(() -> new ObjectNotFoundException("User not found: " + userEmail));
-            list = new ShoppingList();
-            list.setName(newListName != null && !newListName.isBlank() ? newListName : "Meal Plan Export - " + LocalDate.now());
-            list.setCreatedBy(creator);
-            list.setStatus(com.jorgemonteiro.home_app.model.entities.shopping.ShoppingListStatus.PENDING);
-            list = shoppingListRepository.save(list);
-            log.info("Created new shopping list with ID: {}", list.getId());
-        }
-
-        for (MealPlanExportItemDTO dto : itemsToExport) {
-            // Find if item exists in this list already
-            ShoppingListItem existing = shoppingListItemRepository.findByListIdAndItemId(list.getId(), dto.getItemId())
-                    .orElse(null);
-
-            if (existing != null) {
-                existing.setQuantity(existing.getQuantity().add(dto.getQuantity()));
-                if (dto.getStoreId() != null) {
-                    existing.setStore(storeRepository.findById(dto.getStoreId()).orElse(existing.getStore()));
-                }
-                shoppingListItemRepository.save(existing);
-            } else {
-                ShoppingListItem newItem = new ShoppingListItem();
-                newItem.setList(list);
-                newItem.setItem(shoppingItemRepository.findById(dto.getItemId())
-                        .orElseThrow(() -> new ObjectNotFoundException("Item not found: " + dto.getItemId())));
-                newItem.setQuantity(dto.getQuantity());
-                newItem.setBought(false);
-                if (dto.getStoreId() != null) {
-                    newItem.setStore(storeRepository.findById(dto.getStoreId()).orElse(null));
-                }
-                shoppingListItemRepository.save(newItem);
-            }
-        }
+        exportService.exportToList(planId, targetListId, itemsToExport, newListName, userEmail);
     }
 
     @Transactional

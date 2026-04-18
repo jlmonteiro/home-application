@@ -33,6 +33,13 @@ public class MealTimeService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public MealTimeDTO getById(Long id) {
+        return mealTimeRepository.findById(id)
+                .map(MealAdapter::toMealTimeDTO)
+                .orElseThrow(() -> new ObjectNotFoundException("MealTime with id " + id + " not found"));
+    }
+
     public MealTimeDTO create(MealTimeDTO dto) {
         MealTime entity = MealAdapter.toMealTimeEntity(dto);
         syncSchedules(entity, dto);

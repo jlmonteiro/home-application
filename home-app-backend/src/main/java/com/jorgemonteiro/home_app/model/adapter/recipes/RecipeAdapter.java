@@ -9,7 +9,8 @@ import lombok.RequiredArgsConstructor;
 import java.util.stream.Collectors;
 
 /**
- * Static adapter for converting between {@link Recipe} entities and {@link RecipeDTO}s.
+ * Adapter component for converting between {@link Recipe} entities and {@link RecipeDTO}s.
+ * Uses instance methods to allow for dependency injection (e.g. PhotoService).
  */
 @Component
 @RequiredArgsConstructor
@@ -74,7 +75,7 @@ public class RecipeAdapter {
         return dto;
     }
 
-    public static Recipe toEntity(RecipeDTO dto) {
+    public Recipe toEntity(RecipeDTO dto) {
         if (dto == null) return null;
 
         Recipe entity = new Recipe();
@@ -178,7 +179,7 @@ public class RecipeAdapter {
         return dto;
     }
 
-    public static RecipeStep toStepEntity(RecipeStepDTO dto) {
+    public RecipeStep toStepEntity(RecipeStepDTO dto) {
         if (dto == null) return null;
         RecipeStep entity = new RecipeStep();
         entity.setId(dto.getId());

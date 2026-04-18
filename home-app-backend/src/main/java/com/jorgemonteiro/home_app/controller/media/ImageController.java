@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.controller.media;
 
+import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.model.entities.media.Photo;
 import com.jorgemonteiro.home_app.service.media.PhotoService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ public class ImageController {
         Photo photo = photoService.getPhoto(name);
         
         if (photo.getData() == null || photo.getData().length == 0) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            throw new ObjectNotFoundException("Image data not found for name: " + name);
         }
 
         HttpHeaders headers = new HttpHeaders();

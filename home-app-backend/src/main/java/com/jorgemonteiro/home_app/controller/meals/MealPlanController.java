@@ -1,5 +1,7 @@
 package com.jorgemonteiro.home_app.controller.meals;
 
+import com.jorgemonteiro.home_app.controller.meals.resource.MealPlanResource;
+import com.jorgemonteiro.home_app.controller.meals.resource.MealPlanResourceAssembler;
 import com.jorgemonteiro.home_app.model.dtos.meals.MealPlanDTO;
 import com.jorgemonteiro.home_app.model.dtos.meals.MealPlanExportItemDTO;
 import com.jorgemonteiro.home_app.service.meals.MealPlanService;
@@ -22,17 +24,18 @@ import java.util.List;
 public class MealPlanController {
 
     private final MealPlanService mealPlanService;
+    private final MealPlanResourceAssembler resourceAssembler;
 
     @GetMapping
-    public ResponseEntity<MealPlanDTO> getPlan(
+    public MealPlanResource getPlan(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         LocalDate searchDate = (date != null) ? date : LocalDate.now();
-        return ResponseEntity.ok(mealPlanService.getOrCreatePlan(searchDate));
+        return resourceAssembler.toModel(mealPlanService.getOrCreatePlan(searchDate));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MealPlanDTO> updatePlan(@PathVariable Long id, @RequestBody MealPlanDTO dto) {
-        return ResponseEntity.ok(mealPlanService.updatePlan(id, dto));
+    public MealPlanResource updatePlan(@PathVariable Long id, @RequestBody MealPlanDTO dto) {
+        return resourceAssembler.toModel(mealPlanService.updatePlan(id, dto));
     }
 
     @PostMapping("/{id}/notify")

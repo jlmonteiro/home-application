@@ -19,6 +19,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
@@ -33,7 +35,6 @@ public class UserProfileController {
     private final UserProfileService userProfileService;
     private final UserProfileResourceAssembler resourceAssembler;
     private final PagedResourcesAssembler<UserProfileDTO> pagedResourcesAssembler;
-    private final UserProfileAdapter userProfileAdapter;
 
     /**
      * Returns the profile of the currently authenticated user.
@@ -60,7 +61,7 @@ public class UserProfileController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<java.util.List<UserDTO>> getAllUsers() {
+    public ResponseEntity<List<UserDTO>> getAllUsers() {
         return ResponseEntity.ok(userProfileService.listAllUsers());
     }
 

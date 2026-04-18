@@ -16,6 +16,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * REST controller providing endpoints for recipe management.
  */
@@ -27,7 +29,6 @@ public class RecipeController {
     private final RecipeService recipeService;
     private final RecipeResourceAssembler recipeResourceAssembler;
     private final PagedResourcesAssembler<RecipeDTO> pagedResourcesAssembler;
-    private final RecipeAdapter recipeAdapter;
 
     /**
      * Retrieves all recipes in a paginated format.
@@ -37,7 +38,7 @@ public class RecipeController {
     @GetMapping
     public PagedModel<RecipeResource> listAllRecipes(
             @RequestParam(name = "q", required = false) String search,
-            @RequestParam(name = "labels", required = false) java.util.List<String> labels,
+            @RequestParam(name = "labels", required = false) List<String> labels,
             Pageable pageable) {
         var recipes = recipeService.listAllRecipes(search, labels, pageable);
         return pagedResourcesAssembler.toModel(recipes, recipeResourceAssembler);
@@ -94,7 +95,7 @@ public class RecipeController {
      * @return updated recipe resource.
      */
     @PutMapping("/{id}/steps/reorder")
-    public RecipeResource reorderSteps(@PathVariable Long id, @RequestBody java.util.List<Long> stepIds) {
+    public RecipeResource reorderSteps(@PathVariable Long id, @RequestBody List<Long> stepIds) {
         return recipeResourceAssembler.toModel(recipeService.reorderSteps(id, stepIds));
     }
 }

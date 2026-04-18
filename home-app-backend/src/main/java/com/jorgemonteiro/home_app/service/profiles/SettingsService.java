@@ -2,6 +2,7 @@ package com.jorgemonteiro.home_app.service.profiles;
 
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.exception.ValidationException;
+import com.jorgemonteiro.home_app.model.adapter.profiles.UserProfileAdapter;
 import com.jorgemonteiro.home_app.model.dtos.profiles.AgeGroupConfigDTO;
 import com.jorgemonteiro.home_app.model.dtos.profiles.FamilyRoleDTO;
 import com.jorgemonteiro.home_app.model.entities.profiles.AgeGroupConfig;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.Comparator;
 import java.util.List;
@@ -22,6 +24,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Validated
 @Slf4j
 public class SettingsService {
 
@@ -39,7 +42,7 @@ public class SettingsService {
 
     public List<FamilyRoleDTO> getFamilyRoles() {
         return familyRoleRepository.findAll().stream()
-                .map(r -> new FamilyRoleDTO(r.getId(), r.getName(), r.isImmutable()))
+                .map(UserProfileAdapter::toRoleDTO)
                 .toList();
     }
 
@@ -51,7 +54,7 @@ public class SettingsService {
                 .name(dto.name())
                 .immutable(false)
                 .build();
-        return toRoleDTO(familyRoleRepository.save(role));
+        return UserProfileAdapter.toRoleDTO(familyRoleRepository.save(role));
     }
 
     public FamilyRoleDTO updateFamilyRole(Long id, FamilyRoleDTO dto) {
@@ -70,7 +73,7 @@ public class SettingsService {
                 });
 
         role.setName(dto.name());
-        return toRoleDTO(familyRoleRepository.save(role));
+        return UserProfileAdapter.toRoleDTO(familyRoleRepository.save(role));
     }
 
     public void deleteFamilyRole(Long id) {
@@ -130,8 +133,8 @@ public class SettingsService {
             if (profile.getBirthdate() != null) {
                 String newGroup = ageClassificationService.classify(profile.getBirthdate());
                 profile.setAgeGroupName(newGroup);
-                userProfileRepository.save(profile);
             }
         }
+        userProfileRepository.saveAll(profiles);
     }
 }

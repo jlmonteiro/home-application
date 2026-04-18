@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
@@ -33,6 +34,7 @@ public class MealReminderScheduler {
      * Reminds users 30 minutes before the meal start time.
      */
     @Scheduled(cron = "0 0/15 * * * *")
+    @Transactional(readOnly = true)
     public void sendMealReminders() {
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();

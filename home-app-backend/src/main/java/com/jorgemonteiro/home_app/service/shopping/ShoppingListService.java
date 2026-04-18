@@ -11,6 +11,7 @@ import com.jorgemonteiro.home_app.repository.profiles.UserRepository;
 import com.jorgemonteiro.home_app.repository.shopping.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -32,6 +33,7 @@ import static java.util.Optional.ofNullable;
 @RequiredArgsConstructor
 @Transactional
 @Validated
+@Slf4j
 public class ShoppingListService {
 
     private final ShoppingListRepository listRepository;

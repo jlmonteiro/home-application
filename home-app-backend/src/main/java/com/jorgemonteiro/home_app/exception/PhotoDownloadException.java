@@ -1,10 +1,14 @@
 package com.jorgemonteiro.home_app.exception;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
 /**
  * Thrown when a profile photo cannot be downloaded or decoded from a remote URL.
  * Callers are expected to catch this and proceed without a photo rather than
  * blocking the authentication flow.
  */
+@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 public class PhotoDownloadException extends HomeAppException {
 
     /**

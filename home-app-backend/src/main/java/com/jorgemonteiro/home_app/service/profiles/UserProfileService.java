@@ -1,7 +1,9 @@
 package com.jorgemonteiro.home_app.service.profiles;
 
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
+import com.jorgemonteiro.home_app.model.adapter.profiles.UserAdapter;
 import com.jorgemonteiro.home_app.model.adapter.profiles.UserProfileAdapter;
+import com.jorgemonteiro.home_app.model.dtos.profiles.UserDTO;
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO;
 import com.jorgemonteiro.home_app.model.entities.profiles.FamilyRole;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
@@ -12,13 +14,16 @@ import com.jorgemonteiro.home_app.repository.profiles.UserRepository;
 import com.jorgemonteiro.home_app.service.media.PhotoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * Service for reading and updating user profile data.
@@ -28,6 +33,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional
 @Validated
+@Slf4j
 public class UserProfileService {
 
     private final UserRepository userRepository;
@@ -53,10 +59,10 @@ public class UserProfileService {
     }
 
     @Transactional(readOnly = true)
-    public java.util.List<com.jorgemonteiro.home_app.model.dtos.profiles.UserDTO> listAllUsers() {
+    public List<UserDTO> listAllUsers() {
         return userRepository.findAll().stream()
-                .map(com.jorgemonteiro.home_app.model.adapter.profiles.UserAdapter::toDTO)
-                .collect(java.util.stream.Collectors.toList());
+                .map(UserAdapter::toDTO)
+                .collect(Collectors.toList());
     }
 
     public UserProfileDTO updateUserProfile(@Valid UserProfileDTO dto) {
@@ -107,12 +113,12 @@ public class UserProfileService {
             String fileName = "user-" + profile.getUser().getId() + "-profile";
             profile.setPhoto(photoService.savePhoto(dto.getPhoto(), fileName, "profile"));
         }
-        
+
         profile.setFacebook(dto.getFacebook());
         profile.setMobilePhone(dto.getMobilePhone());
         profile.setInstagram(dto.getInstagram());
         profile.setLinkedin(dto.getLinkedin());
-        
+
         if (dto.getBirthdate() != null) {
             profile.setBirthdate(dto.getBirthdate());
             profile.setAgeGroupName(ageClassificationService.classify(dto.getBirthdate()));

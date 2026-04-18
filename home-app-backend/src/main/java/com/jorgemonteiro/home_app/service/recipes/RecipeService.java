@@ -27,8 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -70,7 +72,7 @@ public class RecipeService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ObjectNotFoundException("User with email " + email + " not found"));
 
-        Recipe recipe = RecipeAdapter.toEntity(dto);
+        Recipe recipe = recipeAdapter.toEntity(dto);
         recipe.setCreatedBy(user);
         recipe.setLabels(labelService.getOrCreateLabels(dto.getLabels()));
         
@@ -138,7 +140,7 @@ public class RecipeService {
                         // Fallback: If for some reason photoName is still null (e.g. invalid DTO state)
                         // we must ensure it's not null to satisfy database constraint
                         if (photo.getPhotoName() == null) {
-                             photo.setPhotoName("pending-photo-" + java.util.UUID.randomUUID());
+                             photo.setPhotoName("pending-photo-" + UUID.randomUUID());
                         }
 
                         return photo;
@@ -188,7 +190,7 @@ public class RecipeService {
                     .map(stepDto -> {
                         RecipeStep step = existingSteps.get(stepDto.getId());
                         if (step == null) {
-                            step = RecipeAdapter.toStepEntity(stepDto);
+                            step = recipeAdapter.toStepEntity(stepDto);
                             step.setRecipe(recipe);
                         } else {
                             step.setInstruction(stepDto.getInstruction());
@@ -212,7 +214,7 @@ public class RecipeService {
                     
                     // Avoid division by zero, default to 100 if something is wrong (should be handled by DB default)
                     BigDecimal scale = (sampleSize != null && sampleSize.compareTo(BigDecimal.ZERO) > 0)
-                            ? ing.getQuantity().divide(sampleSize, 4, java.math.RoundingMode.HALF_UP)
+                            ? ing.getQuantity().divide(sampleSize, 4, RoundingMode.HALF_UP)
                             : BigDecimal.ONE;
 
                     return item.getNutritionEntries().stream()

@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * REST controller for managing labels.
@@ -30,6 +29,6 @@ public class LabelController {
     public List<LabelDTO> searchLabels(@RequestParam(name = "q", defaultValue = "") String query) {
         return labelService.searchLabels(query).stream()
                 .map(l -> new LabelDTO(l.getName()))
-                .collect(Collectors.toList());
+                .toList();
     }
 }

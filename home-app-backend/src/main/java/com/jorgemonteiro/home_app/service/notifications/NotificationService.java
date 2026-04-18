@@ -56,7 +56,7 @@ public class NotificationService {
         notificationRepository.save(n);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<MessageDTO> getConversation(String myEmail, Long otherId) {
         User me = userRepository.findByEmail(myEmail).orElseThrow(() -> new ObjectNotFoundException("User with email " + myEmail + " not found"));
         List<Message> messages = messageRepository.findConversation(me.getId(), otherId);

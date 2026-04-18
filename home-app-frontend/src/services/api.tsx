@@ -759,7 +759,8 @@ export async function rateRecipe(recipeId: number, rating: number): Promise<Reci
 export async function fetchMealTimes(): Promise<MealTime[]> {
   const response = await apiFetch(`${API_BASE}/settings/meal-times`)
   if (!response.ok) throw new Error('Failed to fetch meal times')
-  return response.json()
+  const data = await response.json()
+  return data._embedded?.mealTimes || []
 }
 
 export async function saveMealTime(mealTime: Partial<MealTime>): Promise<MealTime> {

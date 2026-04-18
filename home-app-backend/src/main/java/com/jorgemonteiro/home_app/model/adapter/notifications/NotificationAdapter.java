@@ -6,7 +6,7 @@ import com.jorgemonteiro.home_app.model.entities.notifications.Message;
 import com.jorgemonteiro.home_app.model.entities.notifications.Notification;
 
 /**
- * Static adapter for converting between Notification entities and DTOs.
+ * Adapter for converting between Notification entities and DTOs.
  */
 public class NotificationAdapter {
 

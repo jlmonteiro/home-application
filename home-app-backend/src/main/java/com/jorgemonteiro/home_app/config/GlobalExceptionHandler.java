@@ -1,6 +1,7 @@
 package com.jorgemonteiro.home_app.config;
 
 import com.jorgemonteiro.home_app.exception.AppErrorType;
+import com.jorgemonteiro.home_app.exception.AuthenticationException;
 import com.jorgemonteiro.home_app.exception.HomeAppException;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.exception.ValidationException;
@@ -124,6 +125,20 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.SERVICE_UNAVAILABLE, "The database is currently unreachable. Please try again later.");
         problemDetail.setTitle("Service Unavailable");
         problemDetail.setType(errorType(AppErrorType.SERVICE_UNAVAILABLE));
+        return problemDetail;
+    }
+
+    /**
+     * Handles authentication failures and returns HTTP 401.
+     *
+     * @param ex the authentication exception
+     * @return {@link ProblemDetail} for 401 response
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuthenticationException(AuthenticationException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        problemDetail.setTitle("Authentication Error");
+        problemDetail.setType(errorType(AppErrorType.AUTHENTICATION_ERROR));
         return problemDetail;
     }
 

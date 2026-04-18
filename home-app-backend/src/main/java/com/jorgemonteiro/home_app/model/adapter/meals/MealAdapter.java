@@ -6,7 +6,7 @@ import com.jorgemonteiro.home_app.model.entities.meals.*;
 import java.util.stream.Collectors;
 
 /**
- * Static adapter for converting between Meal entities and DTOs.
+ * Adapter for converting between Meal entities and DTOs.
  */
 public class MealAdapter {
 

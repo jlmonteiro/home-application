@@ -1,6 +1,8 @@
 package com.jorgemonteiro.home_app.model.adapter.profiles;
 
+import com.jorgemonteiro.home_app.model.dtos.profiles.FamilyRoleDTO;
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO;
+import com.jorgemonteiro.home_app.model.entities.profiles.FamilyRole;
 import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile;
 import com.jorgemonteiro.home_app.service.media.PhotoService;
@@ -8,8 +10,9 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 
 /**
- * Static adapter class that converts between {@link User}/{@link UserProfile} entities
+ * Adapter component that converts between {@link User}/{@link UserProfile} entities
  * and {@link UserProfileDTO}.
+ * Uses instance methods to allow for dependency injection (e.g. PhotoService).
  */
 @Component
 @RequiredArgsConstructor
@@ -91,5 +94,10 @@ public class UserProfileAdapter {
         userProfile.setBirthdate(dto.getBirthdate());
 
         return userProfile;
+    }
+
+    public static FamilyRoleDTO toRoleDTO(FamilyRole role) {
+        if (role == null) return null;
+        return new FamilyRoleDTO(role.getId(), role.getName(), role.isImmutable());
     }
 }
