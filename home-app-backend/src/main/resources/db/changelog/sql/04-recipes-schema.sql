@@ -17,7 +17,8 @@ CREATE TABLE recipes.recipes (
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     version BIGINT NOT NULL DEFAULT 0,
 
-    CONSTRAINT fk_recipes_created_by FOREIGN KEY (created_by) REFERENCES profiles.user(id)
+    CONSTRAINT fk_recipes_created_by FOREIGN KEY (created_by) REFERENCES profiles.user(id),
+    CONSTRAINT uk_recipe_name_creator UNIQUE (name, created_by)
 );
 
 CREATE INDEX idx_recipes_created_by ON recipes.recipes(created_by);
