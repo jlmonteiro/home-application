@@ -606,12 +606,6 @@ function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
       zIndex={2000}
     >
       <Stack gap="md">
-        <Paper withBorder p="sm" bg="blue.0">
-          <Text size="sm" fw={500} c="blue.9" ta="center">
-            Nutrition data for each <strong>{item?.nutritionSampleSize} {item?.nutritionSampleUnit}</strong>
-          </Text>
-        </Paper>
-
         <Paper withBorder p="sm" bg="gray.0">
           <form onSubmit={nutritionForm.onSubmit(handleAddNutrient)}>
             <Stack gap="xs">
@@ -651,6 +645,12 @@ function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
               </Button>
             </Stack>
           </form>
+        </Paper>
+
+        <Paper withBorder p="sm" bg="blue.0">
+          <Text size="sm" fw={500} c="blue.9" ta="center">
+            Nutrition data for each <strong>{item?.nutritionSampleSize} {item?.nutritionSampleUnit}</strong>
+          </Text>
         </Paper>
 
         <ScrollArea.Autosize mah={200} type="auto">
