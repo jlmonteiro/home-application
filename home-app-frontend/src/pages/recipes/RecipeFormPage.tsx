@@ -121,7 +121,7 @@ export function RecipeFormPage() {
         name: values.name,
         category: { id: Number(values.categoryId) } as any,
         unit: values.unit,
-        photo: values.photo,
+        photo: values.photo ? { data: values.photo } : null,
       }),
     onSuccess: (newItem) => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items-all'] });

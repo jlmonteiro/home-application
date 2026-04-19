@@ -140,10 +140,14 @@ export function StoresPage() {
   }
 
   const handleSubmit = (values: typeof form.values) => {
+    const storePayload = {
+      ...values,
+      photo: values.photo ? { data: values.photo } : null,
+    };
     if (editingStore) {
-      updateMutation.mutate({ id: editingStore.id, store: values })
+      updateMutation.mutate({ id: editingStore.id, store: storePayload })
     } else {
-      createMutation.mutate(values)
+      createMutation.mutate(storePayload)
     }
   }
 

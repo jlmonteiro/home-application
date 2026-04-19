@@ -222,7 +222,7 @@ export async function fetchCurrentUser(): Promise<UserProfile | null> {
 }
 
 export async function updateMyProfile(profile: Partial<UserProfile>): Promise<UserProfile> {
-  const response = await apiFetch(`${API_BASE}/user/profile`, {
+  const response = await apiFetch(`${API_BASE}/user/me`, {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(profile),
@@ -423,7 +423,8 @@ export async function deleteStore(id: number): Promise<void> {
 export async function fetchLoyaltyCards(storeId: number): Promise<LoyaltyCard[]> {
   const response = await apiFetch(`${API_BASE}/shopping/stores/${storeId}/loyalty-cards`)
   if (!response.ok) throw new Error('Failed to fetch loyalty cards')
-  return response.json()
+  const data = await response.json()
+  return data._embedded?.loyaltyCards || []
 }
 
 export async function createLoyaltyCard(
@@ -449,7 +450,7 @@ export async function deleteLoyaltyCard(_storeId: number, cardId: number): Promi
   if (!response.ok) throw new Error('Failed to delete loyalty card')
 }
 
-export async function fetchCoupons(storeId: number): Promise<Coupon[]> {
+export async function fetchCoupons(storeId: number): Promise<PagedResponse<Coupon>> {
   const response = await apiFetch(`${API_BASE}/shopping/stores/${storeId}/coupons`)
   if (!response.ok) throw new Error('Failed to fetch coupons')
   return response.json()
@@ -458,7 +459,8 @@ export async function fetchCoupons(storeId: number): Promise<Coupon[]> {
 export async function fetchExpiringCoupons(): Promise<Coupon[]> {
   const response = await apiFetch(`${API_BASE}/shopping/coupons/expiring`)
   if (!response.ok) throw new Error('Failed to fetch expiring coupons')
-  return response.json()
+  const data = await response.json()
+  return data._embedded?.coupons || []
 }
 
 export async function createCoupon(storeId: number, coupon: Partial<Coupon>): Promise<Coupon> {
@@ -851,12 +853,13 @@ export async function exportMealPlan(
 export async function fetchNotifications(): Promise<Notification[]> {
   const response = await apiFetch(`${API_BASE}/notifications`)
   if (!response.ok) throw new Error('Failed to fetch notifications')
-  return response.json()
+  const data = await response.json()
+  return data._embedded?.notifications || []
 }
 
 export async function markNotificationAsRead(id: number): Promise<void> {
   const response = await apiFetch(`${API_BASE}/notifications/${id}/read`, {
-    method: 'PUT',
+    method: 'POST',
   })
   if (!response.ok) throw new Error('Failed to mark notification as read')
 }

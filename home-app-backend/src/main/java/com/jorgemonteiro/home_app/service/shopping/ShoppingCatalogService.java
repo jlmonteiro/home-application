@@ -123,6 +123,14 @@ public class ShoppingCatalogService {
         
         existing.setName(dto.getName());
         existing.setCategory(category);
+        existing.setUnit(dto.getUnit() != null ? dto.getUnit() : "pcs");
+        
+        if (dto.getNutritionSampleSize() != null) {
+            existing.setNutritionSampleSize(dto.getNutritionSampleSize());
+        }
+        if (dto.getNutritionSampleUnit() != null) {
+            existing.setNutritionSampleUnit(dto.getNutritionSampleUnit());
+        }
         
         // Handle photo update/saving to central storage
         if (dto.getPhoto() != null && dto.getPhoto().getData() != null && dto.getPhoto().getData().startsWith("data:image")) {

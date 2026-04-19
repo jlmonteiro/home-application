@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import { PhotoUpload } from '../../components/PhotoUpload'
 import {
   Title,
   Text,
@@ -9,13 +10,12 @@ import {
   Modal,
   TextInput,
   Select,
+  Image,
   rem,
   Pagination,
   LoadingOverlay,
   Box,
   Avatar,
-  FileButton,
-  Image,
   Timeline,
   Paper,
   Badge,
@@ -64,6 +64,7 @@ export function ShoppingItemsPage() {
   const [search, setSearch] = useState('')
   const [opened, { open, close }] = useDisclosure(false)
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
+  const originalPhotoUrl = useRef<string | null>(null)
 
   const [nutritionOpened, { open: openNutrition, close: closeNutrition }] = useDisclosure(false)
   const [selectedNutritionItem, setSelectedNutritionItem] = useState<ShoppingItem | null>(null)
@@ -104,17 +105,6 @@ export function ShoppingItemsPage() {
       nutritionSampleSize: (v) => (v <= 0 ? 'Sample size must be positive' : null),
     },
   })
-
-  const handleFileUpload = (file: File | null) => {
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const base64 = e.target?.result as string
-        form.setFieldValue('photo', base64)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
 
   const createMutation = useMutation({
     mutationFn: createItem,
@@ -165,9 +155,11 @@ export function ShoppingItemsPage() {
   })
   const handleEdit = (item: ShoppingItem) => {
     setEditingItem(item)
+    // Store photo as PhotoDTO with url for reads, data only when user uploads new photo
+    const photoDto = item.photo?.url ? { url: item.photo.url } : null
     form.setValues({
       name: item.name,
-      photo: item.photo || '',
+      photo: photoDto,
       unit: item.unit || 'pcs',
       nutritionSampleSize: item.nutritionSampleSize || 100,
       nutritionSampleUnit: item.nutritionSampleUnit || 'g',
@@ -185,14 +177,20 @@ export function ShoppingItemsPage() {
     const selectedCategory = categoriesData?._embedded?.categories?.find(
       (cat) => cat.id === parseInt(values.categoryId),
     )
+    // Only send photo if user uploaded a new photo (data field)
+    // If editing and no new photo, don't include photo in payload to preserve existing
+    const photoPayload = values.photo?.data
+      ? { data: String(values.photo.data) }
+      : null
     const payload = {
-      name: values.name,
-      photo: values.photo,
-      unit: values.unit,
-      nutritionSampleSize: values.nutritionSampleSize,
-      nutritionSampleUnit: values.nutritionSampleUnit,
+      name: String(values.name),
+      photo: photoPayload,
+      unit: String(values.unit),
+      nutritionSampleSize: Number(values.nutritionSampleSize),
+      nutritionSampleUnit: String(values.nutritionSampleUnit),
       category: selectedCategory || { id: parseInt(values.categoryId), name: '', icon: '' },
     }
+    console.log('Item payload:', payload)
     if (editingItem) {
       updateMutation.mutate({ id: editingItem.id, item: payload })
     } else {
@@ -413,43 +411,13 @@ export function ShoppingItemsPage() {
               />
             </Group>
 
-            <Group align="flex-end">
-              <Box
-                w={64}
-                h={64}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px solid var(--mantine-color-gray-3)',
-                  borderRadius: rem(4),
-                  overflow: 'hidden',
-                }}
-              >
-                {form.values.photo ? (
-                  <Image src={getPhotoSrc(form.values.photo)} fit="contain" h={64} w={64} />
-                ) : (
-                  <IconBasket size={32} stroke={1.5} color="var(--mantine-color-gray-4)" />
-                )}
-              </Box>
-              <FileButton onChange={handleFileUpload} accept="image/png,image/jpeg">
-                {(props) => (
-                  <Button {...props} variant="light" leftSection={<IconUpload size={16} />}>
-                    Upload Photo
-                  </Button>
-                )}
-              </FileButton>
-              {form.values.photo && (
-                <Button
-                  variant="subtle"
-                  color="red"
-                  size="xs"
-                  onClick={() => form.setFieldValue('photo', '')}
-                >
-                  Remove
-                </Button>
-              )}
-            </Group>
+            <PhotoUpload
+              photo={form.values.photo}
+              onChange={(photo) => form.setFieldValue('photo', photo)}
+              label="Item Photo"
+              description="Upload a photo to identify this item visually."
+              size={64}
+            />
 
             <Group justify="flex-end" mt="md">
               <Button variant="subtle" onClick={close}>
@@ -574,10 +542,22 @@ function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
   })
 
   const handleAddNutrient = (values: typeof nutritionForm.values) => {
-    upsertMutation.mutate({
-      nutrientId: Number(values.nutrientId),
-      value: values.value,
-    })
+    const nutrientId = Number(values.nutrientId)
+    const selectedNutrient = allNutrients?.find(n => n.id === nutrientId)
+    if (!selectedNutrient) {
+      notifications.show({ title: 'Error', message: 'Invalid nutrient selected', color: 'red' })
+      return
+    }
+    const payload = {
+      nutrient: {
+        id: selectedNutrient.id,
+        name: selectedNutrient.name,
+        unit: selectedNutrient.unit,
+      },
+      value: Number(values.value),
+    }
+    console.log('Nutrition payload:', payload)
+    upsertMutation.mutate(payload)
     nutritionForm.reset()
   }
 

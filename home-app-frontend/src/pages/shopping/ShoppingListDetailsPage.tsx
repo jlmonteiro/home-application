@@ -580,7 +580,7 @@ export function ShoppingListDetailsPage() {
           )
           createItemMutation.mutate({
             name: values.name,
-            photo: values.photo,
+            photo: values.photo ? { data: values.photo } : null,
             unit: values.unit,
             category: selectedCategory || {
               id: parseInt(values.categoryId || '0'),

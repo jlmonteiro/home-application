@@ -11,6 +11,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -86,12 +91,52 @@ public class UserService {
         }
 
         if (pictureUrl != null && !pictureUrl.isEmpty()) {
-            profile.setPhoto(pictureUrl);
+            String savedPhotoName = downloadAndSaveGooglePhoto(pictureUrl, "user-" + user.getId() + "-profile");
+            profile.setPhoto(savedPhotoName);
         }
 
         userProfileRepository.save(profile);
         user.setUserProfile(profile);
 
         return user;
+    }
+
+    /**
+     * Downloads a photo from the given URL and saves it to local media storage.
+     *
+     * @param imageUrl the URL to download the image from
+     * @param targetName the desired filename (without extension)
+     * @return the name of the saved photo file, or null if download failed
+     */
+    private String downloadAndSaveGooglePhoto(String imageUrl, String targetName) {
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(imageUrl))
+                    .GET()
+                    .build();
+
+            HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+            if (response.statusCode() == 200) {
+                byte[] imageBytes = response.body();
+                String contentType = response.headers().firstValue("content-type").orElse("image/jpeg");
+                String extension = contentType.substring(contentType.lastIndexOf("/") + 1);
+                
+                // Convert byte array to base64 data URI
+                String base64Data = "data:" + contentType + ";base64," + java.util.Base64.getEncoder().encodeToString(imageBytes);
+                
+                String fileName = photoService.savePhoto(base64Data, targetName, "profile");
+                log.info("Downloaded and saved Google profile photo: {} for user", fileName);
+                return fileName;
+            } else {
+                log.warn("Failed to download Google profile photo: HTTP {}", response.statusCode());
+                return null;
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("Error downloading Google profile photo", e);
+            Thread.currentThread().interrupt();
+            return null;
+        }
     }
 }

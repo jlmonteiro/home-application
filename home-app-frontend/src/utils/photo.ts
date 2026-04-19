@@ -1,9 +1,16 @@
 /**
  * Determine the correct image source for photos.
- * Handles direct URLs, data URIs, and base64 strings.
+ * Handles direct URLs, data URIs, base64 strings, and PhotoDTO objects.
  */
-export const getPhotoSrc = (photo: string | undefined | null): string | null => {
+export const getPhotoSrc = (photo: string | { data?: string; url?: string } | undefined | null): string | null => {
   if (!photo) return null
+  
+  // Handle PhotoDTO object with data or url
+  if (typeof photo !== 'string') {
+    if (photo.url) return photo.url
+    if (photo.data) return photo.data
+    return null
+  }
   
   // Direct URLs or already prefixed data URIs
   if (photo.startsWith('http') || photo.startsWith('data:image')) return photo

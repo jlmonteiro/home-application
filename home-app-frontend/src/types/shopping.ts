@@ -12,7 +12,7 @@ export interface ShoppingCategory {
 export interface ShoppingItem {
   id: number
   name: string
-  photo?: string
+  photo?: { data?: string; url?: string }
   unit: string
   nutritionSampleSize: number
   nutritionSampleUnit: string
