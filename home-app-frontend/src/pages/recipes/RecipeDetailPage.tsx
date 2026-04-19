@@ -215,7 +215,7 @@ export function RecipeDetailPage() {
                             <Table.Tr key={index}>
                               <Table.Td w={40}>
                                 <Avatar 
-                                  src={getPhotoSrc(ing.itemPhoto)} 
+                                  src={ing.item.photo?.url} 
                                   size="sm" 
                                   radius="xs"
                                   variant="light"
@@ -224,7 +224,7 @@ export function RecipeDetailPage() {
                                 </Avatar>
                               </Table.Td>
                               <Table.Td>
-                                <Text fw={500}>{ing.itemName}</Text>
+                                <Text fw={500}>{ing.item.name}</Text>
                               </Table.Td>
                               <Table.Td w={120} style={{ textAlign: 'right' }}>
                                 <Text fw={700}>

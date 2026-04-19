@@ -238,17 +238,18 @@ public class ShoppingAdapter {
             );
         }
 
-        dto.setItem(new ItemSummaryDTO(
+        ItemSummaryDTO itemSummary = new ItemSummaryDTO(
             entity.getItem().getId(),
             entity.getItem().getName(),
             photoService.getPhotoUrl(entity.getItem().getPhoto()),
             entity.getItem().getUnit(),
             entity.getItem().getPcQuantity(),
             entity.getItem().getPcUnit()
-        ));
-        dto.getItem().setCategory(category);
+        );
+        itemSummary.setCategory(category);
 
-        dto.setUnit(entity.getItem().getUnit());
+        dto.setItem(itemSummary);
+        dto.setUnit(entity.getUnit());
         
         if (entity.getStore() != null) {
             dto.setStore(new StoreSummaryDTO(

@@ -19,7 +19,6 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import type { ShoppingListItem } from '../../services/api'
-import { getPhotoSrc } from '../../utils/photo'
 
 interface PriceTrendIconProps {
   item: ShoppingListItem
@@ -27,9 +26,12 @@ interface PriceTrendIconProps {
 }
 
 function PriceTrendIcon({ item, onClick }: PriceTrendIconProps) {
-  if (item.price === null || item.previousPrice === null) return null
+  const price = item.pricing?.price
+  const previousPrice = item.pricing?.previousPrice
+  
+  if (price === null || previousPrice === null || price === undefined || previousPrice === undefined) return null
 
-  if (item.price > item.previousPrice) {
+  if (price > previousPrice) {
     return (
       <ActionIcon variant="subtle" color="red" size="sm" onClick={onClick} title="Price Increased">
         <IconTrendingUp size={16} />
@@ -37,7 +39,7 @@ function PriceTrendIcon({ item, onClick }: PriceTrendIconProps) {
     )
   }
 
-  if (item.price < item.previousPrice) {
+  if (price < previousPrice) {
     return (
       <ActionIcon variant="subtle" color="green" size="sm" onClick={onClick} title="Price Decreased">
         <IconTrendingDown size={16} />
@@ -73,7 +75,7 @@ export function ListItemRow({
   onShowHistory,
   onPreviewImage,
 }: ListItemRowProps) {
-  const photoSrc = getPhotoSrc(item.itemPhoto)
+  const photoSrc = item.item.photo?.url
 
   return (
     <Group
@@ -101,10 +103,10 @@ export function ListItemRow({
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
-              cursor: item.itemPhoto ? 'pointer' : 'default',
+              cursor: photoSrc ? 'pointer' : 'default',
             }}
             onClick={() => {
-              if (photoSrc) onPreviewImage(photoSrc, item.itemName)
+              if (photoSrc) onPreviewImage(photoSrc, item.item.name)
             }}
           >
             {photoSrc ? (
@@ -118,12 +120,12 @@ export function ListItemRow({
           <Stack gap={0} style={{ overflow: 'hidden' }}>
             <Group gap={4} wrap="nowrap">
               <Text fw={500} size="sm" td={item.bought ? 'line-through' : 'none'} truncate>
-                {item.itemName}
+                {item.item.name}
               </Text>
               <PriceTrendIcon item={item} onClick={() => onShowHistory(item)} />
             </Group>
             <Text size="xs" c="dimmed">
-              {item.quantity} {item.unit} • €{(item.price || 0).toFixed(2)}
+              {item.quantity} {item.unit} • €{(item.pricing?.price || 0).toFixed(2)}
             </Text>
           </Stack>
         </Group>

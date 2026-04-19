@@ -127,7 +127,12 @@ export function RecipeFormPage() {
     onSuccess: (newItem) => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items-all'] });
       if (activeIngredientIndex !== null) {
-        form.setFieldValue(`ingredients.${activeIngredientIndex}.itemId`, newItem.id);
+        form.setFieldValue(`ingredients.${activeIngredientIndex}.item`, {
+          id: newItem.id,
+          name: newItem.name,
+          unit: newItem.unit,
+          photo: newItem.photo?.url ? { url: newItem.photo.url } : null
+        });
         form.setFieldValue(`ingredients.${activeIngredientIndex}.unit`, newItem.unit);
       }
       closeCreateItem();
@@ -204,7 +209,12 @@ export function RecipeFormPage() {
   };
 
   const addIngredient = () => {
-    form.insertListItem('ingredients', { itemId: 0, quantity: 1, unit: '', groupName: '' });
+    form.insertListItem('ingredients', { 
+      item: { id: 0, name: '', unit: '', photo: null }, 
+      quantity: 1, 
+      unit: '', 
+      groupName: '' 
+    });
   };
 
   const addStep = () => {
@@ -386,22 +396,27 @@ export function RecipeFormPage() {
                             placeholder="Select item"
                             data={itemOptions}
                             searchable
-                            {...form.getInputProps(`ingredients.${index}.itemId`)}
+                            {...form.getInputProps(`ingredients.${index}.item.id`)}
                             onChange={(val) => {
                               if (val === 'CREATE_NEW') {
                                 setActiveIngredientIndex(index);
                                 openCreateItem();
                               } else {
                                 const itemId = Number(val);
-                                form.setFieldValue(`ingredients.${index}.itemId`, itemId);
-                                // Sync unit from master items
+                                // Sync whole item object
                                 const selectedItem = masterItems?._embedded?.items?.find((i: any) => i.id === itemId);
                                 if (selectedItem) {
+                                  form.setFieldValue(`ingredients.${index}.item`, {
+                                    id: selectedItem.id,
+                                    name: selectedItem.name,
+                                    unit: selectedItem.unit,
+                                    photo: selectedItem.photo?.url ? { url: selectedItem.photo.url } : null
+                                  });
                                   form.setFieldValue(`ingredients.${index}.unit`, selectedItem.unit);
                                 }
                               }
                             }}
-                            value={form.values.ingredients[index].itemId ? form.values.ingredients[index].itemId.toString() : ''}
+                            value={form.values.ingredients[index].item?.id ? form.values.ingredients[index].item.id.toString() : ''}
                           />
                         </Table.Td>
                         <Table.Td>

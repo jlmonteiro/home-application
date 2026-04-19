@@ -48,12 +48,12 @@ export function EditItemModal({
         storeId: item.store?.id?.toString() || '',
         quantity: item.quantity,
         unit: item.unit,
-        price: item.price ?? undefined,
+        price: item.pricing?.price ?? undefined,
       })
     } else {
       form.reset()
     }
-  }, [item?.id, item?.store?.id, item?.quantity, item?.unit, item?.price])
+  }, [item?.id, item?.store?.id, item?.quantity, item?.unit, item?.pricing?.price])
 
   const handleSubmit = () => {
     if (item) {
@@ -65,7 +65,7 @@ export function EditItemModal({
     <Modal
       opened={opened}
       onClose={onClose}
-      title={item ? `Edit ${item.itemName}` : 'Edit Item'}
+      title={item ? `Edit ${item.item.name}` : 'Edit Item'}
       radius="md"
       zIndex={2000}
     >

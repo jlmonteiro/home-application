@@ -105,12 +105,12 @@ export function ShoppingListDetailsPage() {
         ? storesData?._embedded?.stores?.find((s) => s.id === parseInt(values.storeId))
         : null
       return addItemToList(listId, {
-        itemId: parseInt(values.itemId),
+        item: { id: parseInt(values.itemId) },
         quantity: values.quantity,
         unit: values.unit,
-        price: values.price,
+        pricing: { price: values.price },
         store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null,
-      })
+      } as any)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-list', listId] })
@@ -221,7 +221,7 @@ export function ShoppingListDetailsPage() {
   }
 
   const handleShowHistory = (item: ShoppingListItem) => {
-    setSelectedHistoryItem({ id: item.itemId, name: item.itemName })
+    setSelectedHistoryItem({ id: item.item.id, name: item.item.name })
     openHistory()
   }
 
@@ -275,7 +275,7 @@ export function ShoppingListDetailsPage() {
       const store = storesMap.get(key)
       if (store) {
         store.items.push(item)
-        store.cost += (item.price || 0) * item.quantity
+        store.cost += (item.pricing?.price || 0) * item.quantity
       }
     })
 
@@ -289,17 +289,17 @@ export function ShoppingListDetailsPage() {
       // Initial count to see which categories have > 1 item
       const counts: Record<string, number> = {}
       store.items.forEach((i) => {
-        const name = i.category?.name || 'Others'
+        const name = i.item.category?.name || 'Others'
         counts[name] = (counts[name] || 0) + 1
       })
 
       store.items.forEach((item) => {
-        const rawCatName = item.category?.name || 'Others'
+        const rawCatName = item.item.category?.name || 'Others'
         const isSingleton = counts[rawCatName] === 1
         const catName = isSingleton ? 'Others' : rawCatName
 
         // If it's Others, use generic basket icon, otherwise use the category icon
-        const catIcon = catName === 'Others' ? 'IconBasket' : item.category?.icon || 'IconBasket'
+        const catIcon = catName === 'Others' ? 'IconBasket' : item.item.category?.icon || 'IconBasket'
 
         if (!categoriesMap.has(catName)) {
           categoriesMap.set(catName, { icon: catIcon, items: [], isDone: false })
@@ -324,7 +324,7 @@ export function ShoppingListDetailsPage() {
   }, [list])
 
   const totalEstimated =
-    list?.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0) || 0
+    list?.items.reduce((sum, item) => sum + (item.pricing?.price || 0) * item.quantity, 0) || 0
   const activeItemsCount = list?.items.filter((i) => !i.unavailable).length || 0
   const boughtItemsCount = list?.items.filter((i) => i.bought && !i.unavailable).length || 0
 
@@ -561,9 +561,9 @@ export function ShoppingListDetailsPage() {
             data: {
               quantity: data.quantity,
               unit: data.unit,
-              price: data.price,
+              pricing: { price: data.price },
               store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null,
-            },
+            } as any,
           })
         }}
         isPending={updateItemMutation.isPending}

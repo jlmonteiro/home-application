@@ -166,6 +166,7 @@ public class RecipeService {
                             ing.setRecipe(recipe);
                         }
                         ing.setQuantity(ingDto.getQuantity());
+                        ing.setUnit(ingDto.getUnit());
                         ing.setGroupName(ingDto.getGroupName());
                         
                         Long itemId = ingDto.getItem().getId();

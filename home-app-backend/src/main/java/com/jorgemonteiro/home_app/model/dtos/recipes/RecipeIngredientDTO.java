@@ -16,6 +16,7 @@ public class RecipeIngredientDTO {
     private Long id;
     private ItemSummaryDTO item;
     private BigDecimal quantity;
+    private String unit;
     private String groupName;
     private List<NutritionEntryDTO> nutritionEntries;
 }

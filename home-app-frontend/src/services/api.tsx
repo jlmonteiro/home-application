@@ -18,7 +18,7 @@ import type {
   ShoppingStore,
 } from '../types/shopping'
 import type {AgeGroupConfig, FamilyRole, UserPreference} from '../types/settings'
-import type {Label, NutritionEntry, Recipe, RecipeComment, RecipeRating} from '../types/recipes'
+import type {Label, Nutrient, NutritionEntry, Recipe, RecipeComment, RecipeRating} from '../types/recipes'
 import type {
   MealPlan,
   MealPlanEntry,

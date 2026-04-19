@@ -85,11 +85,16 @@ public class ShoppingListService {
     // --- List Items ---
 
     public ShoppingListItemDTO addItemToList(Long listId, ShoppingListItemDTO dto) {
-        if (dto.getItem() == null || dto.getItem().getId() == null) throw new ValidationException("Item ID is required");
+        Long itemId = dto.getItemId();
+        if (itemId == null && dto.getItem() != null) {
+            itemId = dto.getItem().getId();
+        }
+
+        if (itemId == null) throw new ValidationException("Item ID is required");
         if (dto.getQuantity() == null) throw new ValidationException("Quantity is required");
 
         ShoppingList list = requireList(listId);
-        ShoppingItem item = requireItem(dto.getItem().getId());
+        ShoppingItem item = requireItem(itemId);
 
         ShoppingListItem entity = shoppingAdapter.toListItemEntity(dto);
         entity.setItem(item);

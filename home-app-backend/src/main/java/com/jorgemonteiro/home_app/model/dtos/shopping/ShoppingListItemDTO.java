@@ -1,6 +1,8 @@
 package com.jorgemonteiro.home_app.model.dtos.shopping;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.CategorySummaryDTO;
 import com.jorgemonteiro.home_app.model.dtos.shared.ItemSummaryDTO;
+import com.jorgemonteiro.home_app.model.dtos.shared.PhotoDTO;
 import com.jorgemonteiro.home_app.model.dtos.shared.StoreSummaryDTO;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
@@ -20,6 +22,9 @@ public class ShoppingListItemDTO {
     private Long id;
 
     private ItemSummaryDTO item;
+
+    // Root field for convenience and compatibility
+    private Long itemId;
 
     private StoreSummaryDTO store;
 

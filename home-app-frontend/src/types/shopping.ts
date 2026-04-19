@@ -95,12 +95,17 @@ export interface Coupon {
 
 export interface ShoppingListItem {
   id: number
-  itemId: number
-  itemName: string
-  itemPhoto: { data?: string; url?: string } | null
-  category: {
+  item: {
+    id: number
     name: string
-    icon?: string
+    photo: { url: string | null } | null
+    unit: string
+    pcQuantity?: number
+    pcUnit?: string
+    category?: {
+      name: string
+      icon?: string
+    } | null
   }
   store?: {
     id: number | null
@@ -108,8 +113,10 @@ export interface ShoppingListItem {
   } | null
   quantity: number
   unit: string
-  price: number | null
-  previousPrice: number | null
+  pricing?: {
+    price: number | null
+    previousPrice: number | null
+  } | null
   bought: boolean
   unavailable: boolean
   version: number

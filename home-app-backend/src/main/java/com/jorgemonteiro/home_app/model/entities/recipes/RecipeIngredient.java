@@ -37,6 +37,9 @@ public class RecipeIngredient {
     @Column(name = "quantity", nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity = BigDecimal.ONE;
 
+    @Column(name = "unit", nullable = false, length = 20)
+    private String unit;
+
     @Column(name = "group_name", length = 50)
     private String groupName;
 

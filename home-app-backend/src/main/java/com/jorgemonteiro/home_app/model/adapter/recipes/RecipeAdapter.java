@@ -121,6 +121,7 @@ public class RecipeAdapter {
         RecipeIngredientDTO dto = new RecipeIngredientDTO();
         dto.setId(entity.getId());
         dto.setQuantity(entity.getQuantity());
+        dto.setUnit(entity.getUnit());
         dto.setGroupName(entity.getGroupName());
         
         if (entity.getItem() != null) {

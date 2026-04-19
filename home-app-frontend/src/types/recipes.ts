@@ -7,6 +7,13 @@ export interface RecipePhoto {
 }
 
 
+export interface Label {
+  id?: number;
+  name: string;
+  version?: number;
+}
+
+
 export interface Nutrient {
   id?: number;
   name: string;
@@ -32,9 +39,12 @@ export interface RecipeStep {
 
 export interface RecipeIngredient {
   id?: number;
-  itemId: number;
-  itemName?: string;
-  itemPhoto?: string;
+  item: {
+    id: number;
+    name: string;
+    photo: { url: string | null } | null;
+    unit: string;
+  };
   quantity: number;
   unit: string;
   groupName?: string;
