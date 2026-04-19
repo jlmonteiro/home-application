@@ -95,10 +95,17 @@ export function AddItemModal({
     combobox.closeDropdown()
   }
 
-  const selectedMasterItem = useMemo(() => 
-    masterItems.find(i => i.id.toString() === form.values.itemId),
-    [masterItems, form.values.itemId]
-  )
+  const unitOptions = [
+    { value: 'pcs', label: 'Pieces (pcs)' },
+    { value: 'kg', label: 'Kilograms (kg)' },
+    { value: 'g', label: 'Grams (g)' },
+    { value: 'l', label: 'Liters (l)' },
+    { value: 'ml', label: 'Milliliters (ml)' },
+    { value: 'pack', label: 'Pack' },
+    { value: 'box', label: 'Box' },
+    { value: 'bottle', label: 'Bottle' },
+    { value: 'can', label: 'Can' },
+  ]
 
   return (
     <Modal opened={opened} onClose={onClose} title="Add Item to List" radius="md" zIndex={2000}>
@@ -217,11 +224,14 @@ export function AddItemModal({
               step={0.1}
               {...form.getInputProps('quantity')}
             />
-            <Box pb={8}>
-              <Badge size="lg" radius="sm" variant="light" h={36} w="100%">
-                {selectedMasterItem?.unit || form.values.unit}
-              </Badge>
-            </Box>
+            <Select
+              label="Unit"
+              placeholder="Select unit"
+              data={unitOptions}
+              searchable
+              comboboxProps={{ withinPortal: true, zIndex: 3000 }}
+              {...form.getInputProps('unit')}
+            />
           </Group>
 
           <NumberInput

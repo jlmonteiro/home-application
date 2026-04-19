@@ -52,6 +52,8 @@ public class ShoppingAdapter {
         dto.setId(entity.getId());
         dto.setName(entity.getName());
         dto.setUnit(entity.getUnit());
+        dto.setPcQuantity(entity.getPcQuantity());
+        dto.setPcUnit(entity.getPcUnit());
         dto.setNutritionSampleSize(entity.getNutritionSampleSize());
         dto.setNutritionSampleUnit(entity.getNutritionSampleUnit());
         dto.setPhoto(new PhotoDTO(null, photoService.getPhotoUrl(entity.getPhoto())));
@@ -72,6 +74,8 @@ public class ShoppingAdapter {
         entity.setId(dto.getId());
         entity.setName(dto.getName());
         entity.setUnit(dto.getUnit() != null ? dto.getUnit() : "pcs");
+        entity.setPcQuantity(dto.getPcQuantity());
+        entity.setPcUnit(dto.getPcUnit());
         
         if (dto.getNutritionSampleSize() != null) {
             entity.setNutritionSampleSize(dto.getNutritionSampleSize());
@@ -238,7 +242,9 @@ public class ShoppingAdapter {
             entity.getItem().getId(),
             entity.getItem().getName(),
             photoService.getPhotoUrl(entity.getItem().getPhoto()),
-            entity.getItem().getUnit()
+            entity.getItem().getUnit(),
+            entity.getItem().getPcQuantity(),
+            entity.getItem().getPcUnit()
         ));
         dto.getItem().setCategory(category);
 

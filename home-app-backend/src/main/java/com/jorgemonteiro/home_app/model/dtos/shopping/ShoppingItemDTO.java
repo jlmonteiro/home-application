@@ -30,6 +30,9 @@ public class ShoppingItemDTO {
     @Size(max = 20, message = "Unit must not exceed 20 characters")
     private String unit;
 
+    private java.math.BigDecimal pcQuantity;
+    private String pcUnit;
+
     private java.math.BigDecimal nutritionSampleSize;
     private String nutritionSampleUnit;
 

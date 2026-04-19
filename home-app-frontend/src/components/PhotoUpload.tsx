@@ -29,7 +29,6 @@ interface PhotoUploadProps {
 export function PhotoUpload({
   photo,
   onChange,
-  label = 'Photo',
   description = 'Upload a photo to identify this item visually.',
   size = 64,
 }: PhotoUploadProps) {
@@ -52,7 +51,7 @@ export function PhotoUpload({
       }
 
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = () => {
         onChange({ data: reader.result as string })
       }
       reader.readAsDataURL(file)

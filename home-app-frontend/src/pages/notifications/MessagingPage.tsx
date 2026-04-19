@@ -20,6 +20,7 @@ import { fetchConversation, sendMessage, fetchAllUsers } from '../../services/ap
 import { useState, useRef, useEffect } from 'react';
 import dayjs from 'dayjs';
 import { useAuth } from '../../context/AuthContext';
+import { getPhotoSrc } from '../../utils/photo';
 
 export function MessagingPage() {
   const { recipientId } = useParams<{ recipientId: string }>();
@@ -68,7 +69,7 @@ export function MessagingPage() {
           <ActionIcon variant="subtle" onClick={() => navigate(-1)}>
             <IconArrowLeft size={18} />
           </ActionIcon>
-          <Avatar src={targetUser?.photo} radius="xl" size="sm" />
+          <Avatar src={getPhotoSrc(targetUser?.photo)} radius="xl" size="sm" />
           <Title order={3}>{targetUser?.firstName} {targetUser?.lastName}</Title>
         </Group>
 

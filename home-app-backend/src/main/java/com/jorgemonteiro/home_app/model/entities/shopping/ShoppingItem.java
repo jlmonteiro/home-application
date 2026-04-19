@@ -43,6 +43,12 @@ public class ShoppingItem {
     @Column(name = "unit", nullable = false, length = 20)
     private String unit = "pcs";
 
+    @Column(name = "pc_quantity", precision = 19, scale = 4)
+    private BigDecimal pcQuantity;
+
+    @Column(name = "pc_unit", length = 20)
+    private String pcUnit;
+
     @Column(name = "nutrition_sample_size", nullable = false, precision = 10, scale = 2)
     private BigDecimal nutritionSampleSize = new BigDecimal("100.00");
 

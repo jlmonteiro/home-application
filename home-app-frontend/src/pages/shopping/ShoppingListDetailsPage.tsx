@@ -580,14 +580,16 @@ export function ShoppingListDetailsPage() {
           )
           createItemMutation.mutate({
             name: values.name,
-            photo: values.photo ? { data: values.photo } : null,
+            photo: values.photo ? { data: String(values.photo.data) } : undefined,
             unit: values.unit,
+            pcQuantity: values.pcQuantity,
+            pcUnit: values.pcUnit,
             category: selectedCategory || {
               id: parseInt(values.categoryId || '0'),
               name: '',
               icon: '',
             },
-          })
+          } as any)
         }}
         isPending={createItemMutation.isPending}
       />

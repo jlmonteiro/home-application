@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { PhotoUpload } from '../../components/PhotoUpload'
+import { useState } from 'react'
+import { PhotoUpload, type PhotoDTO } from '../../components/PhotoUpload'
 import {
   Title,
   Text,
@@ -36,11 +36,9 @@ import {
   IconTrash,
   IconSearch,
   IconBasket,
-  IconUpload,
   IconHistory,
   IconBuildingStore,
   IconActivity,
-  IconCheck,
 } from '@tabler/icons-react'
 import {
   fetchItems,
@@ -64,7 +62,6 @@ export function ShoppingItemsPage() {
   const [search, setSearch] = useState('')
   const [opened, { open, close }] = useDisclosure(false)
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
-  const originalPhotoUrl = useRef<string | null>(null)
 
   const [nutritionOpened, { open: openNutrition, close: closeNutrition }] = useDisclosure(false)
   const [selectedNutritionItem, setSelectedNutritionItem] = useState<ShoppingItem | null>(null)
@@ -92,8 +89,10 @@ export function ShoppingItemsPage() {
   const form = useForm({
     initialValues: {
       name: '',
-      photo: '',
+      photo: null as PhotoDTO | null,
       unit: 'pcs',
+      pcQuantity: 1,
+      pcUnit: 'kg',
       nutritionSampleSize: 100,
       nutritionSampleUnit: 'g',
       categoryId: '',
@@ -103,6 +102,8 @@ export function ShoppingItemsPage() {
       unit: (value) => (!value ? 'Unit is required' : null),
       categoryId: (value) => (!value ? 'Category is required' : null),
       nutritionSampleSize: (v) => (v <= 0 ? 'Sample size must be positive' : null),
+      pcQuantity: (v, values) => (values.unit === 'pcs' && (!v || v <= 0) ? 'Piece quantity must be positive' : null),
+      pcUnit: (v, values) => (values.unit === 'pcs' && !v ? 'Piece unit is required' : null),
     },
   })
 
@@ -156,11 +157,13 @@ export function ShoppingItemsPage() {
   const handleEdit = (item: ShoppingItem) => {
     setEditingItem(item)
     // Store photo as PhotoDTO with url for reads, data only when user uploads new photo
-    const photoDto = item.photo?.url ? { url: item.photo.url } : null
+    const photoDto: PhotoDTO | null = item.photo?.url ? { url: item.photo.url } : null
     form.setValues({
       name: item.name,
       photo: photoDto,
       unit: item.unit || 'pcs',
+      pcQuantity: item.pcQuantity || 1,
+      pcUnit: item.pcUnit || 'kg',
       nutritionSampleSize: item.nutritionSampleSize || 100,
       nutritionSampleUnit: item.nutritionSampleUnit || 'g',
       categoryId: item.category.id.toString(),
@@ -181,20 +184,22 @@ export function ShoppingItemsPage() {
     // If editing and no new photo, don't include photo in payload to preserve existing
     const photoPayload = values.photo?.data
       ? { data: String(values.photo.data) }
-      : null
+      : undefined
     const payload = {
       name: String(values.name),
       photo: photoPayload,
       unit: String(values.unit),
+      pcQuantity: values.unit === 'pcs' ? Number(values.pcQuantity) : undefined,
+      pcUnit: values.unit === 'pcs' ? String(values.pcUnit) : undefined,
       nutritionSampleSize: Number(values.nutritionSampleSize),
       nutritionSampleUnit: String(values.nutritionSampleUnit),
       category: selectedCategory || { id: parseInt(values.categoryId), name: '', icon: '' },
     }
     console.log('Item payload:', payload)
     if (editingItem) {
-      updateMutation.mutate({ id: editingItem.id, item: payload })
+      updateMutation.mutate({ id: editingItem.id, item: payload as any })
     } else {
-      createMutation.mutate(payload)
+      createMutation.mutate(payload as any)
     }
   }
 
@@ -388,6 +393,32 @@ export function ShoppingItemsPage() {
               {...form.getInputProps('unit')}
             />
 
+            {form.values.unit === 'pcs' && (
+              <>
+                <Divider label="Piece Conversion" labelPosition="center" />
+                <Text size="xs" c="dimmed">
+                  Define the standard quantity and unit represented by 1 piece (e.g. 1 pc = 1 L).
+                </Text>
+                <Group grow>
+                  <NumberInput
+                    required
+                    label="Quantity per Piece"
+                    min={0.01}
+                    decimalScale={4}
+                    {...form.getInputProps('pcQuantity')}
+                  />
+                  <Select
+                    required
+                    label="Piece Unit"
+                    data={unitOptions.filter((u) => u.value !== 'pcs')}
+                    searchable
+                    comboboxProps={{ withinPortal: true, zIndex: 3000 }}
+                    {...form.getInputProps('pcUnit')}
+                  />
+                </Group>
+              </>
+            )}
+
             <Divider label="Nutrition Calculation Context" labelPosition="center" />
             <Text size="xs" c="dimmed">
               Define the portion size used for nutritional values (e.g. 100kcal per 100g).
@@ -414,7 +445,7 @@ export function ShoppingItemsPage() {
             <Divider label="Item Photo" labelPosition="center" />
 
             <PhotoUpload
-              photo={form.values.photo}
+              photo={form.values.photo || undefined}
               onChange={(photo) => form.setFieldValue('photo', photo)}
               label=""
               description=""

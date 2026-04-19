@@ -25,7 +25,6 @@ import {
   Table,
   Divider,
   Select,
-  Badge,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
@@ -121,8 +120,10 @@ export function RecipeFormPage() {
         name: values.name,
         category: { id: Number(values.categoryId) } as any,
         unit: values.unit,
-        photo: values.photo ? { data: values.photo } : null,
-      }),
+        pcQuantity: values.pcQuantity,
+        pcUnit: values.pcUnit,
+        photo: values.photo ? { data: String(values.photo.data) } : undefined,
+      } as any),
     onSuccess: (newItem) => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items-all'] });
       if (activeIngredientIndex !== null) {
@@ -252,6 +253,18 @@ export function RecipeFormPage() {
       label: item.name,
     })),
     { value: 'CREATE_NEW', label: '+ Create New Item...' },
+  ];
+
+  const unitOptions = [
+    { value: 'pcs', label: 'Pieces (pcs)' },
+    { value: 'kg', label: 'Kilograms (kg)' },
+    { value: 'g', label: 'Grams (g)' },
+    { value: 'l', label: 'Liters (l)' },
+    { value: 'ml', label: 'Milliliters (ml)' },
+    { value: 'pack', label: 'Pack' },
+    { value: 'box', label: 'Box' },
+    { value: 'bottle', label: 'Bottle' },
+    { value: 'can', label: 'Can' },
   ];
 
   return (
@@ -398,11 +411,12 @@ export function RecipeFormPage() {
                           />
                         </Table.Td>
                         <Table.Td>
-                          <Box pt={4}>
-                            <Badge variant="light" size="lg" radius="sm" w="100%">
-                              {form.values.ingredients[index].unit || '-'}
-                            </Badge>
-                          </Box>
+                          <Select
+                            placeholder="Unit"
+                            data={unitOptions}
+                            searchable
+                            {...form.getInputProps(`ingredients.${index}.unit`)}
+                          />
                         </Table.Td>
                         <Table.Td>
                           <TextInput

@@ -106,7 +106,7 @@ export function StoreDetailsPage() {
   })
 
   const deleteCardMutation = useMutation({
-    mutationFn: deleteLoyaltyCard,
+    mutationFn: (cardId: number) => deleteLoyaltyCard(storeId, cardId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loyalty-cards', storeId] })
       notifications.show({ title: 'Success', message: 'Card removed', color: 'green' })
@@ -157,7 +157,7 @@ export function StoreDetailsPage() {
   })
 
   const removeCouponMutation = useMutation({
-    mutationFn: deleteCoupon,
+    mutationFn: (couponId: number) => deleteCoupon(storeId, couponId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coupons', storeId] })
       notifications.show({ title: 'Success', message: 'Coupon removed', color: 'green' })

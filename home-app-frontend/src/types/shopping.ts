@@ -14,6 +14,8 @@ export interface ShoppingItem {
   name: string
   photo?: { data?: string; url?: string }
   unit: string
+  pcQuantity?: number
+  pcUnit?: string
   nutritionSampleSize: number
   nutritionSampleUnit: string
   category: {
@@ -95,7 +97,7 @@ export interface ShoppingListItem {
   id: number
   itemId: number
   itemName: string
-  itemPhoto: string
+  itemPhoto: { data?: string; url?: string } | null
   category: {
     name: string
     icon?: string

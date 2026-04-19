@@ -16,6 +16,8 @@ public class ItemSummaryDTO {
     private String name;
     private PhotoDTO photo;
     private String unit;
+    private java.math.BigDecimal pcQuantity;
+    private String pcUnit;
     private CategorySummaryDTO category;
 
     public ItemSummaryDTO(Long id, String name, String photo) {
@@ -29,5 +31,14 @@ public class ItemSummaryDTO {
         this.name = name;
         this.photo = new PhotoDTO(null, photo);
         this.unit = unit;
+    }
+
+    public ItemSummaryDTO(Long id, String name, String photo, String unit, java.math.BigDecimal pcQuantity, String pcUnit) {
+        this.id = id;
+        this.name = name;
+        this.photo = new PhotoDTO(null, photo);
+        this.unit = unit;
+        this.pcQuantity = pcQuantity;
+        this.pcUnit = pcUnit;
     }
 }
