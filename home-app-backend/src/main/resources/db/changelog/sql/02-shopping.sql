@@ -1,6 +1,6 @@
---liquibase formatted sql
+-- liquibase formatted sql
 
---changeset jorge:02-initial-shopping-schema
+-- changeset consolidated:02-shopping
 CREATE SCHEMA IF NOT EXISTS shopping;
 
 -- Shopping Categories
@@ -20,11 +20,19 @@ CREATE TABLE shopping.shopping_items (
     name VARCHAR(100) NOT NULL,
     photo VARCHAR(255),
     category_id BIGINT NOT NULL,
+    unit VARCHAR(20) NOT NULL DEFAULT 'pcs',
+    pc_quantity DECIMAL(19, 4),
+    pc_unit VARCHAR(20),
+    nutrition_sample_size DECIMAL(10, 2) NOT NULL DEFAULT 100.00,
+    nutrition_sample_unit VARCHAR(20) NOT NULL DEFAULT 'g',
     version BIGINT NOT NULL DEFAULT 0,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_shopping_items_category FOREIGN KEY (category_id) REFERENCES shopping.shopping_categories(id) ON DELETE CASCADE
 );
+
+COMMENT ON COLUMN shopping.shopping_items.pc_quantity IS 'Quantity of standard unit per piece (e.g. 1.0 for a 1L bottle)';
+COMMENT ON COLUMN shopping.shopping_items.pc_unit IS 'Standard unit for piece conversion (e.g. L for a 1L bottle)';
 
 CREATE INDEX idx_shopping_items_category_id ON shopping.shopping_items(category_id);
 CREATE UNIQUE INDEX idx_shopping_items_name_category ON shopping.shopping_items(name, category_id);

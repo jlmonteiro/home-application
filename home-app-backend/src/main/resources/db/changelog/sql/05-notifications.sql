@@ -1,6 +1,6 @@
---liquibase formatted sql
+-- liquibase formatted sql
 
---changeset jorge:11-initial-notifications-schema
+-- changeset consolidated:05-notifications
 CREATE SCHEMA IF NOT EXISTS notifications;
 
 -- Notifications Table

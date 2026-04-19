@@ -1,6 +1,6 @@
---liquibase formatted sql
+-- liquibase formatted sql
 
---changeset jorge:13-media-photos-schema
+-- changeset consolidated:06-media
 CREATE SCHEMA IF NOT EXISTS media;
 
 -- Central Photos Table
