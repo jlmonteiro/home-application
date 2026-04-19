@@ -324,7 +324,7 @@ export function ShoppingItemsPage() {
             onChange={(event) => setSearch(event.currentTarget.value)}
           />
 
-          <Table verticalSpacing="sm">
+          <Table verticalSpacing="sm" stickyHeader>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Item</Table.Th>
@@ -660,7 +660,7 @@ function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
             <LoadingOverlay visible={isLoading} />
             
             {nutrition && nutrition.length > 0 ? (
-              <Table verticalSpacing="xs">
+              <Table verticalSpacing="xs" stickyHeader>
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Nutrient</Table.Th>
