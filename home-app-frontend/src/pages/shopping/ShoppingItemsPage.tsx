@@ -613,7 +613,9 @@ function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
                 <Select
                   label="Nutrient"
                   placeholder="Select definition"
-                  data={allNutrients?.map(n => ({ value: String(n.id), label: n.name })) || []}
+                  data={allNutrients
+                    ?.filter(n => !nutrition?.some(existing => existing.nutrient.id === n.id))
+                    .map(n => ({ value: String(n.id), label: n.name })) || []}
                   searchable
                   required
                   comboboxProps={{ zIndex: 5000 }}
