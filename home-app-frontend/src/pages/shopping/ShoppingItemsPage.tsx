@@ -607,8 +607,8 @@ function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
     >
       <Stack gap="md">
         <Paper withBorder p="sm" bg="blue.0">
-          <Text size="sm" fw={500} c="blue.9">
-            Provide nutritional values per <strong>{item?.nutritionSampleSize} {item?.nutritionSampleUnit}</strong>.
+          <Text size="sm" fw={500} c="blue.9" ta="center">
+            Nutrition data for each <strong>{item?.nutritionSampleSize} {item?.nutritionSampleUnit}</strong>
           </Text>
         </Paper>
 
@@ -662,7 +662,8 @@ function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
                 <Table.Thead>
                   <Table.Tr>
                     <Table.Th>Nutrient</Table.Th>
-                    <Table.Th w={100}>Value</Table.Th>
+                    <Table.Th w={80} ta="right">Value</Table.Th>
+                    <Table.Th w={60}>Unit</Table.Th>
                     <Table.Th w={50}></Table.Th>
                   </Table.Tr>
                 </Table.Thead>
@@ -672,8 +673,11 @@ function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
                       <Table.Td>
                         <Text size="sm" fw={500}>{entry.nutrient.name}</Text>
                       </Table.Td>
+                      <Table.Td ta="right">
+                        <Text size="sm" fw={700}>{entry.value}</Text>
+                      </Table.Td>
                       <Table.Td>
-                        <Text size="sm">{entry.value} {entry.nutrient.unit}</Text>
+                        <Text size="xs" c="dimmed">{entry.nutrient.unit}</Text>
                       </Table.Td>
                       <Table.Td>
                         <ActionIcon 
