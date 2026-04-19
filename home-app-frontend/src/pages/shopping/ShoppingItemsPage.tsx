@@ -388,17 +388,6 @@ export function ShoppingItemsPage() {
               {...form.getInputProps('unit')}
             />
 
-            <Divider label="Item Photo" labelPosition="center" />
-            <Text size="xs" c="dimmed">
-              Upload a photo to identify this item visually in the shopping list and catalogs.
-            </Text>
-
-            <PhotoUpload
-              photo={form.values.photo}
-              onChange={(photo) => form.setFieldValue('photo', photo)}
-              size={64}
-            />
-
             <Divider label="Nutrition Calculation Context" labelPosition="center" />
             <Text size="xs" c="dimmed">
               Define the portion size used for nutritional values (e.g. 100kcal per 100g).
@@ -421,6 +410,16 @@ export function ShoppingItemsPage() {
                 {...form.getInputProps('nutritionSampleUnit')}
               />
             </Group>
+
+            <Divider label="Item Photo" labelPosition="center" />
+
+            <PhotoUpload
+              photo={form.values.photo}
+              onChange={(photo) => form.setFieldValue('photo', photo)}
+              label=""
+              description=""
+              size={64}
+            />
 
             <Group justify="flex-end" mt="md">
               <Button variant="subtle" onClick={close}>
