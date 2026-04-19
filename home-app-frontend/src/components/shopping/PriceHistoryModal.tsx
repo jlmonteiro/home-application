@@ -31,13 +31,18 @@ export function PriceHistoryModal({
         <LoadingOverlay visible={isLoading} />
 
         {history && history.length > 0 ? (
-          <Timeline active={0} bulletSize={24} lineWidth={2}>
+          <Timeline active={0} bulletSize={40} lineWidth={2}>
             {history.map((entry) => (
               <Timeline.Item
                 key={entry.id}
                 bullet={
-                  <Avatar src={getPhotoSrc(entry.store?.photo)} size={14} radius="xl">
-                    <IconBuildingStore size={10} />
+                  <Avatar 
+                    src={getPhotoSrc(entry.store?.photo)} 
+                    size={40} 
+                    radius="xl"
+                    bg="white"
+                  >
+                    <IconBuildingStore size={22} />
                   </Avatar>
                 }
                 title={
