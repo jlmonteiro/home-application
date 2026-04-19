@@ -4,9 +4,10 @@ import { useNavigate } from 'react-router-dom'
 
 interface ErrorPageProps {
   type: '404' | '502'
+  onRetry?: () => void
 }
 
-export function ErrorPage({ type }: ErrorPageProps) {
+export function ErrorPage({ type, onRetry }: ErrorPageProps) {
   const navigate = useNavigate()
 
   const is404 = type === '404'
@@ -67,7 +68,13 @@ export function ErrorPage({ type }: ErrorPageProps) {
                 variant="light"
                 color="red"
                 size="md"
-                onClick={() => window.location.reload()}
+                onClick={() => {
+                  if (onRetry) {
+                    onRetry()
+                  } else {
+                    window.location.reload()
+                  }
+                }}
               >
                 Retry Connection
               </Button>

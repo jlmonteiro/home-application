@@ -20,6 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     data: user,
     isLoading,
     isError,
+    refetch,
   } = useQuery({
     queryKey: ['user'],
     queryFn: fetchCurrentUser,
@@ -42,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // If we have an error fetching the user and it's not a 401 (which returns null)
   // it means the backend is likely down or returned a 5xx
   if (isError) {
-    return <ErrorPage type="502" />
+    return <ErrorPage type="502" onRetry={() => refetch()} />
   }
 
   return (
