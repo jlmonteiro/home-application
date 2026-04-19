@@ -19,6 +19,7 @@ import {
   IconTrash,
 } from '@tabler/icons-react'
 import type { ShoppingListItem } from '../../services/api'
+import { convertQuantity } from '../../utils/units'
 
 interface PriceTrendIconProps {
   item: ShoppingListItem
@@ -76,6 +77,15 @@ export function ListItemRow({
   onPreviewImage,
 }: ListItemRowProps) {
   const photoSrc = item.item.photo?.url
+  const price = item.pricing?.price
+  const convertedQuantity = convertQuantity(
+    item.quantity,
+    item.unit,
+    item.item.unit,
+    item.item.pcQuantity,
+    item.item.pcUnit,
+  )
+  const lineCost = (price || 0) * convertedQuantity
 
   return (
     <Group
@@ -125,7 +135,18 @@ export function ListItemRow({
               <PriceTrendIcon item={item} onClick={() => onShowHistory(item)} />
             </Group>
             <Text size="xs" c="dimmed">
-              {item.quantity} {item.unit} • €{(item.pricing?.price || 0).toFixed(2)}
+              {item.quantity} {item.unit} • €{lineCost.toFixed(2)}
+              {item.unit !== item.item.unit && price !== null && price !== undefined && (
+                <Text component="span" size="xs" ml={4} fs="italic">
+                  ({price.toFixed(2)}/{item.item.unit}
+                  {item.item.unit === 'pcs' && item.item.pcQuantity && item.item.pcUnit && (
+                    <Text component="span" size="xs">
+                      , 1pc={item.item.pcQuantity}{item.item.pcUnit}
+                    </Text>
+                  )}
+                  )
+                </Text>
+              )}
             </Text>
           </Stack>
         </Group>

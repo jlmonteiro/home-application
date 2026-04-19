@@ -50,6 +50,7 @@ import { PriceHistoryModal } from '../../components/shopping/PriceHistoryModal'
 import { AddItemModal, type AddItemFormValues } from '../../components/shopping/AddItemModal'
 import { EditItemModal } from '../../components/shopping/EditItemModal'
 import { CreateItemModal } from '../../components/shopping/CreateItemModal'
+import { convertQuantity } from '../../utils/units'
 
 export function ShoppingListDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -275,7 +276,14 @@ export function ShoppingListDetailsPage() {
       const store = storesMap.get(key)
       if (store) {
         store.items.push(item)
-        store.cost += (item.pricing?.price || 0) * item.quantity
+        const convertedQuantity = convertQuantity(
+          item.quantity,
+          item.unit,
+          item.item.unit,
+          item.item.pcQuantity,
+          item.item.pcUnit,
+        )
+        store.cost += (item.pricing?.price || 0) * convertedQuantity
       }
     })
 
@@ -324,7 +332,16 @@ export function ShoppingListDetailsPage() {
   }, [list])
 
   const totalEstimated =
-    list?.items.reduce((sum, item) => sum + (item.pricing?.price || 0) * item.quantity, 0) || 0
+    list?.items.reduce((sum, item) => {
+      const convertedQuantity = convertQuantity(
+        item.quantity,
+        item.unit,
+        item.item.unit,
+        item.item.pcQuantity,
+        item.item.pcUnit,
+      )
+      return sum + (item.pricing?.price || 0) * convertedQuantity
+    }, 0) || 0
   const activeItemsCount = list?.items.filter((i) => !i.unavailable).length || 0
   const boughtItemsCount = list?.items.filter((i) => i.bought && !i.unavailable).length || 0
 

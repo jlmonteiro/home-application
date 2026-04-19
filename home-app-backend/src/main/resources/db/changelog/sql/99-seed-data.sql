@@ -13,7 +13,8 @@ INSERT INTO shopping.shopping_categories (name, description, icon) VALUES
 ('Household & Cleaning', 'Cleaning supplies, paper towels, and laundry detergent', 'IconWashDry1'),
 ('Personal Care', 'Shampoo, soap, toothpaste, and pharmacy items', 'IconMedicineSyrup'),
 ('Baby Care', 'Diapers, wipes, and baby food', 'IconBabyCarriage'),
-('Pet Supplies', 'Pet food, toys, and care items', 'IconPaw')
+('Pet Supplies', 'Pet food, toys, and care items', 'IconPaw'),
+('Dry Goods & Seasoning', 'Spices, herbs, and other dry pantry items', 'IconSalt')
 ON CONFLICT (name) DO NOTHING;
 
 -- Update store table to use these names

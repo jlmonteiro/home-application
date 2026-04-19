@@ -9,8 +9,24 @@ vi.mock('../../services/api', () => ({
 }))
 
 const mockItems: ShoppingItem[] = [
-  { id: 1, name: 'Milk', category: { id: 1, name: 'Dairy' }, version: 1 },
-  { id: 2, name: 'Eggs', category: { id: 1, name: 'Dairy' }, version: 1 },
+  {
+    id: 1,
+    name: 'Milk',
+    category: { id: 1, name: 'Dairy' },
+    version: 1,
+    unit: 'l',
+    nutritionSampleSize: 100,
+    nutritionSampleUnit: 'ml',
+  },
+  {
+    id: 2,
+    name: 'Eggs',
+    category: { id: 1, name: 'Dairy' },
+    version: 1,
+    unit: 'pcs',
+    nutritionSampleSize: 1,
+    nutritionSampleUnit: 'pcs',
+  },
 ]
 
 const storeOptions = [

@@ -71,6 +71,11 @@ export function AddItemModal({
     [masterItems, itemSearch],
   )
 
+  const selectedMasterItem = useMemo(
+    () => masterItems.find((i) => i.id.toString() === form.values.itemId),
+    [masterItems, form.values.itemId],
+  )
+
   // Fetch suggested price when item or store changes
   useEffect(() => {
     if (form.values.itemId) {
@@ -235,7 +240,7 @@ export function AddItemModal({
           </Group>
 
           <NumberInput
-            label="Price per Unit (€)"
+            label={"Price per " + (selectedMasterItem?.unit || 'Unit') + " (€)"}
             placeholder="Suggested price will load if available"
             min={0}
             decimalScale={2}

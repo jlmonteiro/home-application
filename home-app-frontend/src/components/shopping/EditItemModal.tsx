@@ -99,7 +99,7 @@ export function EditItemModal({
           </Group>
 
           <NumberInput
-            label="Price per Unit (€)"
+            label={"Price per " + (item?.item.unit || 'Unit') + " (€)"}
             min={0}
             decimalScale={2}
             {...form.getInputProps('price')}
