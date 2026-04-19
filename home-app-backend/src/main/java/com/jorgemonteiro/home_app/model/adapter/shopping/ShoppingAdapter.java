@@ -123,7 +123,7 @@ public class ShoppingAdapter {
         dto.setBarcode(new LoyaltyCardDTO.Barcode(entity.getNumber(), entity.getBarcodeType()));
         dto.setVersion(entity.getVersion());
         if (entity.getStore() != null) {
-            dto.setStore(new StoreSummaryDTO(entity.getStore().getId(), entity.getStore().getName()));
+            dto.setStore(new StoreSummaryDTO(entity.getStore().getId(), entity.getStore().getName(), photoService.getPhotoUrl(entity.getStore().getPhoto())));
         }
         return dto;
     }
@@ -149,7 +149,7 @@ public class ShoppingAdapter {
         CouponDTO dto = new CouponDTO();
         dto.setId(entity.getId());
         if (entity.getStore() != null) {
-            dto.setStore(new StoreSummaryDTO(entity.getStore().getId(), entity.getStore().getName()));
+            dto.setStore(new StoreSummaryDTO(entity.getStore().getId(), entity.getStore().getName(), photoService.getPhotoUrl(entity.getStore().getPhoto())));
         }
         dto.setName(entity.getName());
         dto.setDescription(entity.getDescription());
@@ -299,7 +299,8 @@ public class ShoppingAdapter {
         if (entity.getStore() != null) {
             dto.setStore(new StoreSummaryDTO(
                     entity.getStore().getId(),
-                    entity.getStore().getName()
+                    entity.getStore().getName(),
+                    photoService.getPhotoUrl(entity.getStore().getPhoto())
             ));
         }
         dto.setPrice(entity.getPrice());

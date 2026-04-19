@@ -90,7 +90,7 @@ public class StoreController {
         ofNullable(dto.getStore())
                 .ifPresentOrElse(
                     store -> store.setId(id),
-                    () -> dto.setStore(new StoreSummaryDTO(id, null))
+                    () -> dto.setStore(new StoreSummaryDTO(id, null, null))
                 );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(cardAssembler.toModel(storeService.createLoyaltyCard(dto)));
@@ -124,7 +124,7 @@ public class StoreController {
         ofNullable(dto.getStore())
                 .ifPresentOrElse(
                     store -> store.setId(id),
-                    () -> dto.setStore(new StoreSummaryDTO(id, null))
+                    () -> dto.setStore(new StoreSummaryDTO(id, null, null))
                 );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(couponAssembler.toModel(storeService.createCoupon(dto)));
