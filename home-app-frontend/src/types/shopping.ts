@@ -34,6 +34,7 @@ export interface ShoppingItemPriceHistory {
   store: {
     id: number
     name: string
+    photo: string | null
   } | null
   price: number
   recordedAt: string
@@ -112,6 +113,7 @@ export interface ShoppingListItem {
   store?: {
     id: number | null
     name: string | null
+    photo?: string | null
   } | null
   quantity: number
   unit: string

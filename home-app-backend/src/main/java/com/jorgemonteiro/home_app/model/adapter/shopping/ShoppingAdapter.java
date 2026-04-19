@@ -254,7 +254,8 @@ public class ShoppingAdapter {
         if (entity.getStore() != null) {
             dto.setStore(new StoreSummaryDTO(
                 entity.getStore().getId(),
-                entity.getStore().getName()
+                entity.getStore().getName(),
+                photoService.getPhotoUrl(entity.getStore().getPhoto())
             ));
         }
 

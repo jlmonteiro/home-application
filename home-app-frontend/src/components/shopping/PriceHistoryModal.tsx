@@ -1,6 +1,7 @@
-import { Modal, Box, LoadingOverlay, Timeline, Text, Group, Stack } from '@mantine/core'
+import { Modal, Box, LoadingOverlay, Timeline, Text, Group, Stack, Avatar } from '@mantine/core'
 import { IconBuildingStore, IconHistory } from '@tabler/icons-react'
 import type { ShoppingItemPriceHistory } from '../../services/api'
+import { getPhotoSrc } from '../../utils/photo'
 
 interface PriceHistoryModalProps {
   opened: boolean
@@ -34,7 +35,11 @@ export function PriceHistoryModal({
             {history.map((entry) => (
               <Timeline.Item
                 key={entry.id}
-                bullet={<IconBuildingStore size={14} />}
+                bullet={
+                  <Avatar src={getPhotoSrc(entry.store?.photo)} size={14} radius="xl">
+                    <IconBuildingStore size={10} />
+                  </Avatar>
+                }
                 title={
                   <Group justify="space-between">
                     <Text fw={700} size="lg">
