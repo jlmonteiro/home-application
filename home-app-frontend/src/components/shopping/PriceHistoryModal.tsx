@@ -50,7 +50,7 @@ export function PriceHistoryModal({
                 <Text size="sm" c="dimmed">
                   Recorded at{' '}
                   <Text span fw={500} c="dark">
-                    {entry.storeName || 'Any Store'}
+                    {entry.store?.name || 'Any Store'}
                   </Text>
                 </Text>
               </Timeline.Item>

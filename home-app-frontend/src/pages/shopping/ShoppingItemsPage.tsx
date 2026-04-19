@@ -500,7 +500,7 @@ export function ShoppingItemsPage() {
                   <Text size="sm" c="dimmed">
                     Recorded at{' '}
                     <Text span fw={500} c="dark">
-                      {entry.storeName || 'Any Store'}
+                      {entry.store?.name || 'Any Store'}
                     </Text>
                   </Text>
                 </Timeline.Item>
@@ -590,7 +590,7 @@ function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
       value: Number(values.value),
     }
     console.log('Nutrition payload:', payload)
-    upsertMutation.mutate(payload)
+    upsertMutation.mutate(payload as any)
     nutritionForm.reset()
   }
 
@@ -668,19 +668,19 @@ function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
                 </Table.Thead>
                 <Table.Tbody>
                   {nutrition.map((entry) => (
-                    <Table.Tr key={entry.nutrientId}>
+                    <Table.Tr key={entry.nutrient.id}>
                       <Table.Td>
-                        <Text size="sm" fw={500}>{entry.nutrientName}</Text>
+                        <Text size="sm" fw={500}>{entry.nutrient.name}</Text>
                       </Table.Td>
                       <Table.Td>
-                        <Text size="sm">{entry.value} {entry.unit}</Text>
+                        <Text size="sm">{entry.value} {entry.nutrient.unit}</Text>
                       </Table.Td>
                       <Table.Td>
                         <ActionIcon 
                           variant="subtle" 
                           color="red" 
-                          onClick={() => deleteMutation.mutate(entry.nutrientId)}
-                          loading={deleteMutation.isPending && deleteMutation.variables === entry.nutrientId}
+                          onClick={() => deleteMutation.mutate(entry.nutrient.id)}
+                          loading={deleteMutation.isPending && deleteMutation.variables === entry.nutrient.id}
                         >
                           <IconTrash size={16} />
                         </ActionIcon>

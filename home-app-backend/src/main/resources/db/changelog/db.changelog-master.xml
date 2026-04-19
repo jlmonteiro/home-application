@@ -13,5 +13,6 @@
     <include file="db/changelog/sql/06-media.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/sql/90-seed-media.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/sql/99-seed-data.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/sql/92-seed-items.sql" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

@@ -31,8 +31,10 @@ export interface ShoppingItem {
 
 export interface ShoppingItemPriceHistory {
   id: number
-  storeId: number | null
-  storeName: string | null
+  store: {
+    id: number
+    name: string
+  } | null
   price: number
   recordedAt: string
 }

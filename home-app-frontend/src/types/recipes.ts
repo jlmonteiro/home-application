@@ -24,10 +24,12 @@ export interface Nutrient {
 
 export interface NutritionEntry {
   id?: number;
-  nutrientId: number;
-  nutrientName?: string;
+  nutrient: {
+    id: number;
+    name: string;
+    unit: string;
+  };
   value: number;
-  unit?: string;
 }
 
 export interface RecipeStep {

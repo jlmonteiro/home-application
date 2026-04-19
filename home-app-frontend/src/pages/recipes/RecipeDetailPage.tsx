@@ -253,9 +253,9 @@ export function RecipeDetailPage() {
                     <Table.Tbody>
                       {recipe.nutritionTotals.map((n, index) => (
                         <Table.Tr key={index}>
-                          <Table.Td fw={500}>{n.nutrientName}</Table.Td>
+                          <Table.Td fw={500}>{n.nutrient.name}</Table.Td>
                           <Table.Td>
-                            {n.value.toFixed(1)} {n.unit}
+                            {n.value.toFixed(1)} {n.nutrient.unit}
                           </Table.Td>
                         </Table.Tr>
                       ))}

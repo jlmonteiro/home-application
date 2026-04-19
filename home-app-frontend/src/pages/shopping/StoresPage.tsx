@@ -17,7 +17,6 @@ import {
   Anchor,
   Image,
   Badge,
-  Avatar,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
@@ -34,7 +33,6 @@ import {
   IconExternalLink,
   IconArrowRight,
   IconTicket,
-  IconBuildingStore,
   type TablerIcon,
 } from '@tabler/icons-react'
 import {
