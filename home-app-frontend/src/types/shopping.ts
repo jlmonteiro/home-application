@@ -42,7 +42,7 @@ export interface ShoppingStore {
   name: string
   description?: string
   icon?: string
-  photo?: string
+  photo?: { data?: string; url?: string }
   validCouponsCount?: number
   version: number
   _links?: {

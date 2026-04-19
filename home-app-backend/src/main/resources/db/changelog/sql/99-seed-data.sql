@@ -16,12 +16,12 @@ INSERT INTO shopping.shopping_categories (name, description, icon) VALUES
 ('Pet Supplies', 'Pet food, toys, and care items', 'IconPaw')
 ON CONFLICT (name) DO NOTHING;
 
+-- Update store table to use these names
 INSERT INTO shopping.shopping_stores (name, description, icon, photo) VALUES
-('Tesco', 'Large international grocery and general merchandise retailer.', 'IconBuildingStore', '/logos/tesco.svg'),
-('Marks & Spencer', 'Premium retailer specializing in high-quality food and clothing.', 'IconBuildingStore', '/logos/marks_and_spencer.svg'),
-('Lidl', 'International discount supermarket chain.', 'IconBuildingStore', '/logos/lidl.svg'),
-('Aldi', 'Global discount supermarket chain known for high quality at low prices.', 'IconBuildingStore', '/logos/aldi.svg'),
-('Dunnes Stores', 'Leading Irish retail chain offering food, clothes, and homeware.', 'IconBuildingStore', '/logos/dunnes_stores.webp'),
-('Dunnes', 'Dunnes Stores Ireland', 'IconBuildingStore', '/logos/dunnes_stores.webp'),
-('SuperValu', 'Irish supermarket brand owned by Musgrave Group.', 'IconBuildingStore', '/logos/supervalu.png')
-ON CONFLICT (name) DO NOTHING;
+('Tesco', 'Large international grocery and general merchandise retailer.', 'IconBuildingStore', 'tesco-logo.svg'),
+('Marks & Spencer', 'Premium retailer specializing in high-quality food and clothing.', 'IconBuildingStore', 'ms-logo.svg'),
+('Lidl', 'International discount supermarket chain.', 'IconBuildingStore', 'lidl-logo.svg'),
+('Aldi', 'Global discount supermarket chain known for high quality at low prices.', 'IconBuildingStore', 'aldi-logo.svg'),
+('Dunnes Stores', 'Leading Irish retail chain offering food, clothes, and homeware.', 'IconBuildingStore', 'dunnes-logo.svg'),
+('SuperValu', 'Irish supermarket brand owned by Musgrave Group.', 'IconBuildingStore', 'supervalu-logo.svg')
+ON CONFLICT (name) DO UPDATE SET photo = EXCLUDED.photo;

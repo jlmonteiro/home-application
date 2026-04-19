@@ -47,6 +47,9 @@ public class PhotoService {
         if (base64Data.contains("data:")) {
             contentType = base64Data.substring(base64Data.indexOf(":") + 1, base64Data.indexOf(";"));
             extension = contentType.substring(contentType.lastIndexOf("/") + 1);
+            if (extension.equals("svg+xml")) {
+                extension = "svg";
+            }
             base64Data = base64Data.substring(base64Data.indexOf(",") + 1);
         }
 

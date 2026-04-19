@@ -112,7 +112,7 @@ export function PhotoUpload({
         </Box>
         {/* Only show upload button if no photo exists */}
         {!photo && (
-          <FileButton onChange={handleFileUpload} accept="image/png,image/jpeg">
+          <FileButton onChange={handleFileUpload} accept="image/png,image/jpeg,image/svg+xml">
             {(props) => (
               <Button {...props} variant="light" leftSection={<IconUpload size={16} />}>
                 Upload Photo
