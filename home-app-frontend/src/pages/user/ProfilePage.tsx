@@ -126,9 +126,10 @@ export function ProfilePage() {
   const handleSubmit = (values: Partial<UserProfile>) => {
     const payload = {
       ...values,
+      email: user?.email,
       birthdate: values.birthdate ? dayjs(values.birthdate).format('YYYY-MM-DD') : undefined,
     }
-    mutation.mutate(payload)
+    mutation.mutate(payload as any)
   }
 
   if (!user) return null
