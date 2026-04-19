@@ -277,6 +277,7 @@ public class ShoppingAdapter {
         ShoppingListItem entity = new ShoppingListItem();
         entity.setId(dto.getId());
         entity.setQuantity(dto.getQuantity());
+        entity.setUnit(dto.getUnit());
         
         if (dto.getPricing() != null) {
             entity.setPrice(dto.getPricing().getPrice());

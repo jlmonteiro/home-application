@@ -115,6 +115,7 @@ public class ShoppingListService {
         ShoppingListItem existing = requireListItem(itemId);
 
         ofNullable(dto.getQuantity()).ifPresent(existing::setQuantity);
+        ofNullable(dto.getUnit()).ifPresent(existing::setUnit);
         
         if (dto.getPricing() != null) {
             ofNullable(dto.getPricing().getPrice()).ifPresent(existing::setPrice);
