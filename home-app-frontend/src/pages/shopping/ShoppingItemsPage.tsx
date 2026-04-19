@@ -388,11 +388,14 @@ export function ShoppingItemsPage() {
               {...form.getInputProps('unit')}
             />
 
+            <Divider label="Item Photo" labelPosition="center" />
+            <Text size="xs" c="dimmed">
+              Upload a photo to identify this item visually in the shopping list and catalogs.
+            </Text>
+
             <PhotoUpload
               photo={form.values.photo}
               onChange={(photo) => form.setFieldValue('photo', photo)}
-              label="Item Photo"
-              description="Upload a photo to identify this item visually."
               size={64}
             />
 
