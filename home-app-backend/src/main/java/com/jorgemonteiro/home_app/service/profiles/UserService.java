@@ -59,10 +59,14 @@ public class UserService {
 
     private User syncExistingUser(User user, Optional<LocalDate> birthdate) {
         UserProfile profile = user.getUserProfile();
-        if (profile != null && birthdate.isPresent() && !birthdate.get().equals(profile.getBirthdate())) {
-            profile.setBirthdate(birthdate.get());
-            profile.setAgeGroupName(ageClassificationService.classify(birthdate.get()));
-            userProfileRepository.save(profile);
+        if (profile != null && birthdate.isPresent()) {
+            boolean dateChanged = profile.getBirthdate() == null || !birthdate.get().equals(profile.getBirthdate());
+            if (dateChanged) {
+                log.info("Syncing birthdate for existing user {}: {}", user.getEmail(), birthdate.get());
+                profile.setBirthdate(birthdate.get());
+                profile.setAgeGroupName(ageClassificationService.classify(birthdate.get()));
+                userProfileRepository.save(profile);
+            }
         }
         return user;
     }

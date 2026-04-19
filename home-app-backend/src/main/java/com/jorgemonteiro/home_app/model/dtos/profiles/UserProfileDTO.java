@@ -39,11 +39,8 @@ public class UserProfileDTO {
     @Past(message = "Birthdate must be in the past")
     private LocalDate birthdate;
 
-    /** The ID of the assigned family role. */
-    private Long familyRoleId;
-
-    /** The display name of the assigned family role. */
-    private String familyRoleName;
+    /** The assigned family role. */
+    private FamilyRoleDTO familyRole;
 
     /** The name of the calculated age group. */
     private String ageGroupName;
@@ -51,19 +48,10 @@ public class UserProfileDTO {
     /** Profile photo: {@code data} for uploads, {@code url} for reads. */
     private PhotoDTO photo;
 
-    /** The user's Facebook profile URL. */
-    @Pattern(regexp = "^$|^https?://(www\\.)?facebook\\.com/.+", message = "Facebook must be a valid Facebook URL")
-    private String facebook;
-
     /** The user's mobile phone number. */
     @Pattern(regexp = "^$|^\\+?[0-9\\s\\-()]{7,20}$", message = "Mobile phone must be a valid phone number")
     private String mobilePhone;
 
-    /** The user's Instagram profile URL. */
-    @Pattern(regexp = "^$|^https?://(www\\.)?instagram\\.com/.+", message = "Instagram must be a valid Instagram URL")
-    private String instagram;
-
-    /** The user's LinkedIn profile URL. */
-    @Pattern(regexp = "^$|^https?://(www\\.)?linkedin\\.com/.+", message = "LinkedIn must be a valid LinkedIn URL")
-    private String linkedin;
+    /** Social media profiles. */
+    private SocialProfilesDTO social;
 }

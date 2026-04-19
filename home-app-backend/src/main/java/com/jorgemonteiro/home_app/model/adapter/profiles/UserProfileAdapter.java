@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.adapter.profiles;
 
+import com.jorgemonteiro.home_app.model.dtos.profiles.SocialProfilesDTO;
 import com.jorgemonteiro.home_app.model.dtos.profiles.FamilyRoleDTO;
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO;
 import com.jorgemonteiro.home_app.model.dtos.shared.PhotoDTO;
@@ -38,17 +39,20 @@ public class UserProfileAdapter {
         dto.setEnabled(user.getEnabled());
 
         if (user.getUserProfile() != null) {
-            dto.setPhoto(new PhotoDTO(null, photoService.getPhotoUrl(user.getUserProfile().getPhoto())));
-            dto.setFacebook(user.getUserProfile().getFacebook());
-            dto.setMobilePhone(user.getUserProfile().getMobilePhone());
-            dto.setInstagram(user.getUserProfile().getInstagram());
-            dto.setLinkedin(user.getUserProfile().getLinkedin());
-            dto.setBirthdate(user.getUserProfile().getBirthdate());
-            dto.setAgeGroupName(user.getUserProfile().getAgeGroupName());
+            UserProfile profile = user.getUserProfile();
+            dto.setPhoto(new PhotoDTO(null, photoService.getPhotoUrl(profile.getPhoto())));
+            dto.setMobilePhone(profile.getMobilePhone());
+            dto.setBirthdate(profile.getBirthdate());
+            dto.setAgeGroupName(profile.getAgeGroupName());
 
-            if (user.getUserProfile().getFamilyRole() != null) {
-                dto.setFamilyRoleId(user.getUserProfile().getFamilyRole().getId());
-                dto.setFamilyRoleName(user.getUserProfile().getFamilyRole().getName());
+            dto.setSocial(new SocialProfilesDTO(
+                    profile.getFacebook(),
+                    profile.getInstagram(),
+                    profile.getLinkedin()
+            ));
+
+            if (profile.getFamilyRole() != null) {
+                dto.setFamilyRole(toRoleDTO(profile.getFamilyRole()));
             }
         }
 
@@ -88,11 +92,14 @@ public class UserProfileAdapter {
         UserProfile userProfile = new UserProfile();
         userProfile.setUser(user);
         userProfile.setPhoto(dto.getPhoto() != null ? dto.getPhoto().getData() : null);
-        userProfile.setFacebook(dto.getFacebook());
         userProfile.setMobilePhone(dto.getMobilePhone());
-        userProfile.setInstagram(dto.getInstagram());
-        userProfile.setLinkedin(dto.getLinkedin());
         userProfile.setBirthdate(dto.getBirthdate());
+
+        if (dto.getSocial() != null) {
+            userProfile.setFacebook(dto.getSocial().getFacebook());
+            userProfile.setInstagram(dto.getSocial().getInstagram());
+            userProfile.setLinkedin(dto.getSocial().getLinkedin());
+        }
 
         return userProfile;
     }

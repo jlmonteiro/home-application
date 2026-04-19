@@ -114,19 +114,21 @@ public class UserProfileService {
             profile.setPhoto(photoService.savePhoto(dto.getPhoto().getData(), fileName, "profile"));
         }
 
-        profile.setFacebook(dto.getFacebook());
+        if (dto.getSocial() != null) {
+            profile.setFacebook(dto.getSocial().getFacebook());
+            profile.setInstagram(dto.getSocial().getInstagram());
+            profile.setLinkedin(dto.getSocial().getLinkedin());
+        }
         profile.setMobilePhone(dto.getMobilePhone());
-        profile.setInstagram(dto.getInstagram());
-        profile.setLinkedin(dto.getLinkedin());
 
         if (dto.getBirthdate() != null) {
             profile.setBirthdate(dto.getBirthdate());
             profile.setAgeGroupName(ageClassificationService.classify(dto.getBirthdate()));
         }
 
-        if (dto.getFamilyRoleId() != null) {
-            FamilyRole role = familyRoleRepository.findById(dto.getFamilyRoleId())
-                    .orElseThrow(() -> new ObjectNotFoundException("Family role not found: " + dto.getFamilyRoleId()));
+        if (dto.getFamilyRole() != null && dto.getFamilyRole().id() != null) {
+            FamilyRole role = familyRoleRepository.findById(dto.getFamilyRole().id())
+                    .orElseThrow(() -> new ObjectNotFoundException("Family role not found: " + dto.getFamilyRole().id()));
             profile.setFamilyRole(role);
         }
     }
