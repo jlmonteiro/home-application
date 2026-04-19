@@ -21,6 +21,14 @@ public interface ShoppingItemRepository extends JpaRepository<ShoppingItem, Long
     Page<ShoppingItem> findByCategoryId(Long categoryId, Pageable pageable);
 
     /**
+     * Find items by name containing a string (case-insensitive).
+     * @param name the search string
+     * @param pageable pagination info
+     * @return a page of items
+     */
+    Page<ShoppingItem> findByNameContainingIgnoreCase(String name, Pageable pageable);
+
+    /**
      * Check if an item with the same name already exists in a category.
      * @param name the item name
      * @param categoryId the category ID

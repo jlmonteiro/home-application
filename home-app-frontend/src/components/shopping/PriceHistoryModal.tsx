@@ -1,4 +1,4 @@
-import { Modal, Box, LoadingOverlay, Timeline, Text, Group, Stack, Avatar } from '@mantine/core'
+import { Modal, Box, LoadingOverlay, Timeline, Text, Group, Stack, Image } from '@mantine/core'
 import { IconBuildingStore, IconHistory } from '@tabler/icons-react'
 import type { ShoppingItemPriceHistory } from '../../services/api'
 import { getPhotoSrc } from '../../utils/photo'
@@ -31,19 +31,40 @@ export function PriceHistoryModal({
         <LoadingOverlay visible={isLoading} />
 
         {history && history.length > 0 ? (
-          <Timeline active={0} bulletSize={40} lineWidth={2}>
+          <Timeline 
+            active={0} 
+            bulletSize={40} 
+            lineWidth={2}
+            styles={{
+              itemBullet: {
+                backgroundColor: 'transparent',
+                border: 'none',
+              }
+            }}
+          >
             {history.map((entry) => (
               <Timeline.Item
                 key={entry.id}
                 bullet={
-                  <Avatar 
-                    src={getPhotoSrc(entry.store?.photo)} 
-                    size={40} 
-                    radius="xl"
+                  <Box
+                    w={40}
+                    h={40}
                     bg="white"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
+                      borderRadius: 0, // Ensure square
+                      border: '1px solid var(--mantine-color-gray-2)' // Subtle border for white logos on white bg
+                    }}
                   >
-                    <IconBuildingStore size={22} />
-                  </Avatar>
+                    {entry.store?.photo ? (
+                      <Image src={getPhotoSrc(entry.store?.photo)} fit="contain" w="100%" h="100%" />
+                    ) : (
+                      <IconBuildingStore size={22} color="var(--mantine-color-gray-5)" />
+                    )}
+                  </Box>
                 }
                 title={
                   <Group justify="space-between">

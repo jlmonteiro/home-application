@@ -11,6 +11,7 @@ import {
   Divider,
   Badge,
   Accordion,
+  Image,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useCombobox } from '@mantine/core'
@@ -256,6 +257,7 @@ export function ShoppingListDetailsPage() {
       {
         id: number | null
         name: string
+        photo: string | null
         items: ShoppingListItem[]
         cost: number
         isDone: boolean
@@ -268,6 +270,7 @@ export function ShoppingListDetailsPage() {
         storesMap.set(key, {
           id: item.store?.id ?? null,
           name: item.store?.name || 'Any Store',
+          photo: item.store?.photo || null,
           items: [],
           cost: 0,
           isDone: false,
@@ -447,14 +450,32 @@ export function ShoppingListDetailsPage() {
               <Accordion.Control>
                 <Group justify="space-between" pr="md">
                   <Group gap="sm">
-                    <IconBuildingStore
-                      size={20}
-                      color={
-                        store.isDone
-                          ? 'var(--mantine-color-green-6)'
-                          : 'var(--mantine-color-indigo-6)'
-                      }
-                    />
+                    <Box
+                      w={40}
+                      h={40}
+                      bg="white"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
+                        borderRadius: 0,
+                        border: '1px solid var(--mantine-color-gray-2)',
+                      }}
+                    >
+                      {store.photo ? (
+                        <Image src={store.photo} fit="contain" w="100%" h="100%" />
+                      ) : (
+                        <IconBuildingStore
+                          size={22}
+                          color={
+                            store.isDone
+                              ? 'var(--mantine-color-green-6)'
+                              : 'var(--mantine-color-gray-5)'
+                          }
+                        />
+                      )}
+                    </Box>
                     <Text fw={700}>{store.name}</Text>
                     {store.isDone && <IconCheck size={18} color="var(--mantine-color-green-6)" />}
                   </Group>

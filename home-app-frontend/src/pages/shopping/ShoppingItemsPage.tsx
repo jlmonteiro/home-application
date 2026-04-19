@@ -71,8 +71,8 @@ export function ShoppingItemsPage() {
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<ShoppingItem | null>(null)
 
   const { data: itemsData, isLoading: itemsLoading } = useQuery({
-    queryKey: ['shopping-items', activePage],
-    queryFn: () => fetchItems(activePage - 1),
+    queryKey: ['shopping-items', activePage, search],
+    queryFn: () => fetchItems(activePage - 1, 20, search),
   })
 
   const { data: categoriesData } = useQuery({
@@ -229,7 +229,6 @@ export function ShoppingItemsPage() {
   ]
 
   const rows = items
-    .filter((item) => item.name.toLowerCase().includes(search.toLowerCase()))
     .map((item) => (
       <Table.Tr key={item.id}>
         <Table.Td>
@@ -322,7 +321,10 @@ export function ShoppingItemsPage() {
             placeholder="Search items..."
             leftSection={<IconSearch size={16} stroke={1.5} />}
             value={search}
-            onChange={(event) => setSearch(event.currentTarget.value)}
+            onChange={(event) => {
+              setSearch(event.currentTarget.value)
+              setPage(1)
+            }}
           />
 
           <Table verticalSpacing="sm" stickyHeader>

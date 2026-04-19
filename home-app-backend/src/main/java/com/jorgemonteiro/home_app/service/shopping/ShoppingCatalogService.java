@@ -79,7 +79,10 @@ public class ShoppingCatalogService {
     // --- Items ---
 
     @Transactional(readOnly = true)
-    public Page<ShoppingItemDTO> findAllItems(Pageable pageable) {
+    public Page<ShoppingItemDTO> findAllItems(String search, Pageable pageable) {
+        if (search != null && !search.isBlank()) {
+            return itemRepository.findByNameContainingIgnoreCase(search, pageable).map(shoppingAdapter::toItemDTO);
+        }
         return itemRepository.findAll(pageable).map(shoppingAdapter::toItemDTO);
     }
 

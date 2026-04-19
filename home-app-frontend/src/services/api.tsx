@@ -342,8 +342,9 @@ export async function deleteCategory(id: number): Promise<void> {
   if (!response.ok) throw new Error('Failed to delete category')
 }
 
-export async function fetchItems(page = 0, size = 20): Promise<PagedResponse<ShoppingItem>> {
-  const response = await apiFetch(`${API_BASE}/shopping/items?page=${page}&size=${size}`)
+export async function fetchItems(page = 0, size = 20, search?: string): Promise<PagedResponse<ShoppingItem>> {
+  const searchQuery = search ? `&search=${encodeURIComponent(search)}` : ''
+  const response = await apiFetch(`${API_BASE}/shopping/items?page=${page}&size=${size}${searchQuery}`)
   if (!response.ok) throw new Error('Failed to fetch items')
   return response.json()
 }
