@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { PhotoUpload, type PhotoDTO } from '../../components/PhotoUpload'
+import { PriceHistoryModal } from '../../components/shopping/PriceHistoryModal'
 import {
   Title,
   Text,
@@ -465,55 +466,16 @@ export function ShoppingItemsPage() {
       </Modal>
 
       {/* Price History Modal */}
-      <Modal
+      <PriceHistoryModal
         opened={historyOpened}
         onClose={() => {
           closeHistory()
           setSelectedHistoryItem(null)
         }}
-        title={`Price History: ${selectedHistoryItem?.name}`}
-        radius="md"
-        size="lg"
-        zIndex={2000}
-      >
-        <Box pos="relative" mih={200}>
-          <LoadingOverlay visible={historyLoading} />
-
-          {priceHistory && priceHistory.length > 0 ? (
-            <Timeline active={0} bulletSize={24} lineWidth={2}>
-              {priceHistory.map((entry) => (
-                <Timeline.Item
-                  key={entry.id}
-                  bullet={<IconBuildingStore size={14} />}
-                  title={
-                    <Group justify="space-between">
-                      <Text fw={700} size="lg">
-                        €{entry.price.toFixed(2)}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {new Date(entry.recordedAt).toLocaleDateString()}{' '}
-                        {new Date(entry.recordedAt).toLocaleTimeString()}
-                      </Text>
-                    </Group>
-                  }
-                >
-                  <Text size="sm" c="dimmed">
-                    Recorded at{' '}
-                    <Text span fw={500} c="dark">
-                      {entry.store?.name || 'Any Store'}
-                    </Text>
-                  </Text>
-                </Timeline.Item>
-              ))}
-            </Timeline>
-          ) : (
-            <Stack align="center" py="xl">
-              <IconHistory size={48} color="var(--mantine-color-gray-3)" />
-              <Text c="dimmed">No price history available for this item yet.</Text>
-            </Stack>
-          )}
-        </Box>
-      </Modal>
+        itemName={selectedHistoryItem?.name || null}
+        history={priceHistory}
+        isLoading={historyLoading}
+      />
 
       <NutritionModal
         opened={nutritionOpened}
