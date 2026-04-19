@@ -206,8 +206,8 @@ export async function fetchCurrentUser(): Promise<UserProfile | null> {
     redirect: 'manual',
   })
 
-  // 0 = opaque redirect (manual mode), 401 = unauthenticated, 403 = forbidden (treat as unauthenticated for initial load)
-  if (response.status === 401 || response.status === 403 || response.status === 0 || response.type === 'opaqueredirect') {
+  // 0 = opaque redirect (manual mode), 401 = unauthenticated, 403 = forbidden, 404 = not found (database reset case)
+  if (response.status === 401 || response.status === 403 || response.status === 404 || response.status === 0 || response.type === 'opaqueredirect') {
     return null
   }
 
