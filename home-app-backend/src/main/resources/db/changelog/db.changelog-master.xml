@@ -5,14 +5,22 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
+    <!-- 1. Schemas -->
     <include file="db/changelog/sql/01-profiles.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/sql/02-shopping.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/sql/03-recipes.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/sql/04-meals.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/sql/05-notifications.sql" relativeToChangelogFile="false"/>
     <include file="db/changelog/sql/06-media.sql" relativeToChangelogFile="false"/>
-    <include file="db/changelog/sql/90-seed-media.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/sql/07-meal-items.sql" relativeToChangelogFile="false"/>
+
+    <!-- 2. Master Data (Dependencies for everything else) -->
     <include file="db/changelog/sql/99-seed-data.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/sql/90-seed-media.sql" relativeToChangelogFile="false"/>
+
+    <!-- 3. Domain Data -->
     <include file="db/changelog/sql/92-seed-items.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/sql/93-seed-profiles.sql" relativeToChangelogFile="false"/>
+    <include file="db/changelog/sql/94-seed-recipes-meals.sql" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

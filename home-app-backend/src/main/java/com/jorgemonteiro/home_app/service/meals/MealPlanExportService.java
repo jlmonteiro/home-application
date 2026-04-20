@@ -16,6 +16,7 @@ import com.jorgemonteiro.home_app.repository.shopping.ShoppingListItemRepository
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingListRepository;
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingStoreRepository;
 import com.jorgemonteiro.home_app.service.media.PhotoService;
+import com.jorgemonteiro.home_app.service.shopping.ShoppingListService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,7 @@ public class MealPlanExportService {
     private final ShoppingStoreRepository storeRepository;
     private final UserRepository userRepository;
     private final PhotoService photoService;
+    private final ShoppingListService shoppingListService;
 
     @Transactional(readOnly = true)
     public List<MealPlanExportItemDTO> getExportPreview(Long planId, Long targetListId) {
@@ -61,13 +63,14 @@ public class MealPlanExportService {
                 
                 recipeAssignment.getRecipe().getIngredients().forEach(ing -> {
                     ShoppingItem item = ing.getItem();
-                    String key = item.getId() + ":" + item.getUnit();
+                    String unit = ing.getUnit() != null ? ing.getUnit() : item.getUnit();
+                    String key = item.getId() + ":" + unit;
                     
                     MealPlanExportItemDTO exportItem = aggregated.getOrDefault(key, new MealPlanExportItemDTO(
                             item.getId(),
                             item.getName(),
                             BigDecimal.ZERO,
-                            item.getUnit(),
+                            unit,
                             BigDecimal.ZERO
                     ));
                     
@@ -76,8 +79,36 @@ public class MealPlanExportService {
                     BigDecimal scaledQuantity = ing.getQuantity().multiply(multiplier);
                     exportItem.setQuantity(exportItem.getQuantity().add(scaledQuantity));
                     
+                    // Suggest price based on history (using null store for global latest)
+                    exportItem.setSuggestedPrice(shoppingListService.suggestPrice(item.getId(), null));
+                    
                     aggregated.put(key, exportItem);
                 });
+            });
+
+            // Process direct items
+            entry.getItems().forEach(itemAssignment -> {
+                ShoppingItem item = itemAssignment.getItem();
+                String unit = itemAssignment.getUnit() != null ? itemAssignment.getUnit() : item.getUnit();
+                String key = item.getId() + ":" + unit;
+
+                MealPlanExportItemDTO exportItem = aggregated.getOrDefault(key, new MealPlanExportItemDTO(
+                        item.getId(),
+                        item.getName(),
+                        BigDecimal.ZERO,
+                        unit,
+                        BigDecimal.ZERO
+                ));
+
+                exportItem.setItemPhoto(new PhotoDTO(null, photoService.getPhotoUrl(item.getPhoto())));
+
+                BigDecimal scaledQuantity = itemAssignment.getQuantity();
+                exportItem.setQuantity(exportItem.getQuantity().add(scaledQuantity));
+
+                // Suggest price based on history (using null store for global latest)
+                exportItem.setSuggestedPrice(shoppingListService.suggestPrice(item.getId(), null));
+
+                aggregated.put(key, exportItem);
             });
         });
 
@@ -113,13 +144,21 @@ public class MealPlanExportService {
         }
 
         for (MealPlanExportItemDTO dto : itemsToExport) {
-            ShoppingListItem existing = shoppingListItemRepository.findByListIdAndItemId(list.getId(), dto.getItemId())
+            ShoppingListItem existing = shoppingListItemRepository.findByListIdAndItemIdAndUnit(list.getId(), dto.getItemId(), dto.getUnit())
                     .orElse(null);
+
+            BigDecimal priceToUse = dto.getSuggestedPrice();
+            if (priceToUse == null) {
+                priceToUse = shoppingListService.suggestPrice(dto.getItemId(), dto.getStoreId());
+            }
 
             if (existing != null) {
                 existing.setQuantity(existing.getQuantity().add(dto.getQuantity()));
                 if (dto.getStoreId() != null) {
                     existing.setStore(storeRepository.findById(dto.getStoreId()).orElse(existing.getStore()));
+                }
+                if (priceToUse != null) {
+                    existing.setPrice(priceToUse);
                 }
                 shoppingListItemRepository.save(existing);
             } else {
@@ -128,7 +167,9 @@ public class MealPlanExportService {
                 newItem.setItem(shoppingItemRepository.findById(dto.getItemId())
                         .orElseThrow(() -> new ObjectNotFoundException("Item not found: " + dto.getItemId())));
                 newItem.setQuantity(dto.getQuantity());
+                newItem.setUnit(dto.getUnit() != null ? dto.getUnit() : "pcs");
                 newItem.setBought(false);
+                newItem.setPrice(priceToUse);
                 if (dto.getStoreId() != null) {
                     newItem.setStore(storeRepository.findById(dto.getStoreId()).orElse(null));
                 }

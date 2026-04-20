@@ -45,6 +45,9 @@ public class MealPlanEntry {
     private List<MealPlanEntryRecipe> recipes = new java.util.ArrayList<>();
 
     @OneToMany(mappedBy = "entry", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MealPlanEntryItem> items = new java.util.ArrayList<>();
+
+    @OneToMany(mappedBy = "entry", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MealPlanVote> votes = new java.util.ArrayList<>();
 
     public long getThumbsUpCount() {

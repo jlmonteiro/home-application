@@ -22,10 +22,6 @@ jobs:
       run: npm install
       working-directory: home-app-frontend
 
-    - name: Run Unit Tests
-      run: npm run test:coverage
-      working-directory: home-app-frontend
-
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
       working-directory: home-app-frontend

@@ -30,12 +30,15 @@ public class MealPlanController {
     public MealPlanResource getPlan(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         LocalDate searchDate = (date != null) ? date : LocalDate.now();
-        return resourceAssembler.toModel(mealPlanService.getOrCreatePlan(searchDate));
+        return resourceAssembler.toModel(mealPlanService.findByDate(searchDate));
     }
 
     @PutMapping("/{id}")
-    public MealPlanResource updatePlan(@PathVariable Long id, @RequestBody MealPlanDTO dto) {
-        return resourceAssembler.toModel(mealPlanService.updatePlan(id, dto));
+    public MealPlanResource updatePlan(
+            @PathVariable Long id, 
+            @RequestBody MealPlanDTO dto,
+            @AuthenticationPrincipal OAuth2User principal) {
+        return resourceAssembler.toModel(mealPlanService.updatePlan(id, dto, principal.getAttribute("email")));
     }
 
     @PostMapping("/{id}/notify")

@@ -17,7 +17,10 @@ import {
   MultiSelect,
   Divider,
   NumberInput,
+  TextInput,
   Box,
+  Avatar,
+  Tooltip,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { 
@@ -25,7 +28,6 @@ import {
   IconChevronRight, 
   IconPlus, 
   IconTrash, 
-  IconUser, 
   IconCheck, 
   IconBellRinging,
   IconThumbUp,
@@ -40,6 +42,7 @@ import {
   fetchMealTimes, 
   fetchRecipes, 
   fetchAllUsers,
+  fetchItems,
   notifyHousehold,
   acceptMealPlan,
   voteMealEntry
@@ -51,8 +54,18 @@ import isoWeek from 'dayjs/plugin/isoWeek';
 import type { MealPlan, MealPlanEntry, MealPlanEntryRecipe } from '../../types/meals';
 import { useAuth } from '../../context/AuthContext';
 import { MealPlanExportModal } from '../../components/recipes/MealPlanExportModal';
+import { getPhotoSrc } from '../../utils/photo';
 
 dayjs.extend(isoWeek);
+
+const getDayValue = (val: any): number => {
+  if (typeof val === 'number') return val;
+  const dayMap: Record<string, number> = {
+    'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3,
+    'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6
+  };
+  return dayMap[String(val).toUpperCase()] ?? 0;
+};
 
 export function MealPlannerPage() {
   const [currentDate, setCurrentDate] = useState(dayjs().startOf('isoWeek'));
@@ -76,6 +89,11 @@ export function MealPlannerPage() {
   const { data: recipesData } = useQuery({
     queryKey: ['recipes-all'],
     queryFn: () => fetchRecipes(0, 1000),
+  });
+
+  const { data: masterItems } = useQuery({
+    queryKey: ['shopping-items-all'],
+    queryFn: () => fetchItems(0, 1000),
   });
 
   const { data: usersData } = useQuery({
@@ -120,7 +138,7 @@ export function MealPlannerPage() {
   };
 
   const getEntryFor = (day: number, timeId: number) => {
-    return plan?.entries.find(e => e.dayOfWeek === day && e.mealTimeId === timeId);
+    return plan?.entries.find(e => getDayValue(e.dayOfWeek) === day && e.mealTimeId === timeId);
   };
 
   const handleCellClick = (day: number, timeId: number) => {
@@ -131,13 +149,13 @@ export function MealPlannerPage() {
   if (planLoading) return <Center h="50vh"><Loader /></Center>;
 
   const days = [
-    { value: 1, label: 'Mon' },
-    { value: 2, label: 'Tue' },
-    { value: 3, label: 'Wed' },
-    { value: 4, label: 'Thu' },
-    { value: 5, label: 'Fri' },
-    { value: 6, label: 'Sat' },
-    { value: 7, label: 'Sun' },
+    { value: 0, label: 'Mon' },
+    { value: 1, label: 'Tue' },
+    { value: 2, label: 'Wed' },
+    { value: 3, label: 'Thu' },
+    { value: 4, label: 'Fri' },
+    { value: 5, label: 'Sat' },
+    { value: 6, label: 'Sun' },
   ];
 
   const getStatusBadge = () => {
@@ -151,6 +169,7 @@ export function MealPlannerPage() {
   };
 
   const recipes = (recipesData as any)?._embedded?.recipes || [];
+  const masterItemsList = (masterItems as any)?._embedded?.items || [];
   const users = usersData || [];
 
   return (
@@ -224,7 +243,7 @@ export function MealPlannerPage() {
                   <Table.Th key={day.value} style={{ textAlign: 'center' }}>
                     <Stack gap={0}>
                       <Text size="sm" fw={700}>{day.label}</Text>
-                      <Text size="xs" c="dimmed">{currentDate.add(day.value - 1, 'day').format('MMM D')}</Text>
+                      <Text size="xs" c="dimmed">{currentDate.add(day.value, 'day').format('MMM D')}</Text>
                     </Stack>
                   </Table.Th>
                 ))}
@@ -236,7 +255,7 @@ export function MealPlannerPage() {
                   <Table.Td fw={700}>{time.name}</Table.Td>
                   {days.map(day => {
                     const entry = getEntryFor(day.value, time.id!);
-                    const schedule = time.schedules?.find(s => s.dayOfWeek === day.value);
+                    const schedule = time.schedules?.find(s => getDayValue(s.dayOfWeek) === day.value);
                     const timeStr = schedule?.startTime ? schedule.startTime.substring(0, 5) : '--:--';
 
                     return (
@@ -264,19 +283,19 @@ export function MealPlannerPage() {
                           </Badge>
                         </Box>
 
-                        {entry && entry.recipes.length > 0 ? (
+                        {(entry && (entry.recipes.length > 0 || entry.items.length > 0)) ? (
                           <Stack gap={4}>
-                            {Array.from(new Set(entry.recipes.map(r => r.recipeId))).map(rid => {
-                              const recipeAssignments = entry.recipes.filter(r => r.recipeId === rid);
-                              const recipeName = recipeAssignments[0].recipeName;
-                              const userNames = recipeAssignments.map(r => r.userName).filter(Boolean);
+                            {/* Recipes */}
+                            {Array.from(new Set(entry.recipes.map(r => r.recipe.id))).map(rid => {
+                              const recipeAssignments = entry.recipes.filter(r => r.recipe.id === rid);
+                              const recipeName = recipeAssignments[0].recipe.name;
                               const multiplier = recipeAssignments[0].multiplier || 1;
                               
                               return (
-                                <Paper key={rid} withBorder p={4} radius="xs" bg="white">
+                                <Paper key={`recipe-${rid}`} withBorder p={4} radius="xs" bg="white">
                                   <Stack gap={2}>
                                     <Group gap={4} wrap="nowrap" align="center" style={{ overflow: 'hidden' }}>
-                                      {multiplier > 1 && (
+                                      {multiplier !== 1 && (
                                         <Badge size="xs" variant="filled" color="orange" style={{ flex: '0 0 auto' }}>
                                           {multiplier}x
                                         </Badge>
@@ -285,18 +304,66 @@ export function MealPlannerPage() {
                                         {recipeName}
                                       </Text>
                                     </Group>
-                                    {userNames.length > 0 && (
-                                      <Group gap={2}>
-                                        <IconUser size={10} color="var(--mantine-color-blue-6)" />
-                                        <Text size="10px" c="blue" lineClamp={1}>
-                                          {userNames.join(', ')}
-                                        </Text>
+                                    {recipeAssignments.some(r => r.users.length > 0) && (
+                                      <Group gap={4} mt={2}>
+                                        <Avatar.Group spacing="xs">
+                                          {Array.from(new Map(recipeAssignments.flatMap(r => r.users).map(u => [u.id, u])).values()).map(user => (
+                                            <Tooltip key={user.id} label={user.name} withArrow>
+                                              <Avatar 
+                                                src={getPhotoSrc(user.photo as any)} 
+                                                size={32} 
+                                                radius="xl"
+                                                alt={user.name}
+                                                variant="light"
+                                                color="blue"
+                                              >
+                                                {user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                                              </Avatar>
+                                            </Tooltip>
+                                          ))}
+                                        </Avatar.Group>
                                       </Group>
                                     )}
                                   </Stack>
                                 </Paper>
                               );
                             })}
+
+                            {/* Direct Items */}
+                            {entry.items.map((itemAssignment, idx) => (
+                              <Paper key={`item-${idx}`} withBorder p={4} radius="xs" bg="blue.0" style={{ borderColor: 'var(--mantine-color-blue-2)' }}>
+                                <Stack gap={2}>
+                                  <Group gap={4} wrap="nowrap" align="center" style={{ overflow: 'hidden' }}>
+                                    <Badge size="xs" variant="light" color="blue" style={{ flex: '0 0 auto' }}>
+                                      {itemAssignment.quantity} {itemAssignment.unit}
+                                    </Badge>
+                                    <Text size="xs" fw={600} lineClamp={1} style={{ flex: 1 }}>
+                                      {itemAssignment.item.name}
+                                    </Text>
+                                  </Group>
+                                  {itemAssignment.users.length > 0 && (
+                                    <Group gap={4} mt={2}>
+                                      <Avatar.Group spacing="xs">
+                                        {itemAssignment.users.map(user => (
+                                          <Tooltip key={user.id} label={user.name} withArrow>
+                                            <Avatar 
+                                              src={getPhotoSrc(user.photo as any)} 
+                                              size={24} 
+                                              radius="xl"
+                                              alt={user.name}
+                                              variant="light"
+                                              color="blue"
+                                            >
+                                              {user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                                            </Avatar>
+                                          </Tooltip>
+                                        ))}
+                                      </Avatar.Group>
+                                    </Group>
+                                  )}
+                                </Stack>
+                              </Paper>
+                            ))}
                             
                             <Group gap={4} justify="center" mt={2} wrap="nowrap">
                               {entry.isDone ? (
@@ -305,9 +372,9 @@ export function MealPlannerPage() {
                                     Done
                                   </Badge>
                                   <Group gap={2} ml="xs">
-                                    <Text size="10px" fw={700} c="green">{entry.thumbsUpCount}</Text>
+                                    <Text size="10px" fw={700} c="green">{entry.reactions?.thumbsUp || 0}</Text>
                                     <IconThumbUp size={10} color="var(--mantine-color-green-6)" />
-                                    <Text size="10px" fw={700} c="red" ml={4}>{entry.thumbsDownCount}</Text>
+                                    <Text size="10px" fw={700} c="red" ml={4}>{entry.reactions?.thumbsDown || 0}</Text>
                                     <IconThumbDown size={10} color="var(--mantine-color-red-6)" />
                                   </Group>
                                 </>
@@ -344,6 +411,7 @@ export function MealPlannerPage() {
             day={selectedCell.day}
             timeId={selectedCell.timeId}
             recipes={recipes}
+            masterItems={masterItemsList}
             users={users}
             onSave={(updatedPlan) => mutation.mutate(updatedPlan)}
             onToggleDone={(entry) => {
@@ -377,6 +445,7 @@ interface MealEntryEditorProps {
   day: number;
   timeId: number;
   recipes: any[];
+  masterItems: any[];
   users: any[];
   onSave: (plan: MealPlan) => void;
   onToggleDone: (entry: MealPlanEntry) => void;
@@ -390,67 +459,150 @@ interface RecipeSelection {
   multiplier: number;
 }
 
-function MealEntryEditor({ plan, day, timeId, recipes, users, onSave, onToggleDone, onVote, isPending }: MealEntryEditorProps) {
-  const existingEntry = plan.entries.find(e => e.dayOfWeek === day && e.mealTimeId === timeId);
+interface ItemSelection {
+  itemId: string;
+  userIds: string[];
+  quantity: number;
+  unit: string;
+}
+
+function MealEntryEditor({ plan, day, timeId, recipes, masterItems, users, onSave, onToggleDone, onVote, isPending }: MealEntryEditorProps) {
+  const existingEntry = plan.entries.find(e => getDayValue(e.dayOfWeek) === day && e.mealTimeId === timeId);
   
-  const [selections, setSelections] = useState<RecipeSelection[]>(() => {
+  const [recipeSelections, setRecipeSelections] = useState<RecipeSelection[]>(() => {
     if (!existingEntry) return [];
     
-    // Group users and multipliers by recipeId
+    // Group users and multipliers by recipe.id
     const groups = new Map<number, { uids: number[], mult: number }>();
     existingEntry.recipes.forEach(r => {
-      if (!groups.has(r.recipeId)) groups.set(r.recipeId, { uids: [], mult: r.multiplier || 1 });
-      if (r.userId) groups.get(r.recipeId)!.uids.push(r.userId);
+      if (!groups.has(r.recipe.id)) groups.set(r.recipe.id, { uids: [], mult: r.multiplier || 1 });
+      r.users.forEach(u => groups.get(r.recipe.id)!.uids.push(u.id));
     });
 
     return Array.from(groups.entries()).map(([rid, data]) => ({
       recipeId: String(rid),
-      userIds: data.uids.map(String),
+      userIds: Array.from(new Set(data.uids)).map(String),
       multiplier: data.mult
     }));
   });
 
+  const [itemSelections, setItemSelections] = useState<ItemSelection[]>(() => {
+    if (!existingEntry) return [];
+
+    // Group users by item.id and unit
+    const groups = new Map<string, { itemId: number, uids: number[], qty: number, unit: string }>();
+    existingEntry.items.forEach(i => {
+      const key = `${i.item.id}-${i.unit}`;
+      if (!groups.has(key)) {
+        groups.set(key, { itemId: i.item.id, uids: [], qty: i.quantity, unit: i.unit });
+      }
+      i.users.forEach(u => groups.get(key)!.uids.push(u.id));
+    });
+
+    return Array.from(groups.values()).map(data => ({
+      itemId: String(data.itemId),
+      userIds: Array.from(new Set(data.uids)).map(String),
+      quantity: data.qty,
+      unit: data.unit
+    }));
+  });
+
   const handleAddRecipe = () => {
-    setSelections([...selections, { recipeId: '', userIds: [], multiplier: 1 }]);
+    setRecipeSelections([...recipeSelections, { recipeId: '', userIds: [], multiplier: 1 }]);
   };
 
-  const updateSelection = (index: number, fields: Partial<RecipeSelection>) => {
-    const newList = [...selections];
+  const handleAddItem = () => {
+    setItemSelections([...itemSelections, { itemId: '', userIds: [], quantity: 1, unit: 'pcs' }]);
+  };
+
+  const updateRecipeSelection = (index: number, fields: Partial<RecipeSelection>) => {
+    const newList = [...recipeSelections];
     newList[index] = { ...newList[index], ...fields };
-    setSelections(newList);
+    setRecipeSelections(newList);
   };
 
-  const removeSelection = (index: number) => {
-    setSelections(selections.filter((_, i) => i !== index));
+  const updateItemSelection = (index: number, fields: Partial<ItemSelection>) => {
+    const newList = [...itemSelections];
+    newList[index] = { ...newList[index], ...fields };
+    setItemSelections(newList);
+  };
+
+  const removeRecipeSelection = (index: number) => {
+    setRecipeSelections(recipeSelections.filter((_, i) => i !== index));
+  };
+
+  const removeItemSelection = (index: number) => {
+    setItemSelections(itemSelections.filter((_, i) => i !== index));
   };
 
   const handleSave = () => {
     const newPlan = { ...plan };
-    const entryIdx = newPlan.entries.findIndex(e => e.dayOfWeek === day && e.mealTimeId === timeId);
+    const entryIdx = newPlan.entries.findIndex(e => getDayValue(e.dayOfWeek) === day && e.mealTimeId === timeId);
     
     const flattenedRecipes: MealPlanEntryRecipe[] = [];
-    selections.forEach(sel => {
+    recipeSelections.forEach(sel => {
       if (!sel.recipeId) return;
       
       const rid = Number(sel.recipeId);
       const mult = sel.multiplier;
+      const recipeName = recipes.find(r => r.id === rid)?.name || '';
       
       if (sel.userIds.length === 0) {
-        flattenedRecipes.push({ recipeId: rid, multiplier: mult });
+        flattenedRecipes.push({
+          recipe: { id: rid, name: recipeName },
+          multiplier: mult,
+          users: []
+        });
       } else {
         sel.userIds.forEach(uid => {
-          flattenedRecipes.push({ recipeId: rid, userId: Number(uid), multiplier: mult });
+          const user = users.find(u => u.id === Number(uid));
+          flattenedRecipes.push({
+            recipe: { id: rid, name: recipeName },
+            multiplier: mult,
+            users: [{ id: Number(uid), name: user ? `${user.firstName} ${user.lastName}` : '' }]
+          });
+        });
+      }
+    });
+
+    const flattenedItems: any[] = [];
+    itemSelections.forEach(sel => {
+      if (!sel.itemId) return;
+      
+      const itemId = Number(sel.itemId);
+      const masterItem = masterItems.find(i => i.id === itemId);
+      
+      if (sel.userIds.length === 0) {
+        flattenedItems.push({
+          item: masterItem,
+          quantity: sel.quantity,
+          unit: sel.unit,
+          users: []
+        });
+      } else {
+        sel.userIds.forEach(uid => {
+          const user = users.find(u => u.id === Number(uid));
+          flattenedItems.push({
+            item: masterItem,
+            quantity: sel.quantity,
+            unit: sel.unit,
+            users: [{ id: Number(uid), name: user ? `${user.firstName} ${user.lastName}` : '' }]
+          });
         });
       }
     });
 
     const entryData: MealPlanEntry = existingEntry 
-      ? { ...existingEntry, recipes: flattenedRecipes }
-      : { mealTimeId: timeId, dayOfWeek: day, isDone: false, recipes: flattenedRecipes };
+      ? { ...existingEntry, recipes: flattenedRecipes, items: flattenedItems }
+      : { mealTimeId: timeId, dayOfWeek: day, isDone: false, recipes: flattenedRecipes, items: flattenedItems };
 
     if (entryIdx > -1) {
-      newPlan.entries[entryIdx] = entryData;
-    } else {
+      if (flattenedRecipes.length === 0 && flattenedItems.length === 0) {
+        newPlan.entries.splice(entryIdx, 1);
+      } else {
+        newPlan.entries[entryIdx] = entryData;
+      }
+    } else if (flattenedRecipes.length > 0 || flattenedItems.length > 0) {
       newPlan.entries.push(entryData);
     }
 
@@ -461,48 +613,132 @@ function MealEntryEditor({ plan, day, timeId, recipes, users, onSave, onToggleDo
     <Stack gap="md">
       <Title order={4}>Recipes</Title>
       
-      {selections.map((sel, i) => (
-        <Paper key={i} withBorder p="xs" radius="md">
-          <Stack gap="xs">
-            <Group grow wrap="nowrap">
+      {recipeSelections.map((sel, i) => {
+        const otherSelectedIds = recipeSelections
+          .filter((_, index) => index !== i)
+          .map(s => s.recipeId)
+          .filter(Boolean);
+
+        const availableRecipes = recipes
+          .filter(rec => !otherSelectedIds.includes(String(rec.id)))
+          .map(rec => ({ value: String(rec.id), label: rec.name }));
+
+        return (
+          <Paper key={`recipe-sel-${i}`} withBorder p="xs" radius="md">
+            <Stack gap="xs">
               <Select
                 label="Recipe"
                 placeholder="Choose recipe"
-                data={recipes.map(rec => ({ value: String(rec.id), label: rec.name }))}
+                data={availableRecipes}
                 value={sel.recipeId}
-                onChange={(val) => updateSelection(i, { recipeId: val || '' })}
+                onChange={(val) => updateRecipeSelection(i, { recipeId: val || '' })}
                 searchable
                 comboboxProps={{ zIndex: 4000 }}
-                style={{ flex: 1 }}
               />
-              <NumberInput
-                min={1}
-                max={10}
-                value={sel.multiplier}
-                onChange={(val) => updateSelection(i, { multiplier: Number(val) })}
-                w={70}
-                label="Qty"
-                size="xs"
+              
+              <Group wrap="nowrap" align="flex-end">
+                <NumberInput
+                  min={0.1}
+                  max={10}
+                  decimalScale={2}
+                  step={0.25}
+                  value={sel.multiplier}
+                  onChange={(val) => updateRecipeSelection(i, { multiplier: Number(val) })}
+                  label="Qty"
+                  size="xs"
+                  style={{ flex: 1 }}
+                />
+                <ActionIcon color="red" variant="subtle" onClick={() => removeRecipeSelection(i)} mb={4}>
+                  <IconTrash size={18} />
+                </ActionIcon>
+              </Group>
+
+              <MultiSelect
+                placeholder="Assign to members (empty = everyone)"
+                data={users.map(u => ({ value: String(u.id), label: `${u.firstName} ${u.lastName}` }))}
+                value={sel.userIds}
+                onChange={(vals) => updateRecipeSelection(i, { userIds: vals })}
+                clearable
+                searchable
+                comboboxProps={{ zIndex: 4000 }}
               />
-              <ActionIcon color="red" variant="subtle" onClick={() => removeSelection(i)} mt="xl">
-                <IconTrash size={18} />
-              </ActionIcon>
-            </Group>
-            <MultiSelect
-              placeholder="Assign to members (empty = everyone)"
-              data={users.map(u => ({ value: String(u.id), label: `${u.firstName} ${u.lastName}` }))}
-              value={sel.userIds}
-              onChange={(vals) => updateSelection(i, { userIds: vals })}
-              clearable
-              searchable
-              comboboxProps={{ zIndex: 4000 }}
-            />
-          </Stack>
-        </Paper>
-      ))}
+            </Stack>
+          </Paper>
+        );
+      })}
 
       <Button variant="subtle" leftSection={<IconPlus size={18} />} onClick={handleAddRecipe}>
         Add Recipe to Meal
+      </Button>
+
+      <Divider my="xs" />
+      <Title order={4}>Direct Items</Title>
+
+      {itemSelections.map((sel, i) => {
+        const otherSelectedIds = itemSelections
+          .filter((_, index) => index !== i)
+          .map(s => s.itemId)
+          .filter(Boolean);
+
+        const availableItems = masterItems
+          .filter(it => !otherSelectedIds.includes(String(it.id)))
+          .map(it => ({ value: String(it.id), label: it.name }));
+
+        return (
+          <Paper key={`item-sel-${i}`} withBorder p="xs" radius="md" bg="blue.0">
+            <Stack gap="xs">
+              <Select
+                label="Item"
+                placeholder="Choose item (e.g. Banana)"
+                data={availableItems}
+                value={sel.itemId}
+                onChange={(val) => {
+                  const itemId = Number(val);
+                  const masterItem = masterItems.find(it => it.id === itemId);
+                  updateItemSelection(i, { itemId: val || '', unit: masterItem?.unit || 'pcs' });
+                }}
+                searchable
+                comboboxProps={{ zIndex: 4000 }}
+              />
+              
+              <Group wrap="nowrap" align="flex-end">
+                <NumberInput
+                  min={0.1}
+                  decimalScale={2}
+                  value={sel.quantity}
+                  onChange={(val) => updateItemSelection(i, { quantity: Number(val) })}
+                  label="Qty"
+                  size="xs"
+                  style={{ flex: 1 }}
+                />
+                <TextInput
+                  label="Unit"
+                  value={sel.unit}
+                  onChange={(e) => updateItemSelection(i, { unit: e.currentTarget.value })}
+                  size="xs"
+                  style={{ flex: 1 }}
+                />
+                <ActionIcon color="red" variant="subtle" onClick={() => removeItemSelection(i)} mb={4}>
+                  <IconTrash size={18} />
+                </ActionIcon>
+              </Group>
+
+              <MultiSelect
+                placeholder="Assign to members (empty = everyone)"
+                data={users.map(u => ({ value: String(u.id), label: `${u.firstName} ${u.lastName}` }))}
+                value={sel.userIds}
+                onChange={(vals) => updateItemSelection(i, { userIds: vals })}
+                clearable
+                searchable
+                comboboxProps={{ zIndex: 4000 }}
+              />
+            </Stack>
+          </Paper>
+        );
+      })}
+
+      <Button variant="subtle" color="blue" leftSection={<IconPlus size={18} />} onClick={handleAddItem}>
+        Add Direct Item (Fruit, Snack, etc.)
       </Button>
 
       <Divider my="sm" />
@@ -532,14 +768,41 @@ function MealEntryEditor({ plan, day, timeId, recipes, users, onSave, onToggleDo
       )}
 
       <Group justify="space-between" mt="md">
-        {existingEntry && (
-          <Button variant="outline" color={existingEntry.isDone ? 'gray' : 'green'} onClick={() => onToggleDone(existingEntry)}>
-            {existingEntry.isDone ? 'Mark as Undone' : 'Mark as Done'}
+        <Box>
+          {existingEntry && (recipeSelections.length > 0 || itemSelections.length > 0) && (
+            <Button 
+              variant="subtle" 
+              color="red" 
+              leftSection={<IconTrash size={16} />} 
+              onClick={() => {
+                setRecipeSelections([]);
+                setItemSelections([]);
+              }}
+            >
+              Clear Entire Meal
+            </Button>
+          )}
+        </Box>
+        
+        <Group gap="sm">
+          {existingEntry && (
+            <Button 
+              variant="outline" 
+              color={existingEntry.isDone ? 'gray' : 'green'} 
+              onClick={() => onToggleDone(existingEntry)}
+            >
+              {existingEntry.isDone ? 'Mark as Undone' : 'Mark as Done'}
+            </Button>
+          )}
+          <Button 
+            onClick={handleSave} 
+            loading={isPending} 
+            variant="filled" 
+            color="blue"
+          >
+            Save Entry
           </Button>
-        )}
-        <Button onClick={handleSave} loading={isPending} style={{ flex: existingEntry ? 0 : 1 }}>
-          Save Entry
-        </Button>
+        </Group>
       </Group>
     </Stack>
   );

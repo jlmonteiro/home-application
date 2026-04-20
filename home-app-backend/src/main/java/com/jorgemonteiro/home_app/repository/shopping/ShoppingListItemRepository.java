@@ -19,6 +19,8 @@ public interface ShoppingListItemRepository extends JpaRepository<ShoppingListIt
 
     Optional<ShoppingListItem> findByListIdAndItemId(Long listId, Long itemId);
 
+    Optional<ShoppingListItem> findByListIdAndItemIdAndUnit(Long listId, Long itemId, String unit);
+
     /**
      * Find the last price paid for a specific item at a specific store.
      */

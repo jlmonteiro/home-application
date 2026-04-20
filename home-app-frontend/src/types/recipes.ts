@@ -55,16 +55,22 @@ export interface RecipeIngredient {
 
 export interface RecipeComment {
   id?: number;
-  userId?: number;
-  userName: string;
-  userPhoto?: string;
+  user: {
+    id: number;
+    name: string;
+    photo?: { data?: string; url?: string };
+  };
   comment: string;
   createdAt: string;
 }
 
 export interface RecipeRating {
   id?: number;
-  userName?: string;
+  user: {
+    id: number;
+    name: string;
+    photo?: { data?: string; url?: string };
+  };
   rating: number;
   createdAt?: string;
 }
@@ -77,7 +83,11 @@ export interface Recipe {
   sourceLink?: string;
   videoLink?: string;
   prepTimeMinutes: number;
-  createdBy: string;
+  creator?: {
+    id: number;
+    name: string;
+    photo?: { data?: string; url?: string };
+  };
   version: number;
   labels: string[];
   photos: RecipePhoto[];

@@ -6,14 +6,14 @@ The Home Application follows a robust testing strategy designed to ensure reliab
 
 ## Test Pyramid
 
-The project adheres to the standard test pyramid, prioritizing fast, isolated unit tests while maintaining high-confidence integration and E2E suites.
+The project adheres to a balanced testing strategy, prioritizing backend unit and integration tests while maintaining high-confidence frontend E2E suites.
 
 ```mermaid
 graph TD
     subgraph Pyramid
-        E2E["<b>E2E Tests</b><br/>Playwright + MSW<br/>(Confidence)"]
-        INT["<b>Integration Tests</b><br/>Spock + Testcontainers<br/>(Reliability)"]
-        UNIT["<b>Unit Tests</b><br/>Vitest / Spock<br/>(Speed & Logic)"]
+        E2E["<b>Frontend E2E Tests</b><br/>Playwright + MSW<br/>(Confidence)"]
+        INT["<b>Backend Integration Tests</b><br/>Spock + Testcontainers<br/>(Reliability)"]
+        UNIT["<b>Backend Unit Tests</b><br/>Spock<br/>(Speed & Logic)"]
     end
 
     E2E --- INT
@@ -40,17 +40,13 @@ graph TD
 
     | Name | Description / Purpose |
     |------|-----------------------|
-    | [:simple-vitest: **Vitest**](https://vitest.dev/) | A blazing fast unit test runner for Vite-based projects. |
     | [:material-play-circle: **Playwright**](https://playwright.dev/) | Framework for reliable end-to-end testing across modern web browsers. |
-    | [:material-network-outline: **MSW**](https://mswjs.io/) | Mock Service Worker for API mocking in both unit and E2E tests. |
-    | [:material-react: **Testing Library**](https://testing-library.com/docs/react-testing-library/intro/) | Provides React DOM testing utilities that encourage accessible and resilient testing. |
-    | [:material-xml: **Mantine Tests**](https://mantine.dev/guides/vitest/) | Specific utilities for testing Mantine 7 components and hooks. |
+    | [:material-network-outline: **MSW**](https://mswjs.io/) | Mock Service Worker for API mocking in E2E tests. |
 
 ## Testing Layers
 
 ### 1. Unit Tests (Base)
-- **Scope:** Individual components, services, and utility functions.
-- **Frontend:** **Vitest** with Mantine / React Testing Library.
+- **Scope:** Individual backend services and utility functions.
 - **Backend:** **Spock** for business logic and adapter transformations.
 - **Goal:** Exhaustive coverage of edge cases and business rules.
 
@@ -73,7 +69,7 @@ graph TD
 
 | Metric | Target | Tool |
 | :--- | :--- | :--- |
-| **Code Coverage** | > 80% (Lines) | JaCoCo / Vitest |
+| **Backend Code Coverage** | > 80% (Lines) | JaCoCo |
 | **Build Stability** | 100% Success | GitHub Actions |
 | **API Latency** | < 150ms (p95) | Custom Metrics |
 | **Security** | 0 Critical Vulnerabilities | Dependency Check |

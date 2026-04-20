@@ -108,7 +108,7 @@ export function RecipeFeedback({ recipeId, averageRating, totalRatings, allRatin
                 <Stack gap={5} mt="xs">
                   {allRatings.map((r, i) => (
                     <Group key={i} gap="xs">
-                      <Text size="xs" fw={500}>{r.userName}:</Text>
+                      <Text size="xs" fw={500}>{r.user?.name || 'Unknown'}:</Text>
                       <Rating value={r.rating} readOnly size="xs" />
                       {r.createdAt && <Text size="xs" c="dimmed">{dayjs(r.createdAt).format('MMM D, YYYY')}</Text>}
                     </Group>
@@ -182,16 +182,16 @@ export function RecipeFeedback({ recipeId, averageRating, totalRatings, allRatin
             comments.map((c: RecipeComment) => (
               <Paper key={c.id} withBorder p="sm" radius="md">
                 <Group align="flex-start" wrap="nowrap">
-                  <Avatar src={getPhotoSrc(c.userPhoto)} radius="xl" size="md">
-                    {c.userName.charAt(0)}
+                  <Avatar src={getPhotoSrc(c.user?.photo as any)} radius="xl" size="md">
+                    {c.user?.name?.charAt(0) || '?'}
                   </Avatar>
                   <Stack gap={4} style={{ flex: 1 }}>
                     <Group justify="space-between">
                       <Group gap="xs">
-                        <Text size="sm" fw={700}>{c.userName}</Text>
+                        <Text size="sm" fw={700}>{c.user?.name || 'Unknown'}</Text>
                         <Text size="xs" c="dimmed">{dayjs(c.createdAt).fromNow()}</Text>
                       </Group>
-                      {me?.id === c.userId && (
+                      {me?.id === c.user?.id && (
                         <ActionIcon 
                           variant="subtle" 
                           color="red" 

@@ -120,7 +120,7 @@ export function RecipeDetailPage() {
               )}
               <Group gap="sm" mt="sm">
                 <Badge color="blue" leftSection={<IconChefHat size={14} />}>
-                  By {recipe.createdBy}
+                  By {recipe.creator?.name || 'Unknown'}
                 </Badge>
                 <Badge color="gray" leftSection={<IconClock size={14} />}>
                   {recipe.prepTimeMinutes} min
@@ -131,49 +131,78 @@ export function RecipeDetailPage() {
               </Group>
             </div>
 
-            <Group gap="md">
-              {recipe.sourceLink && (
-                <Button
-                  component="a"
-                  href={recipe.sourceLink}
-                  target="_blank"
-                  leftSection={<IconLink size={18} />}
+            <Group gap="md" align="flex-start">
+              {recipe.photos && recipe.photos.length > 0 && (
+                <Avatar
+                  src={getPhotoSrc(recipe.photos.find((p) => p.isDefault)?.photoUrl || recipe.photos[0].photoUrl)}
+                  size={120}
+                  radius="md"
                   variant="light"
-                  size="xs"
                 >
-                  Source
-                </Button>
+                  <IconChefHat size={40} />
+                </Avatar>
               )}
-              {recipe.videoLink && (
-                <Button
-                  component="a"
-                  href={recipe.videoLink}
-                  target="_blank"
-                  leftSection={<IconVideo size={18} />}
-                  variant="light"
-                  color="red"
-                  size="xs"
-                >
-                  Video
-                </Button>
-              )}
+              
+              <Stack gap="xs" style={{ flex: 1 }}>
+                <Group gap="md">
+                  {recipe.sourceLink && (
+                    <Button
+                      component="a"
+                      href={recipe.sourceLink}
+                      target="_blank"
+                      leftSection={<IconLink size={18} />}
+                      variant="light"
+                      size="xs"
+                    >
+                      Source
+                    </Button>
+                  )}
+                  {recipe.videoLink && (
+                    <Button
+                      component="a"
+                      href={recipe.videoLink}
+                      target="_blank"
+                      leftSection={<IconVideo size={18} />}
+                      variant="light"
+                      color="red"
+                      size="xs"
+                    >
+                      Video
+                    </Button>
+                  )}
+                </Group>
+
+                <div>
+                  <Title order={3} mb="xs">
+                    Description
+                  </Title>
+                  {recipe.description ? (
+                    <MarkdownContent content={recipe.description} />
+                  ) : (
+                    <Text c="dimmed" fs="italic">
+                      No description provided.
+                    </Text>
+                  )}
+                </div>
+              </Stack>
             </Group>
 
             <Divider />
 
-            {recipe.photos && recipe.photos.length > 0 && (
+            {recipe.photos && recipe.photos.length > 1 && (
               <>
                 <div>
                   <Title order={3} mb="md">
-                    Photos
+                    More Photos
                   </Title>
-                  <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                    {recipe.photos.map((photo, index) => (
+                  <SimpleGrid cols={{ base: 2, sm: 3, md: 4 }} spacing="md">
+                    {recipe.photos.filter(p => !p.isDefault).map((photo, index) => (
                       <Paper key={index} withBorder radius="md" style={{ overflow: 'hidden' }}>
                         <Image
                           src={getPhotoSrc(photo.photoUrl)}
                           alt={`Recipe photo ${index + 1}`}
-                          fit="contain"
+                          height={100}
+                          fit="cover"
                         />
                       </Paper>
                     ))}
@@ -182,21 +211,6 @@ export function RecipeDetailPage() {
                 <Divider />
               </>
             )}
-
-            <div>
-              <Title order={3} mb="md">
-                Description
-              </Title>
-              {recipe.description ? (
-                <MarkdownContent content={recipe.description} />
-              ) : (
-                <Text c="dimmed" fs="italic">
-                  No description provided.
-                </Text>
-              )}
-            </div>
-
-            <Divider />
 
             <SimpleGrid cols={{ base: 1, md: 2 }} spacing="xl">
               <Stack gap="md">
@@ -241,7 +255,7 @@ export function RecipeDetailPage() {
               </Stack>
 
               <Stack gap="md">
-                <Title order={3}>Nutrition Totals</Title>
+                <Title order={3}>Nutrition (per serving)</Title>
                 {recipe.nutritionTotals && recipe.nutritionTotals.length > 0 ? (
                   <Table withTableBorder withColumnBorders>
                     <Table.Thead>
@@ -255,7 +269,7 @@ export function RecipeDetailPage() {
                         <Table.Tr key={index}>
                           <Table.Td fw={500}>{n.nutrient.name}</Table.Td>
                           <Table.Td>
-                            {n.value.toFixed(1)} {n.nutrient.unit}
+                            {(n.value / (recipe.servings || 1)).toFixed(1)} {n.nutrient.unit}
                           </Table.Td>
                         </Table.Tr>
                       ))}

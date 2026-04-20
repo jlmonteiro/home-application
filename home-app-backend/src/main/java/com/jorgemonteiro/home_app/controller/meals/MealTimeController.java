@@ -22,12 +22,12 @@ public class MealTimeController {
 
     @GetMapping
     public CollectionModel<MealTimeResource> listAll() {
-        return resourceAssembler.toCollectionModel(mealTimeService.listAll());
+        return resourceAssembler.toCollectionModel(mealTimeService.findAll());
     }
 
     @GetMapping("/{id}")
     public MealTimeResource getById(@PathVariable Long id) {
-        return resourceAssembler.toModel(mealTimeService.getById(id));
+        return resourceAssembler.toModel(mealTimeService.findById(id));
     }
 
     @PostMapping

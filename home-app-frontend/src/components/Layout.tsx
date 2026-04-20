@@ -242,9 +242,9 @@ export function Layout() {
                           <Text size="sm" fw={600} lh={1}>
                             {user?.firstName} {user?.lastName}
                           </Text>
-                          {user?.familyRoleName && (
+                          {user?.familyRole?.name && (
                             <Text size="xs" c="dimmed" lh={1.2}>
-                              {user.familyRoleName}
+                              {user.familyRole.name}
                             </Text>
                           )}
                         </Stack>
@@ -290,15 +290,15 @@ export function Layout() {
                     </>
                   )}
 
-                  {(user?.facebook || user?.instagram || user?.linkedin) && (
+                  {(user?.social?.facebook || user?.social?.instagram || user?.social?.linkedin) && (
                     <>
                       <Menu.Divider />
                       <Menu.Label>Social Profiles</Menu.Label>
                       <Group gap={4} px="sm" py="xs">
-                        {user?.facebook && (
+                        {user?.social?.facebook && (
                           <ActionIcon
                             component="a"
-                            href={user.facebook}
+                            href={user.social.facebook}
                             target="_blank"
                             variant="subtle"
                             color="blue"
@@ -307,10 +307,10 @@ export function Layout() {
                             <IconBrandFacebook size={18} stroke={1.5} />
                           </ActionIcon>
                         )}
-                        {user?.instagram && (
+                        {user?.social?.instagram && (
                           <ActionIcon
                             component="a"
-                            href={user.instagram}
+                            href={user.social.instagram}
                             target="_blank"
                             variant="subtle"
                             color="pink"
@@ -319,10 +319,10 @@ export function Layout() {
                             <IconBrandInstagram size={18} stroke={1.5} />
                           </ActionIcon>
                         )}
-                        {user?.linkedin && (
+                        {user?.social?.linkedin && (
                           <ActionIcon
                             component="a"
-                            href={user.linkedin}
+                            href={user.social.linkedin}
                             target="_blank"
                             variant="subtle"
                             color="blue"

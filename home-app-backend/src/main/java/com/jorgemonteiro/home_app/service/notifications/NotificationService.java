@@ -56,6 +56,13 @@ public class NotificationService {
         notificationRepository.save(n);
     }
 
+    public void createBroadcastNotification(User sender, String type, String title, String message, String link) {
+        List<User> allUsers = userRepository.findAll();
+        allUsers.stream()
+                .filter(u -> sender == null || !u.getId().equals(sender.getId()))
+                .forEach(u -> createNotification(u, sender, type, title, message, link));
+    }
+
     @Transactional
     public List<MessageDTO> getConversation(String myEmail, Long otherId) {
         User me = userRepository.findByEmail(myEmail).orElseThrow(() -> new ObjectNotFoundException("User with email " + myEmail + " not found"));

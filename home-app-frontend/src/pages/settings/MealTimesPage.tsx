@@ -26,13 +26,13 @@ import { TimeInput } from '@mantine/dates';
 import { useNavigate } from 'react-router-dom';
 
 const DAYS = [
-  { value: 1, label: 'Monday' },
-  { value: 2, label: 'Tuesday' },
-  { value: 3, label: 'Wednesday' },
-  { value: 4, label: 'Thursday' },
-  { value: 5, label: 'Friday' },
-  { value: 6, label: 'Saturday' },
-  { value: 7, label: 'Sunday' },
+  { value: 0, label: 'Monday' },
+  { value: 1, label: 'Tuesday' },
+  { value: 2, label: 'Wednesday' },
+  { value: 3, label: 'Thursday' },
+  { value: 4, label: 'Friday' },
+  { value: 5, label: 'Saturday' },
+  { value: 6, label: 'Sunday' },
 ];
 
 export function MealTimesPage() {
@@ -89,7 +89,7 @@ export function MealTimesPage() {
     form.setValues({
       name: '',
       sortOrder: (mealTimes?.length || 0) + 1,
-      schedules: DAYS.map(d => ({ dayOfWeek: d.value, startTime: '08:00' })),
+      schedules: DAYS.map(d => ({ dayOfWeek: d.value as any, startTime: '08:00' })),
     });
     setModalOpened(true);
   };

@@ -14,11 +14,33 @@ export interface MealTime {
 
 export interface MealPlanEntryRecipe {
   id?: number;
-  recipeId: number;
-  recipeName?: string;
-  userId?: number;
-  userName?: string;
+  recipe: {
+    id: number;
+    name: string;
+  };
+  users: {
+    id: number;
+    name: string;
+    photo?: { data?: string; url?: string };
+  }[];
   multiplier?: number;
+}
+
+export interface MealPlanEntryItem {
+  id?: number;
+  item: {
+    id: number;
+    name: string;
+    photo?: { data?: string; url?: string };
+    unit: string;
+  };
+  users: {
+    id: number;
+    name: string;
+    photo?: { data?: string; url?: string };
+  }[];
+  quantity: number;
+  unit: string;
 }
 
 export interface MealPlanEntry {
@@ -28,8 +50,11 @@ export interface MealPlanEntry {
   dayOfWeek: number;
   isDone: boolean;
   recipes: MealPlanEntryRecipe[];
-  thumbsUpCount?: number;
-  thumbsDownCount?: number;
+  items: MealPlanEntryItem[];
+  reactions?: {
+    thumbsUp: number;
+    thumbsDown: number;
+  };
 }
 
 export interface MealPlan {
@@ -43,9 +68,10 @@ export interface MealPlan {
 export interface MealPlanExportItem {
   itemId: number;
   itemName: string;
-  itemPhoto?: string;
+  itemPhoto?: { data?: string; url?: string };
   quantity: number;
   unit: string;
   existingQuantity: number;
   storeId?: number;
+  suggestedPrice?: number;
 }

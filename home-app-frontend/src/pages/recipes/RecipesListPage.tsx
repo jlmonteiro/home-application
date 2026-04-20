@@ -22,6 +22,7 @@ import {
   Box,
   Paper,
   ActionIcon,
+  Avatar,
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { IconPlus, IconPencil, IconTrash, IconChefHat, IconClock, IconSearch, IconFilter, IconSortAscending } from '@tabler/icons-react';
@@ -163,26 +164,23 @@ export function RecipesListPage() {
                 }}
                 onClick={() => navigate(`/recipes/${recipe.id}`)}
               >
-                {recipe.photos?.find((p: any) => p.isDefault) && (
-                  <Card.Section>
-                    <Image
-                      src={getPhotoSrc(recipe.photos.find((p: any) => p.isDefault)?.photoUrl)}
-                      height={160}
-                      alt={recipe.name}
-                    />
-                  </Card.Section>
-                )}
-                
-                <Stack justify="space-between" h="100%" mt="md" gap="md">
-                  <div>
-                    <Group justify="space-between" mb="xs" wrap="nowrap">
-                      <Title order={3} lineClamp={1}>
-                        {recipe.name}
-                      </Title>
-                    </Group>
+                <Group wrap="nowrap" align="flex-start" mt="md" gap="md">
+                  <Avatar
+                    src={getPhotoSrc(recipe.photos?.find((p: any) => p.isDefault)?.photoUrl || recipe.photos?.[0]?.photoUrl)}
+                    size={80}
+                    radius="md"
+                    variant="light"
+                  >
+                    <IconChefHat size={30} />
+                  </Avatar>
+
+                  <Stack gap="xs" style={{ flex: 1 }}>
+                    <Title order={3} lineClamp={1}>
+                      {recipe.name}
+                    </Title>
 
                     {recipe.labels && recipe.labels.length > 0 && (
-                      <Group gap={5} mb="xs">
+                      <Group gap={5}>
                         {recipe.labels.map((label: string) => (
                           <Badge key={label} variant="outline" size="xs" color="indigo">
                             {label}
@@ -191,6 +189,15 @@ export function RecipesListPage() {
                       </Group>
                     )}
 
+                    <Group gap="xs">
+                      <Rating value={recipe.averageRating || 0} readOnly size="xs" fractions={2} />
+                      <Text size="xs" c="dimmed">({(recipe.averageRating || 0).toFixed(1)})</Text>
+                    </Group>
+                  </Stack>
+                </Group>
+                
+                <Stack justify="space-between" h="100%" mt="sm" gap="md">
+                  <div>
                     <Box style={{ height: '4.5em', overflow: 'hidden' }} mb="xs">
                       <Box style={{ 
                         display: '-webkit-box', 
@@ -203,14 +210,9 @@ export function RecipesListPage() {
                       </Box>
                     </Box>
 
-                    <Group gap="xs" mb="xs">
-                      <Rating value={recipe.averageRating || 0} readOnly size="xs" fractions={2} />
-                      <Text size="xs" c="dimmed">({(recipe.averageRating || 0).toFixed(1)})</Text>
-                    </Group>
-
                     <Group gap="xs">
                       <Badge color="blue" variant="light" leftSection={<IconChefHat size={12} />}>
-                        {recipe.createdBy}
+                        {recipe.creator?.name || 'Unknown'}
                       </Badge>
                       <Badge color="gray" variant="light" leftSection={<IconClock size={12} />}>
                         {recipe.prepTimeMinutes} min

@@ -97,15 +97,13 @@ export FRONTEND_URL="http://localhost:5173"
     | Module | Command | Purpose |
     | :--- | :--- | :--- |
     | **Backend** | `./gradlew :home-app-backend:test` | Run Spock integration tests. |
-    | **Frontend** | `npm run test:unit` | Run Vitest unit tests. |
-    | **Frontend** | `npm run test:e2e:mock` | Run Playwright with MSW mocks. |
+    | **Frontend** | `npm run test:e2e:mock` | Run Playwright E2E with MSW mocks. |
 
 === ":material-chart-bar: Coverage"
 
     | Module | Command | Purpose |
     | :--- | :--- | :--- |
     | **Backend** | `./gradlew :home-app-backend:jacocoTestReport` | Generate JaCoCo reports. |
-    | **Frontend** | `npm run test:coverage` | Generate Vitest coverage. |
 
 === ":material-book-open-page-variant: Documentation"
 

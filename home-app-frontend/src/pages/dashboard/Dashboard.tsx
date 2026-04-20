@@ -13,6 +13,8 @@ import {
   Box,
   Modal,
   Center,
+  Avatar,
+  Tooltip,
 } from '@mantine/core'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
@@ -33,6 +35,7 @@ import { useAuth } from '../../context/AuthContext'
 import { fetchLists, fetchUserPreferences, fetchExpiringCoupons, fetchMealPlan } from '../../services/api'
 import type { Coupon } from '../../services/api'
 import dayjs from 'dayjs'
+import { getPhotoSrc } from '../../utils/photo'
 
 export function Dashboard() {
   const { user } = useAuth()
@@ -64,8 +67,17 @@ export function Dashboard() {
   const pendingLists = lists?.filter((l) => l.status === 'PENDING') || []
   const expiringCoupons = coupons || []
   
-  const todayNum = dayjs().day() === 0 ? 7 : dayjs().day(); // ISO 1=Mon, 7=Sun
-  const todayMeals = mealPlan?.entries.filter(e => e.dayOfWeek === todayNum) || [];
+  const getDayValue = (val: any): number => {
+    if (typeof val === 'number') return val;
+    const dayMap: Record<string, number> = {
+      'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3,
+      'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6
+    };
+    return dayMap[String(val).toUpperCase()] ?? 0;
+  };
+
+  const todayNum = (dayjs().day() + 6) % 7; // Convert 0(Sun)-6(Sat) to 0(Mon)-6(Sun)
+  const todayMeals = mealPlan?.entries.filter(e => getDayValue(e.dayOfWeek) === todayNum) || [];
 
   const showShopping = preferences?.showShoppingWidget ?? true
   const showCoupons = preferences?.showCouponsWidget ?? true
@@ -193,10 +205,31 @@ export function Dashboard() {
                         <Text size="xs" fw={700} c="dimmed" tt="uppercase">{meal.mealTimeName}</Text>
                         <Stack gap={2} mt={4}>
                           {meal.recipes.map((r, i) => (
-                            <Text key={i} size="sm" fw={500}>
-                              {r.recipeName}
-                              {r.userName && <Text component="span" c="blue" size="xs" ml={5}>({r.userName})</Text>}
-                            </Text>
+                            <Box key={i}>
+                              <Text size="sm" fw={500}>
+                                {r.recipe.name}
+                              </Text>
+                              {r.users.length > 0 && (
+                                <Group gap={4} mt={2}>
+                                  <Avatar.Group spacing="xs">
+                                    {r.users.map(user => (
+                                      <Tooltip key={user.id} label={user.name} withArrow>
+                                        <Avatar 
+                                          src={getPhotoSrc(user.photo as any)} 
+                                          size={30} 
+                                          radius="xl"
+                                          alt={user.name}
+                                          variant="light"
+                                          color="blue"
+                                        >
+                                          {user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                                        </Avatar>
+                                      </Tooltip>
+                                    ))}
+                                  </Avatar.Group>
+                                </Group>
+                              )}
+                            </Box>
                           ))}
                         </Stack>
                       </Box>

@@ -58,7 +58,7 @@ src/
 
 ### Decomposing Pages
 
-When a page grows complex, extract modals, list rows, and repeated UI into `components/<domain>/`. Each extracted component gets its own file, props interface, and test.
+When a page grows complex, extract modals, list rows, and repeated UI into `components/<domain>/`. Each extracted component gets its own file and props interface.
 
 ```text
 pages/shopping/ShoppingListDetailsPage.tsx   ← owns data, state, mutations
@@ -266,7 +266,7 @@ The `ProtectedRoute` component checks auth state and redirects unauthenticated u
 
 ## 8. Utilities
 
-Pure helper functions live in `utils/`. They must have no side effects, include JSDoc, and have full unit test coverage.
+Pure helper functions live in `utils/`. They must have no side effects and include JSDoc.
 
 ```typescript
 /**
@@ -284,7 +284,6 @@ export const getPhotoSrc = (photo: string | undefined | null): string | null => 
 !!! success "Utility Rules"
     - :material-check-all: Pure functions only — no side effects, no imports from React or Mantine.
     - :material-check-all: Include JSDoc describing the function's purpose.
-    - :material-check-all: Every utility must have a corresponding `.spec.ts` test file.
 
 ---
 

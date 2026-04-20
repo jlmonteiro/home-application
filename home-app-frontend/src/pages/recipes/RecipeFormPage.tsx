@@ -25,6 +25,7 @@ import {
   Table,
   Divider,
   Select,
+  Avatar,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import {
@@ -37,6 +38,7 @@ import {
   IconStar,
   IconStarFilled,
   IconPlus,
+  IconChefHat,
 } from '@tabler/icons-react';
 import {
   fetchRecipe,
@@ -377,73 +379,103 @@ export function RecipeFormPage() {
               <Divider my="sm" label="Ingredients" labelPosition="center" />
 
               <Box>
-                <Table>
+                <Table verticalSpacing="xs">
                   <Table.Thead>
                     <Table.Tr>
-                      <Table.Th>Ingredient Item</Table.Th>
-                      <Table.Th w={100}>Quantity</Table.Th>
-                      <Table.Th w={80}>Unit</Table.Th>
-                      <Table.Th w={150}>Group (Optional)</Table.Th>
+                      <Table.Th>Ingredient Details</Table.Th>
                       <Table.Th w={40}></Table.Th>
                     </Table.Tr>
                   </Table.Thead>
 
                   <Table.Tbody>
-                    {form.values.ingredients.map((_, index) => (
+                    {form.values.ingredients.map((ing, index) => (
                       <Table.Tr key={index}>
                         <Table.Td>
-                          <Select
-                            placeholder="Select item"
-                            data={itemOptions}
-                            searchable
-                            {...form.getInputProps(`ingredients.${index}.item.id`)}
-                            onChange={(val) => {
-                              if (val === 'CREATE_NEW') {
-                                setActiveIngredientIndex(index);
-                                openCreateItem();
-                              } else {
-                                const itemId = Number(val);
-                                // Sync whole item object
-                                const selectedItem = masterItems?._embedded?.items?.find((i: any) => i.id === itemId);
-                                if (selectedItem) {
-                                  form.setFieldValue(`ingredients.${index}.item`, {
-                                    id: selectedItem.id,
-                                    name: selectedItem.name,
-                                    unit: selectedItem.unit,
-                                    photo: selectedItem.photo?.url ? { url: selectedItem.photo.url } : null
-                                  });
-                                  form.setFieldValue(`ingredients.${index}.unit`, selectedItem.unit);
+                          <Stack gap="xs">
+                            <Select
+                              placeholder="Select item"
+                              data={itemOptions}
+                              searchable
+                              leftSection={(() => {
+                                const selectedId = form.values.ingredients[index].item?.id;
+                                const item = masterItems?._embedded?.items?.find((i: any) => i.id === selectedId);
+                                return (
+                                  <Avatar 
+                                    src={getPhotoSrc(item?.photo?.url)} 
+                                    size={16} 
+                                    radius="md"
+                                  >
+                                    <IconChefHat size={12} />
+                                  </Avatar>
+                                );
+                              })()}
+                              renderOption={({ option, checked }) => {
+                                const item = masterItems?._embedded?.items?.find((i: any) => i.id.toString() === option.value);
+                                return (
+                                  <Group gap="sm">
+                                    <Avatar 
+                                      src={getPhotoSrc(item?.photo?.url)} 
+                                      size="xs" 
+                                      radius="md"
+                                    >
+                                      <IconChefHat size={12} />
+                                    </Avatar>
+                                    <Text size="sm">{option.label}</Text>
+                                  </Group>
+                                );
+                              }}
+                              {...form.getInputProps(`ingredients.${index}.item.id`)}
+                              onChange={(val) => {
+                                if (val === 'CREATE_NEW') {
+                                  setActiveIngredientIndex(index);
+                                  openCreateItem();
+                                } else {
+                                  const itemId = Number(val);
+                                  const selectedItem = masterItems?._embedded?.items?.find((i: any) => i.id === itemId);
+                                  if (selectedItem) {
+                                    form.setFieldValue(`ingredients.${index}.item`, {
+                                      id: selectedItem.id,
+                                      name: selectedItem.name,
+                                      unit: selectedItem.unit,
+                                      photo: selectedItem.photo?.url ? { url: selectedItem.photo.url } : null
+                                    });
+                                    form.setFieldValue(`ingredients.${index}.unit`, selectedItem.unit);
+                                  }
                                 }
-                              }
-                            }}
-                            value={form.values.ingredients[index].item?.id ? form.values.ingredients[index].item.id.toString() : ''}
-                          />
-                        </Table.Td>
-                        <Table.Td>
-                          <NumberInput
-                            min={0.1}
-                            {...form.getInputProps(`ingredients.${index}.quantity`)}
-                          />
-                        </Table.Td>
-                        <Table.Td>
-                          <Select
-                            placeholder="Unit"
-                            data={unitOptions}
-                            searchable
-                            {...form.getInputProps(`ingredients.${index}.unit`)}
-                          />
-                        </Table.Td>
-                        <Table.Td>
-                          <TextInput
-                            placeholder="e.g. Dough"
-                            {...form.getInputProps(`ingredients.${index}.groupName`)}
-                          />
+                              }}
+                              value={ing.item?.id ? ing.item.id.toString() : ''}
+                            />
+                            
+                            <Group grow wrap="nowrap" gap="xs">
+                              <NumberInput
+                                label="Quantity"
+                                min={0.1}
+                                size="xs"
+                                {...form.getInputProps(`ingredients.${index}.quantity`)}
+                              />
+                              <Select
+                                label="Unit"
+                                placeholder="Unit"
+                                data={unitOptions}
+                                searchable
+                                size="xs"
+                                {...form.getInputProps(`ingredients.${index}.unit`)}
+                              />
+                              <TextInput
+                                label="Group (Optional)"
+                                placeholder="e.g. Dough"
+                                size="xs"
+                                {...form.getInputProps(`ingredients.${index}.groupName`)}
+                              />
+                            </Group>
+                          </Stack>
                         </Table.Td>
                         <Table.Td>
                           <ActionIcon
                             color="red"
                             variant="subtle"
                             onClick={() => form.removeListItem('ingredients', index)}
+                            mt={25}
                           >
                             <IconTrash size={18} />
                           </ActionIcon>

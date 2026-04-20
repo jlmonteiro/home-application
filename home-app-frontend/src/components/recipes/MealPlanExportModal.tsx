@@ -33,6 +33,7 @@ interface LocalExportItem extends MealPlanExportItem {
   selected: boolean;
   exportQuantity: number;
   targetStoreId: string | null;
+  exportPrice: number | undefined;
 }
 
 export function MealPlanExportModal({ opened, onClose, planId }: MealPlanExportModalProps) {
@@ -68,6 +69,7 @@ export function MealPlanExportModal({ opened, onClose, planId }: MealPlanExportM
         selected: true,
         exportQuantity: item.quantity,
         targetStoreId: null,
+        exportPrice: item.suggestedPrice,
       })));
     }
   }, [preview]);
@@ -83,6 +85,7 @@ export function MealPlanExportModal({ opened, onClose, planId }: MealPlanExportM
           unit: i.unit,
           existingQuantity: i.existingQuantity,
           storeId: i.targetStoreId ? Number(i.targetStoreId) : undefined,
+          suggestedPrice: i.exportPrice,
         }));
 
       const isCreateNew = targetListId === 'CREATE_NEW';
@@ -165,6 +168,7 @@ export function MealPlanExportModal({ opened, onClose, planId }: MealPlanExportM
                   <Table.Th w={40}></Table.Th>
                   <Table.Th>Ingredient</Table.Th>
                   <Table.Th w={120}>Quantity</Table.Th>
+                  <Table.Th w={120}>Price</Table.Th>
                   <Table.Th w={180}>Store</Table.Th>
                   <Table.Th w={120}>Merge Info</Table.Th>
                 </Table.Tr>
@@ -199,6 +203,19 @@ export function MealPlanExportModal({ opened, onClose, planId }: MealPlanExportM
                         />
                         <Text size="xs" c="dimmed">{item.unit}</Text>
                       </Group>
+                    </Table.Td>
+                    <Table.Td>
+                      <NumberInput
+                        size="xs"
+                        prefix="$"
+                        placeholder="0.00"
+                        value={item.exportPrice}
+                        onChange={(val) => updateItem(i, { exportPrice: Number(val) })}
+                        min={0}
+                        decimalScale={2}
+                        w={80}
+                        disabled={!item.selected}
+                      />
                     </Table.Td>
                     <Table.Td>
                       <Select

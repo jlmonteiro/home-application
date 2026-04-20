@@ -1,5 +1,6 @@
 package com.jorgemonteiro.home_app.model.dtos.meals;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -18,5 +19,6 @@ public class MealPlanEntryDTO {
     private DayOfWeek dayOfWeek;
     private Boolean isDone;
     private List<MealPlanEntryRecipeDTO> recipes;
+    private List<MealPlanEntryItemDTO> items;
     private MealPlanReactionDTO reactions;
 }

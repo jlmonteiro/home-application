@@ -21,6 +21,7 @@ public class MealPlanExportItemDTO {
     private String unit;
     private BigDecimal existingQuantity;
     private Long storeId;
+    private BigDecimal suggestedPrice;
 
     public MealPlanExportItemDTO(Long itemId, String itemName, BigDecimal quantity, String unit, BigDecimal existingQuantity) {
         this.itemId = itemId;
