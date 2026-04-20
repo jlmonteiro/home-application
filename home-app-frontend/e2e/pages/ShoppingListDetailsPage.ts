@@ -27,8 +27,9 @@ export class ShoppingListDetailsPage {
     await modal.waitFor({ state: 'visible' })
 
     await this.itemSearchInput.fill(name)
-    // Select from combobox - use exact match to avoid matching "Create 'name'"
-    await this.page.getByRole('option', { name, exact: true }).click()
+    // Select the matching item option (not the "Create" option)
+    await this.page.getByRole('option').filter({ has: this.page.getByText(name, { exact: true }) }).filter({ hasNot: this.page.getByText('Create') }).first().click()
+    
     await this.quantityInput.fill(quantity.toString())
     await this.submitAddItemButton.click()
 
@@ -36,13 +37,23 @@ export class ShoppingListDetailsPage {
   }
 
   async toggleItemBought(itemName: string) {
-    // Find the text and then the checkbox in the same visual row
+    // Find the row containing the text and the checkbox
     const row = this.page
       .locator('div')
-      .filter({ has: this.page.getByText(itemName, { exact: true }) })
+      .filter({ has: this.page.getByText(itemName) })
       .filter({ has: this.page.getByRole('checkbox') })
       .first()
     await row.getByRole('checkbox').click()
+  }
+
+  async markItemUnavailable(itemName: string) {
+    const row = this.page
+      .locator('div')
+      .filter({ has: this.page.getByText(itemName) })
+      .first()
+    const button = row.getByTitle(/Mark as unavailable/i)
+    await button.waitFor({ state: 'visible' })
+    await button.click()
   }
 
   async completeList() {
