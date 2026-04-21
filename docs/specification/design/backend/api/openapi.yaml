@@ -1855,6 +1855,337 @@ paths:
                 items:
                   $ref: '#/components/schemas/MessageDTO'
 
+  # ==================== MEDIA ====================
+  /images/{name}:
+    get:
+      summary: Get photo by name
+      tags: [Media]
+      parameters:
+        - name: name
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Binary image data with appropriate Content-Type
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /images:
+    post:
+      summary: Upload a photo
+      tags: [Media]
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                type:
+                  type: string
+                  enum: [profile, recipe, item, store]
+      responses:
+        '201':
+          description: Photo uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                  url:
+                    type: string
+
+  # ==================== RECIPES ====================
+  /recipes:
+    get:
+      summary: List all recipes (paginated)
+      tags: [Recipes]
+      parameters:
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/SizeParam'
+        - $ref: '#/components/parameters/SortParam'
+      responses:
+        '200':
+          description: Paginated list of recipes
+    post:
+      summary: Create a new recipe
+      tags: [Recipes]
+      responses:
+        '201':
+          description: Recipe created
+
+  /recipes/{id}:
+    get:
+      summary: Get recipe detail
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Recipe with all details (ingredients, steps, photos, comments, ratings, nutrition)
+    put:
+      summary: Update a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Recipe updated
+    delete:
+      summary: Delete a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Recipe deleted
+        '409':
+          description: Recipe is referenced by a meal plan
+
+  /recipes/labels:
+    get:
+      summary: List all labels (for autocomplete)
+      tags: [Recipes]
+      responses:
+        '200':
+          description: List of labels
+
+  /recipes/{id}/comments:
+    post:
+      summary: Add a comment to a recipe
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '201':
+          description: Comment added
+
+  /recipes/{id}/ratings:
+    put:
+      summary: Rate a recipe (create or update)
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Rating saved
+
+  /recipes/nutrients:
+    get:
+      summary: List all nutrients
+      tags: [Recipes]
+      responses:
+        '200':
+          description: List of nutrients from master catalog
+    post:
+      summary: Create a nutrient (Adults only)
+      tags: [Recipes]
+      responses:
+        '201':
+          description: Nutrient created
+
+  /recipes/nutrients/{id}:
+    put:
+      summary: Update a nutrient (Adults only)
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Nutrient updated
+    delete:
+      summary: Delete a nutrient (Adults only)
+      tags: [Recipes]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Nutrient deleted
+        '409':
+          description: Nutrient is referenced by nutrition entries
+
+  # ==================== MEALS ====================
+  /meals/times:
+    get:
+      summary: List all meal times with schedules
+      tags: [Meals]
+      responses:
+        '200':
+          description: List of meal times
+    post:
+      summary: Create a meal time
+      tags: [Meals]
+      responses:
+        '201':
+          description: Meal time created
+
+  /meals/times/{id}:
+    put:
+      summary: Update a meal time and its schedules
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Meal time updated
+    delete:
+      summary: Delete a meal time
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '204':
+          description: Meal time deleted
+
+  /meals/plans:
+    get:
+      summary: Get meal plan for a specific week
+      tags: [Meals]
+      parameters:
+        - name: weekStartDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Meal plan with entries
+    post:
+      summary: Create or update a meal plan
+      tags: [Meals]
+      responses:
+        '200':
+          description: Meal plan saved
+
+  /meals/plans/{id}/publish:
+    post:
+      summary: Publish a meal plan and notify household
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Plan published and notifications sent
+
+  /meals/plans/{id}/entries/{entryId}/done:
+    patch:
+      summary: Mark a meal entry as done
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Entry marked as done
+
+  /meals/plans/{id}/entries/{entryId}/vote:
+    post:
+      summary: Vote on a meal entry (thumbs up/down)
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: entryId
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Vote recorded
+
+  /meals/plans/{id}/export:
+    post:
+      summary: Export meal plan ingredients to a shopping list
+      tags: [Meals]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Export preview with merge information
+
 # ==================== COMPONENTS ====================
 components:
   securitySchemes:

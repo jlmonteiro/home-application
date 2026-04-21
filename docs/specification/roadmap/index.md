@@ -34,11 +34,25 @@ These modules are currently defined and follow the sequential rollout plan:
 | **03**    | [**Family Hierarchy**](03-family-hierarchy.tasks.md)        | :material-check-circle: Completed |
 | **04**    | [**Recipes & Meals**](04-recipes-meals.tasks.md)            | :material-check-circle: Completed |
 
+### Implementation Notes (Milestone 04)
+
+!!! warning "Scope Changes During Implementation"
+
+    The following deviations from the original specification occurred during Milestone 04:
+
+    - **FR-32 (Meal Plan Approval Workflow):** Intentionally **dropped**. The per-member PENDING/ACCEPTED/CHANGED tracking was deemed too complex. Only the publish & notify flow was implemented.
+    - **FR-33 (Meal Preparation Reminders):** **Deferred**. The `MealReminderScheduler` service is scaffolded but the `reminder_offset_minutes` column is not yet in the schema.
+    - **New features added:** Centralized media service (FR-42), nutrient master catalog (FR-40), standalone meal items (FR-41), ingredient grouping, recipe multipliers, coupon barcodes, item unavailability.
+
 ---
 
 ## Backlog
 
 These are candidate features that have been identified for future implementation but have not yet been formalized into requirements or design specs.
+
+!!! info "Meal Preparation Reminders (FR-33)"
+
+    Complete the meal reminder implementation: add `reminder_offset_minutes` column to `meal_plan_entries`, wire the `MealReminderScheduler` to query upcoming meals and generate `MEAL_REMINDER` notifications.
 
 !!! info "Health Tracking"
 

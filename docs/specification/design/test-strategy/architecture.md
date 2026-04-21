@@ -40,8 +40,9 @@ graph TD
 
     | Name | Description / Purpose |
     |------|-----------------------|
+    | [:simple-vitest: **Vitest**](https://vitest.dev/) | Fast unit test runner for frontend with jsdom environment. |
     | [:material-play-circle: **Playwright**](https://playwright.dev/) | Framework for reliable end-to-end testing across modern web browsers. |
-    | [:material-network-outline: **MSW**](https://mswjs.io/) | Mock Service Worker for API mocking in E2E tests. |
+    | [:material-network-outline: **MSW**](https://mswjs.io/) | Mock Service Worker for API mocking in both unit and E2E tests. |
 
 ## Testing Layers
 

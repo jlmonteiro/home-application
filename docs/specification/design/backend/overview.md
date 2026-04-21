@@ -52,7 +52,7 @@ com.jorgemonteiro.home_app/
 └── config/                 # Security & Beans
 ```
 
-Schemas: `profiles`, `shopping`, `recipes`, `meals`, `notifications`.
+Schemas: `profiles`, `shopping`, `recipes`, `meals`, `notifications`, `media`.
 
 ---
 
@@ -130,14 +130,16 @@ public void purgeOldMealPlans() {
 
     System checks for upcoming meals with configured reminders and creates `MEAL_REMINDER` notifications.
 
+!!! warning "Deferred"
+    This scheduler is **scaffolded but not yet functional**. The `reminder_offset_minutes` column is not yet in the database schema.
+
 Runs every **15 minutes**. Queries `meal_plan_entries` with `reminder_offset_minutes` set, creates notifications for meals where `(meal_time - reminder_offset)` falls within the next 15-minute window.
 
 ```java
 @Scheduled(cron = "0 */15 * * * ?")
 @Transactional
 public void checkMealReminders() {
-    // Query entries with reminders due in the next 15 minutes
-    // Create MEAL_REMINDER notifications for assigned members
+    // TODO: Not yet functional - schema column pending
 }
 ```
 

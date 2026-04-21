@@ -79,6 +79,12 @@ Resources use the `application/hal+json` content type and include a `_links` obj
 | User Profiles | `/api/user` | All Users | User profile and preference management |
 | Settings | `/api/settings` | Adults Only | Age groups and family roles configuration |
 | Shopping | `/api/shopping` | All Users | Lists, items, stores, loyalty cards, and coupons |
+| Recipes | `/api/recipes` | All Users | Recipe CRUD, photos, ingredients, steps, comments, ratings, labels |
+| Meals | `/api/meals` | All Users | Meal times, meal plans, entries, votes, export |
+| Notifications | `/api/notifications` | All Users | Notification list, mark read, unread count |
+| Messages | `/api/messages` | All Users | Conversations, send, mark read |
+| Media | `/api/images` | All Users | Centralized photo upload and retrieval |
+| Nutrients | `/api/recipes/nutrients` | Adults Only (write) | Nutrient master catalog management |
 
 ## Pagination
 

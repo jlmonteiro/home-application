@@ -107,6 +107,7 @@ The Home Application project utilizes the **EARS (Easy Approach to Requirements 
 | :--- | :--- | :--- |
 | [**FR-18**](settings.md#fr-18) | :material-account-cog: Age Configurations | Flexible age range definition (Adults only). |
 | [**FR-14**](shared.md#fr-14) | :material-menu: Nested Navigation | Consistent, modular navigation pattern. |
+| [**FR-42**](shared.md#fr-42) | :material-image: Centralized Media Service | Unified photo storage and serving across all modules. |
 | [**NFR-2**](shared.md#nfr-2) | :material-speedometer: Latency Target | 95% of requests processed in < 150ms. |
 
 ---
@@ -125,20 +126,22 @@ The Home Application project utilizes the **EARS (Easy Approach to Requirements 
 | ID | Requirement | Description |
 | :--- | :--- | :--- |
 | [**FR-23**](recipes-meals.md#fr-23) | :material-chef-hat: Recipe Management | CRUD for recipes with markdown, labels, and metadata. |
-| [**FR-24**](recipes-meals.md#fr-24) | :material-image-multiple: Recipe Photos | Multi-photo upload with default photo selection. |
-| [**FR-25**](recipes-meals.md#fr-25) | :material-food-apple: Recipe Ingredients | Link shopping items as ingredients with quantities. |
-| [**FR-26**](recipes-meals.md#fr-26) | :material-nutrition: Nutrition Data | Per-item nutrition with on-the-fly recipe totals. |
+| [**FR-24**](recipes-meals.md#fr-24) | :material-image-multiple: Recipe Photos | Multi-photo upload via centralized media service with default photo selection. |
+| [**FR-25**](recipes-meals.md#fr-25) | :material-food-apple: Recipe Ingredients | Link shopping items as ingredients with quantities and optional grouping. |
+| [**FR-26**](recipes-meals.md#fr-26) | :material-nutrition: Nutrition Data | Per-item nutrition via nutrient master catalog with on-the-fly recipe totals. |
 | [**FR-27**](recipes-meals.md#fr-27) | :material-format-list-numbered: Preparation Steps | Ordered steps with drag-and-drop reordering. |
 | [**FR-28**](recipes-meals.md#fr-28) | :material-comment-text: Recipe Comments | Household members can comment on recipes. |
 | [**FR-29**](recipes-meals.md#fr-29) | :material-star: Recipe Ratings | 1-5 star ratings with average and individual votes. |
 | [**FR-30**](recipes-meals.md#fr-30) | :material-clock-edit: Meal Time Configuration | Configurable meal times with per-day schedules. |
-| [**FR-31**](recipes-meals.md#fr-31) | :material-calendar-week: Weekly Meal Plan | Monday–Sunday planner with multi-recipe meals. |
-| [**FR-32**](recipes-meals.md#fr-32) | :material-check-decagram: Meal Plan Approval | Notify, accept, or suggest changes workflow. |
-| [**FR-33**](recipes-meals.md#fr-33) | :material-bell-ring: Meal Reminders | Per-assignment preparation reminders. |
+| [**FR-31**](recipes-meals.md#fr-31) | :material-calendar-week: Weekly Meal Plan | Monday–Sunday planner with multi-recipe meals, standalone items, and multipliers. |
+| [**FR-32**](recipes-meals.md#fr-32) | :material-bell-ring: Meal Plan Publish & Notify | Publish plan and notify household (approval workflow dropped). |
+| [**FR-33**](recipes-meals.md#fr-33) | :material-bell-ring: Meal Reminders | Per-assignment preparation reminders. **Deferred — not yet functional.** |
 | [**FR-34**](recipes-meals.md#fr-34) | :material-delete-sweep: Meal Plan Retention | Auto-purge plans older than 10 weeks. |
 | [**FR-35**](recipes-meals.md#fr-35) | :material-view-week: Meals This Week | Dashboard widget and dedicated weekly view. |
 | [**FR-36**](recipes-meals.md#fr-36) | :material-cart-arrow-down: Shopping List Integration | Export meal ingredients to shopping lists. |
-| [**FR-37**](recipes-meals.md#fr-37) | :material-thumb-up: Meal Thumbs Up/Down | Quick feedback on served meals. |
+| [**FR-37**](recipes-meals.md#fr-37) | :material-thumb-up: Meal Thumbs Up/Down | Quick feedback via dedicated votes table. |
+| [**FR-40**](recipes-meals.md#fr-40) | :material-flask: Nutrient Master Catalog | Predefined nutrient catalog for structured nutrition tracking. |
+| [**FR-41**](recipes-meals.md#fr-41) | :material-food: Standalone Meal Items | Assign shopping items directly to meal entries without recipes. |
 
 ---
 
@@ -158,10 +161,14 @@ The Home Application project utilizes the **EARS (Easy Approach to Requirements 
 | **HATEOAS**           | Hypermedia as the Engine of Application State.                                                                                     |
 | **RFC 7807**          | Standard for Problem Details for HTTP APIs.                                                                                        |
 | **Global Last Price** | The most recent price recorded for an item across all stores.                                                                      |
-| **Meal Plan**         | A weekly schedule (Monday–Sunday) assigning recipes to meal times and household members.                                           |
-| **Nutrition Data**    | Flexible key-value-unit nutrition entries (e.g., `protein: 23.4 g`) associated with a shopping item. Supports any nutrient type.   |
+| **Meal Plan**         | A weekly schedule (Monday–Sunday) assigning recipes and items to meal times and household members.                                  |
+| **Meal Plan Entry Item** | A standalone shopping item assigned directly to a meal entry without requiring a recipe.                                        |
+| **Nutrient**          | A predefined nutrition metric (e.g., Energy, Protein, Fat) from the managed `recipes.nutrients` catalog, with a name, unit, and description. |
+| **Nutrition Data**    | Numeric nutrition entries per shopping item, each referencing a nutrient from the master catalog with a value (e.g., Protein: 23.4). |
+| **Media Service**     | The centralized photo storage system (`media.photos` table) serving binary images via `/api/images/{name}` across all modules.     |
 | **Recipe Label**      | A dynamic tag attached to recipes for categorization (e.g., "Vegetarian", "Quick"). Created on demand, auto-deleted when orphaned. |
 | **Meal Time**         | A named eating occasion (e.g., Breakfast, Lunch, Dinner) with configurable times per day of the week.                              |
+| **Meal Plan Vote**    | A thumbs-up or thumbs-down reaction stored in `meal_plan_votes`, one per user per meal entry.                                      |
 
 ---
 
@@ -199,3 +206,17 @@ The Home Application project utilizes the **EARS (Easy Approach to Requirements 
     **Status:** Accepted. 
 
     Recipe nutrition totals are computed at query time by summing each ingredient's nutrition data multiplied by its quantity. This avoids denormalized storage and ensures totals are always accurate when nutrition data on items changes.
+
+<span id="adr-6"></span>
+!!! abstract "ADR-6: Centralized Media Service"
+
+    **Status:** Accepted. 
+
+    All photos (profile, recipe, item, store) are stored in a single `media.photos` table with binary data (BYTEA) and served via `/api/images/{name}`. This replaces per-table Base64 storage, enabling consistent photo handling, deduplication, and efficient binary serving with proper Content-Type headers.
+
+<span id="adr-7"></span>
+!!! abstract "ADR-7: Predefined Nutrient Catalog"
+
+    **Status:** Accepted. 
+
+    Nutrition entries reference a managed `recipes.nutrients` master table instead of using free-form key-value-unit triples. This ensures consistency across items, enables validation, and supports a settings UI for managing available nutrients. The system ships with 17 seeded nutrients (Energy, Fat, Protein, etc.).
