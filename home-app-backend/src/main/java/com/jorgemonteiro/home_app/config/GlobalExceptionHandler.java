@@ -1,6 +1,7 @@
 package com.jorgemonteiro.home_app.config;
 
 import com.jorgemonteiro.home_app.exception.AppErrorType;
+import com.jorgemonteiro.home_app.exception.AuthenticationException;
 import com.jorgemonteiro.home_app.exception.HomeAppException;
 import com.jorgemonteiro.home_app.exception.ObjectNotFoundException;
 import com.jorgemonteiro.home_app.exception.ValidationException;
@@ -17,8 +18,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.function.BiConsumer;
+import java.util.regex.Pattern;
 
 /**
  * Centralises HTTP error mapping for all application exceptions.
@@ -29,9 +31,15 @@ import java.util.Map;
 public class GlobalExceptionHandler {
 
     private final String errorBaseUrl;
+    private final List<Pattern> exclusionPatterns;
 
-    public GlobalExceptionHandler(@Value("${app.error-base-url}") String errorBaseUrl) {
+    public GlobalExceptionHandler(
+            @Value("${app.error-base-url}") String errorBaseUrl,
+            @Value("${app.error-stack-trace-exclusions:}") List<String> exclusions) {
         this.errorBaseUrl = errorBaseUrl;
+        this.exclusionPatterns = exclusions.stream()
+                .map(Pattern::compile)
+                .toList();
     }
 
     private URI errorType(AppErrorType type) {
@@ -57,7 +65,7 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
         problemDetail.setProperty("errors", errors);
-        
+
         return problemDetail;
     }
 
@@ -128,6 +136,20 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles authentication failures and returns HTTP 401.
+     *
+     * @param ex the authentication exception
+     * @return {@link ProblemDetail} for 401 response
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public ProblemDetail handleAuthenticationException(AuthenticationException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, ex.getMessage());
+        problemDetail.setTitle("Authentication Error");
+        problemDetail.setType(errorType(AppErrorType.AUTHENTICATION_ERROR));
+        return problemDetail;
+    }
+
+    /**
      * Handles any other {@link HomeAppException} and returns HTTP 500.
      *
      * @param ex the exception carrying the error message
@@ -138,6 +160,7 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage());
         problemDetail.setTitle("Internal Server Error");
         problemDetail.setType(errorType(AppErrorType.INTERNAL_SERVER_ERROR));
+        enrichWithExceptionDetails(problemDetail, ex);
         return problemDetail;
     }
 
@@ -168,6 +191,63 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         problemDetail.setTitle("Internal Server Error");
         problemDetail.setType(errorType(AppErrorType.INTERNAL_SERVER_ERROR));
+        enrichWithExceptionDetails(problemDetail, ex);
         return problemDetail;
+    }
+
+    private void enrichWithExceptionDetails(ProblemDetail problemDetail, Exception ex) {
+        // Use Optional to set exception message if present
+        Optional.ofNullable(ex.getMessage())
+                .ifPresent(msg -> problemDetail.setProperty("exceptionMessage", msg));
+
+        List<String> fullTrace = new ArrayList<>();
+
+        // Helper function to process a single exception level
+        BiConsumer<Throwable, Boolean> processException = (throwable, isCause) -> {
+            // Add "Caused by" header for nested exceptions
+            if (isCause) {
+                fullTrace.add("Caused by: " + throwable.getClass().getName() +
+                              (throwable.getMessage() != null ? ": " + throwable.getMessage() : ""));
+            }
+
+            final int[] externalCount = {0};
+            // Use Stream to filter and map stack trace elements
+            Arrays.stream(throwable.getStackTrace())
+                    .map(StackTraceElement::toString)
+                    .filter(line -> {
+                        // 1. Exclude lines matching configured regex patterns
+                        return exclusionPatterns.stream().noneMatch(p -> p.matcher(line).matches());
+                    })
+                    .filter(line -> {
+                        // 2. Always include application-specific packages
+                        if (line.startsWith("com.jorgemonteiro.home_app")) {
+                            return true;
+                        }
+                        // 3. Limit external framework frames to 5 per exception level
+                        if (externalCount[0] < 5) {
+                            externalCount[0]++;
+                            return true;
+                        }
+                        return false;
+                    })
+                    .forEach(fullTrace::add);
+        };
+
+        // Recursive traversal of the "caused by" chain
+        Throwable current = ex;
+        while (current != null) {
+            processException.accept(current, current != ex);
+            current = current.getCause();
+
+            // Add a visual separator between exception levels if more remain
+            if (current != null) {
+                fullTrace.add("---");
+            }
+        }
+
+        // Set the enriched stack trace if any frames were captured
+        if (!fullTrace.isEmpty()) {
+            problemDetail.setProperty("stackTrace", fullTrace);
+        }
     }
 }

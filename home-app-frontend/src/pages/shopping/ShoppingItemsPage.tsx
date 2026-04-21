@@ -1,24 +1,32 @@
 import { useState } from 'react'
+import { PhotoUpload, type PhotoDTO } from '../../components/PhotoUpload'
+import { PriceHistoryModal } from '../../components/shopping/PriceHistoryModal'
 import {
   Title,
   Text,
   Button,
   Group,
   Stack,
-  Table,
   ActionIcon,
   Modal,
   TextInput,
   Select,
+  Image,
   rem,
   Pagination,
   LoadingOverlay,
   Box,
   Avatar,
-  FileButton,
-  Image,
   Timeline,
+  Paper,
+  Badge,
+  Center,
+  Table,
+  NumberInput,
+  Divider,
+  ScrollArea,
 } from '@mantine/core'
+
 import { useDisclosure } from '@mantine/hooks'
 import { useForm } from '@mantine/form'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -29,9 +37,9 @@ import {
   IconTrash,
   IconSearch,
   IconBasket,
-  IconUpload,
   IconHistory,
   IconBuildingStore,
+  IconActivity,
 } from '@tabler/icons-react'
 import {
   fetchItems,
@@ -40,9 +48,13 @@ import {
   deleteItem,
   fetchCategories,
   fetchItemPriceHistory,
+  fetchNutritionEntries,
+  fetchAllNutrients,
+  upsertNutritionEntry,
+  deleteNutritionEntry,
   type ApiError,
 } from '../../services/api'
-import type { ShoppingItem } from '../../services/api'
+import type { ShoppingItem, NutritionEntry } from '../../services/api'
 import { getPhotoSrc } from '../../utils/photo'
 
 export function ShoppingItemsPage() {
@@ -52,12 +64,15 @@ export function ShoppingItemsPage() {
   const [opened, { open, close }] = useDisclosure(false)
   const [editingItem, setEditingItem] = useState<ShoppingItem | null>(null)
 
+  const [nutritionOpened, { open: openNutrition, close: closeNutrition }] = useDisclosure(false)
+  const [selectedNutritionItem, setSelectedNutritionItem] = useState<ShoppingItem | null>(null)
+
   const [historyOpened, { open: openHistory, close: closeHistory }] = useDisclosure(false)
   const [selectedHistoryItem, setSelectedHistoryItem] = useState<ShoppingItem | null>(null)
 
   const { data: itemsData, isLoading: itemsLoading } = useQuery({
-    queryKey: ['shopping-items', activePage],
-    queryFn: () => fetchItems(activePage - 1),
+    queryKey: ['shopping-items', activePage, search],
+    queryFn: () => fetchItems(activePage - 1, 20, search),
   })
 
   const { data: categoriesData } = useQuery({
@@ -75,25 +90,23 @@ export function ShoppingItemsPage() {
   const form = useForm({
     initialValues: {
       name: '',
-      photo: '',
+      photo: null as PhotoDTO | null,
+      unit: 'pcs',
+      pcQuantity: 1,
+      pcUnit: 'kg',
+      nutritionSampleSize: 100,
+      nutritionSampleUnit: 'g',
       categoryId: '',
     },
     validate: {
       name: (value) => (value.length < 2 ? 'Name must have at least 2 characters' : null),
+      unit: (value) => (!value ? 'Unit is required' : null),
       categoryId: (value) => (!value ? 'Category is required' : null),
+      nutritionSampleSize: (v) => (v <= 0 ? 'Sample size must be positive' : null),
+      pcQuantity: (v, values) => (values.unit === 'pcs' && (!v || v <= 0) ? 'Piece quantity must be positive' : null),
+      pcUnit: (v, values) => (values.unit === 'pcs' && !v ? 'Piece unit is required' : null),
     },
   })
-
-  const handleFileUpload = (file: File | null) => {
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const base64 = e.target?.result as string
-        form.setFieldValue('photo', base64)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
 
   const createMutation = useMutation({
     mutationFn: createItem,
@@ -116,7 +129,9 @@ export function ShoppingItemsPage() {
     mutationFn: ({ id, item }: { id: number; item: Partial<ShoppingItem> }) => updateItem(id, item),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-items'] })
-      notifications.show({ title: 'Success', message: 'Item updated successfully', color: 'green' })
+      notifications.show({ title: 'Success', message: 'Item updated successfully', color: 'green' });
+      // Invalidate related lists too
+      queryClient.invalidateQueries({ queryKey: ['shopping-lists'] });
       close()
       setEditingItem(null)
       form.reset()
@@ -142,9 +157,16 @@ export function ShoppingItemsPage() {
   })
   const handleEdit = (item: ShoppingItem) => {
     setEditingItem(item)
+    // Store photo as PhotoDTO with url for reads, data only when user uploads new photo
+    const photoDto: PhotoDTO | null = item.photo?.url ? { url: item.photo.url } : null
     form.setValues({
       name: item.name,
-      photo: item.photo || '',
+      photo: photoDto,
+      unit: item.unit || 'pcs',
+      pcQuantity: item.pcQuantity || 1,
+      pcUnit: item.pcUnit || 'kg',
+      nutritionSampleSize: item.nutritionSampleSize || 100,
+      nutritionSampleUnit: item.nutritionSampleUnit || 'g',
       categoryId: item.category.id.toString(),
     })
     open()
@@ -159,15 +181,26 @@ export function ShoppingItemsPage() {
     const selectedCategory = categoriesData?._embedded?.categories?.find(
       (cat) => cat.id === parseInt(values.categoryId),
     )
+    // Only send photo if user uploaded a new photo (data field)
+    // If editing and no new photo, don't include photo in payload to preserve existing
+    const photoPayload = values.photo?.data
+      ? { data: String(values.photo.data) }
+      : undefined
     const payload = {
-      name: values.name,
-      photo: values.photo,
+      name: String(values.name),
+      photo: photoPayload,
+      unit: String(values.unit),
+      pcQuantity: values.unit === 'pcs' ? Number(values.pcQuantity) : undefined,
+      pcUnit: values.unit === 'pcs' ? String(values.pcUnit) : undefined,
+      nutritionSampleSize: Number(values.nutritionSampleSize),
+      nutritionSampleUnit: String(values.nutritionSampleUnit),
       category: selectedCategory || { id: parseInt(values.categoryId), name: '', icon: '' },
     }
+    console.log('Item payload:', payload)
     if (editingItem) {
-      updateMutation.mutate({ id: editingItem.id, item: payload })
+      updateMutation.mutate({ id: editingItem.id, item: payload as any })
     } else {
-      createMutation.mutate(payload)
+      createMutation.mutate(payload as any)
     }
   }
 
@@ -183,8 +216,19 @@ export function ShoppingItemsPage() {
     label: cat.name,
   }))
 
+  const unitOptions = [
+    { value: 'pcs', label: 'Pieces (pcs)' },
+    { value: 'kg', label: 'Kilograms (kg)' },
+    { value: 'g', label: 'Grams (g)' },
+    { value: 'l', label: 'Liters (l)' },
+    { value: 'ml', label: 'Milliliters (ml)' },
+    { value: 'pack', label: 'Pack' },
+    { value: 'box', label: 'Box' },
+    { value: 'bottle', label: 'Bottle' },
+    { value: 'can', label: 'Can' },
+  ]
+
   const rows = items
-    .filter((item) => item.name.toLowerCase().includes(search.toLowerCase()))
     .map((item) => (
       <Table.Tr key={item.id}>
         <Table.Td>
@@ -214,7 +258,21 @@ export function ShoppingItemsPage() {
           <Text size="sm">{item.category.name}</Text>
         </Table.Td>
         <Table.Td>
+          <Badge variant="outline">{item.unit}</Badge>
+        </Table.Td>
+        <Table.Td>
           <Group gap="xs" justify="flex-end">
+            <ActionIcon
+              variant="light"
+              color="orange"
+              onClick={() => {
+                setSelectedNutritionItem(item)
+                openNutrition()
+              }}
+              title="Nutrition Data"
+            >
+              <IconActivity style={{ width: rem(16), height: rem(16) }} stroke={1.5} />
+            </ActionIcon>
             <ActionIcon
               variant="light"
               color="indigo"
@@ -263,14 +321,18 @@ export function ShoppingItemsPage() {
             placeholder="Search items..."
             leftSection={<IconSearch size={16} stroke={1.5} />}
             value={search}
-            onChange={(event) => setSearch(event.currentTarget.value)}
+            onChange={(event) => {
+              setSearch(event.currentTarget.value)
+              setPage(1)
+            }}
           />
 
-          <Table verticalSpacing="sm">
+          <Table verticalSpacing="sm" stickyHeader>
             <Table.Thead>
               <Table.Tr>
                 <Table.Th>Item</Table.Th>
                 <Table.Th>Category</Table.Th>
+                <Table.Th>Unit</Table.Th>
                 <Table.Th style={{ width: rem(140) }} />
               </Table.Tr>
             </Table.Thead>
@@ -279,7 +341,7 @@ export function ShoppingItemsPage() {
                 rows
               ) : (
                 <Table.Tr>
-                  <Table.Td colSpan={3}>
+                  <Table.Td colSpan={4}>
                     <Text ta="center" py="xl" c="dimmed">
                       No items found
                     </Text>
@@ -323,44 +385,75 @@ export function ShoppingItemsPage() {
               comboboxProps={{ withinPortal: true, zIndex: 3000 }}
               {...form.getInputProps('categoryId')}
             />
+            
+            <Select
+              required
+              label="Default Unit"
+              placeholder="Select unit"
+              data={unitOptions}
+              searchable
+              comboboxProps={{ withinPortal: true, zIndex: 3000 }}
+              {...form.getInputProps('unit')}
+            />
 
-            <Group align="flex-end">
-              <Box
-                w={64}
-                h={64}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px solid var(--mantine-color-gray-3)',
-                  borderRadius: rem(4),
-                  overflow: 'hidden',
-                }}
-              >
-                {form.values.photo ? (
-                  <Image src={getPhotoSrc(form.values.photo)} fit="contain" h={64} w={64} />
-                ) : (
-                  <IconBasket size={32} stroke={1.5} color="var(--mantine-color-gray-4)" />
-                )}
-              </Box>
-              <FileButton onChange={handleFileUpload} accept="image/png,image/jpeg">
-                {(props) => (
-                  <Button {...props} variant="light" leftSection={<IconUpload size={16} />}>
-                    Upload Photo
-                  </Button>
-                )}
-              </FileButton>
-              {form.values.photo && (
-                <Button
-                  variant="subtle"
-                  color="red"
-                  size="xs"
-                  onClick={() => form.setFieldValue('photo', '')}
-                >
-                  Remove
-                </Button>
-              )}
+            {form.values.unit === 'pcs' && (
+              <>
+                <Divider label="Piece Conversion" labelPosition="center" />
+                <Text size="xs" c="dimmed">
+                  Define the standard quantity and unit represented by 1 piece (e.g. 1 pc = 1 L).
+                </Text>
+                <Group grow>
+                  <NumberInput
+                    required
+                    label="Quantity per Piece"
+                    min={0.01}
+                    decimalScale={4}
+                    {...form.getInputProps('pcQuantity')}
+                  />
+                  <Select
+                    required
+                    label="Piece Unit"
+                    data={unitOptions.filter((u) => u.value !== 'pcs')}
+                    searchable
+                    comboboxProps={{ withinPortal: true, zIndex: 3000 }}
+                    {...form.getInputProps('pcUnit')}
+                  />
+                </Group>
+              </>
+            )}
+
+            <Divider label="Nutrition Calculation Context" labelPosition="center" />
+            <Text size="xs" c="dimmed">
+              Define the portion size used for nutritional values (e.g. 100kcal per 100g).
+            </Text>
+
+            <Group grow>
+              <NumberInput
+                required
+                label="Sample Size"
+                min={0.1}
+                decimalScale={2}
+                {...form.getInputProps('nutritionSampleSize')}
+              />
+              <Select
+                required
+                label="Sample Unit"
+                data={unitOptions}
+                searchable
+                comboboxProps={{ withinPortal: true, zIndex: 3000 }}
+                {...form.getInputProps('nutritionSampleUnit')}
+              />
             </Group>
+
+            <Divider label="Item Photo" labelPosition="center" />
+
+            <PhotoUpload
+              photo={form.values.photo || undefined}
+              onChange={(photo) => form.setFieldValue('photo', photo)}
+              label=""
+              description=""
+              size={64}
+            />
 
             <Group justify="flex-end" mt="md">
               <Button variant="subtle" onClick={close}>
@@ -375,55 +468,209 @@ export function ShoppingItemsPage() {
       </Modal>
 
       {/* Price History Modal */}
-      <Modal
+      <PriceHistoryModal
         opened={historyOpened}
         onClose={() => {
           closeHistory()
           setSelectedHistoryItem(null)
         }}
-        title={`Price History: ${selectedHistoryItem?.name}`}
-        radius="md"
-        size="lg"
-        zIndex={2000}
-      >
-        <Box pos="relative" mih={200}>
-          <LoadingOverlay visible={historyLoading} />
+        itemName={selectedHistoryItem?.name || null}
+        history={priceHistory}
+        isLoading={historyLoading}
+      />
 
-          {priceHistory && priceHistory.length > 0 ? (
-            <Timeline active={0} bulletSize={24} lineWidth={2}>
-              {priceHistory.map((entry) => (
-                <Timeline.Item
-                  key={entry.id}
-                  bullet={<IconBuildingStore size={14} />}
-                  title={
-                    <Group justify="space-between">
-                      <Text fw={700} size="lg">
-                        €{entry.price.toFixed(2)}
-                      </Text>
-                      <Text size="xs" c="dimmed">
-                        {new Date(entry.recordedAt).toLocaleDateString()}{' '}
-                        {new Date(entry.recordedAt).toLocaleTimeString()}
-                      </Text>
-                    </Group>
-                  }
-                >
-                  <Text size="sm" c="dimmed">
-                    Recorded at{' '}
-                    <Text span fw={500} c="dark">
-                      {entry.storeName || 'Any Store'}
-                    </Text>
-                  </Text>
-                </Timeline.Item>
-              ))}
-            </Timeline>
-          ) : (
-            <Stack align="center" py="xl">
-              <IconHistory size={48} color="var(--mantine-color-gray-3)" />
-              <Text c="dimmed">No price history available for this item yet.</Text>
-            </Stack>
-          )}
-        </Box>
-      </Modal>
+      <NutritionModal
+        opened={nutritionOpened}
+        onClose={() => {
+          closeNutrition()
+          setSelectedNutritionItem(null)
+        }}
+        item={selectedNutritionItem}
+      />
     </Stack>
+  )
+}
+
+interface NutritionModalProps {
+  opened: boolean
+  onClose: () => void
+  item: ShoppingItem | null
+}
+
+function NutritionModal({ opened, onClose, item }: NutritionModalProps) {
+  const queryClient = useQueryClient()
+  
+  const { data: allNutrients } = useQuery({
+    queryKey: ['nutrients-master'],
+    queryFn: fetchAllNutrients,
+    enabled: opened,
+  })
+
+  const { data: nutrition, isLoading } = useQuery({
+    queryKey: ['item-nutrition', item?.id],
+    queryFn: () => (item ? fetchNutritionEntries(item.id) : Promise.resolve([])),
+    enabled: !!item && opened,
+  })
+
+  const upsertMutation = useMutation({
+    mutationFn: (entry: Partial<NutritionEntry>) => upsertNutritionEntry(item!.id, entry),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['item-nutrition', item?.id] })
+      notifications.show({ title: 'Success', message: 'Nutrition data updated', color: 'green' })
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (nutrientId: number) => deleteNutritionEntry(item!.id, nutrientId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['item-nutrition', item?.id] })
+      notifications.show({ title: 'Success', message: 'Nutrient removed', color: 'green' })
+    },
+  })
+
+  const nutritionForm = useForm({
+    initialValues: {
+      nutrientId: '' as string | number,
+      value: 0,
+    },
+    validate: {
+      nutrientId: (v) => (!v ? 'Select a nutrient' : null),
+    },
+  })
+
+  const handleAddNutrient = (values: typeof nutritionForm.values) => {
+    const nutrientId = Number(values.nutrientId)
+    const selectedNutrient = allNutrients?.find(n => n.id === nutrientId)
+    if (!selectedNutrient) {
+      notifications.show({ title: 'Error', message: 'Invalid nutrient selected', color: 'red' })
+      return
+    }
+    const payload = {
+      nutrient: {
+        id: selectedNutrient.id,
+        name: selectedNutrient.name,
+        unit: selectedNutrient.unit,
+      },
+      value: Number(values.value),
+    }
+    console.log('Nutrition payload:', payload)
+    upsertMutation.mutate(payload as any)
+    nutritionForm.reset()
+  }
+
+  const selectedNutrientData = allNutrients?.find(n => String(n.id) === String(nutritionForm.values.nutrientId))
+
+  return (
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      title={item ? `Nutrition: ${item.name}` : 'Nutrition Data'}
+      radius="md"
+      size="md"
+      zIndex={2000}
+    >
+      <Stack gap="md">
+        <Paper withBorder p="sm" bg="gray.0">
+          <form onSubmit={nutritionForm.onSubmit(handleAddNutrient)}>
+            <Stack gap="xs">
+              <Group grow align="flex-end">
+                <Select
+                  label="Nutrient"
+                  placeholder="Select definition"
+                  data={allNutrients
+                    ?.filter(n => !nutrition?.some(existing => existing.nutrient.id === n.id))
+                    .map(n => ({ value: String(n.id), label: n.name })) || []}
+                  searchable
+                  required
+                  comboboxProps={{ zIndex: 5000 }}
+                  {...nutritionForm.getInputProps('nutrientId')}
+                />
+                <Group grow gap="xs">
+                  <NumberInput
+                    label="Value"
+                    min={0}
+                    decimalScale={2}
+                    required
+                    {...nutritionForm.getInputProps('value')}
+                  />
+                  <TextInput
+                    label="Unit"
+                    readOnly
+                    variant="filled"
+                    value={selectedNutrientData?.unit || '-'}
+                  />
+                </Group>
+              </Group>
+              <Button 
+                type="submit" 
+                variant="light" 
+                leftSection={<IconPlus size={16} />}
+                loading={upsertMutation.isPending}
+              >
+                Add / Update Nutrient
+              </Button>
+            </Stack>
+          </form>
+        </Paper>
+
+        <Paper withBorder p="sm" bg="blue.0">
+          <Text size="sm" fw={500} c="blue.9" ta="center">
+            Nutrition data for each <strong>{item?.nutritionSampleSize} {item?.nutritionSampleUnit}</strong>
+          </Text>
+        </Paper>
+
+        <ScrollArea.Autosize mah={200} type="auto">
+          <Box pos="relative" mih={100}>
+            <LoadingOverlay visible={isLoading} />
+            
+            {nutrition && nutrition.length > 0 ? (
+              <Table verticalSpacing="xs" stickyHeader>
+                <Table.Thead>
+                  <Table.Tr>
+                    <Table.Th>Nutrient</Table.Th>
+                    <Table.Th w={80} ta="right">Value</Table.Th>
+                    <Table.Th w={60}>Unit</Table.Th>
+                    <Table.Th w={50}></Table.Th>
+                  </Table.Tr>
+                </Table.Thead>
+                <Table.Tbody>
+                  {nutrition.map((entry) => (
+                    <Table.Tr key={entry.nutrient.id}>
+                      <Table.Td>
+                        <Text size="sm" fw={500}>{entry.nutrient.name}</Text>
+                      </Table.Td>
+                      <Table.Td ta="right">
+                        <Text size="sm" fw={700}>{entry.value}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <Text size="xs" c="dimmed">{entry.nutrient.unit}</Text>
+                      </Table.Td>
+                      <Table.Td>
+                        <ActionIcon 
+                          variant="subtle" 
+                          color="red" 
+                          onClick={() => deleteMutation.mutate(entry.nutrient.id)}
+                          loading={deleteMutation.isPending && deleteMutation.variables === entry.nutrient.id}
+                        >
+                          <IconTrash size={16} />
+                        </ActionIcon>
+                      </Table.Td>
+                    </Table.Tr>
+                  ))}
+                </Table.Tbody>
+              </Table>
+            ) : !isLoading && (
+              <Center py="xl">
+                <Text c="dimmed" size="sm">No nutrition data recorded yet.</Text>
+              </Center>
+            )}
+          </Box>
+        </ScrollArea.Autosize>
+
+        <Group justify="flex-end" mt="md">
+          <Button onClick={onClose}>Done</Button>
+        </Group>
+      </Stack>
+    </Modal>
   )
 }

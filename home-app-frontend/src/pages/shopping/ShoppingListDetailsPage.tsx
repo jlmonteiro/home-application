@@ -5,22 +5,13 @@ import {
   Button,
   Group,
   Stack,
-  ActionIcon,
-  Modal,
-  TextInput,
-  Select,
-  NumberInput,
-  rem,
   LoadingOverlay,
   Box,
   Paper,
   Divider,
   Badge,
-  FileButton,
-  Image,
-  Textarea,
   Accordion,
-  Center,
+  Image,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { useCombobox } from '@mantine/core'
@@ -33,12 +24,10 @@ import {
   IconArrowLeft,
   IconCheck,
   IconCalculator,
-  IconUpload,
   IconEdit,
   IconAlertCircle,
   IconBuildingStore,
   IconChevronRight,
-  IconBasket,
 } from '@tabler/icons-react'
 import {
   fetchList,
@@ -62,7 +51,7 @@ import { PriceHistoryModal } from '../../components/shopping/PriceHistoryModal'
 import { AddItemModal, type AddItemFormValues } from '../../components/shopping/AddItemModal'
 import { EditItemModal } from '../../components/shopping/EditItemModal'
 import { CreateItemModal } from '../../components/shopping/CreateItemModal'
-import { getPhotoSrc } from '../../utils/photo'
+import { convertQuantity } from '../../utils/units'
 
 export function ShoppingListDetailsPage() {
   const { id } = useParams<{ id: string }>()
@@ -118,12 +107,12 @@ export function ShoppingListDetailsPage() {
         ? storesData?._embedded?.stores?.find((s) => s.id === parseInt(values.storeId))
         : null
       return addItemToList(listId, {
-        itemId: parseInt(values.itemId),
+        item: { id: parseInt(values.itemId) },
         quantity: values.quantity,
         unit: values.unit,
-        price: values.price,
+        pricing: { price: values.price },
         store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null,
-      })
+      } as any)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-list', listId] })
@@ -234,14 +223,11 @@ export function ShoppingListDetailsPage() {
   }
 
   const handleShowHistory = (item: ShoppingListItem) => {
-    setSelectedHistoryItem({ id: item.itemId, name: item.itemName })
+    setSelectedHistoryItem({ id: item.item.id, name: item.item.name })
     openHistory()
   }
 
   const masterItems = masterItemsData?._embedded?.items || []
-  const filteredMasterItems = masterItems.filter((item) =>
-    item.name.toLowerCase().includes(itemSearch.toLowerCase()),
-  )
 
   const storeOptions = (storesData?._embedded?.stores || []).map((store: ShoppingStore) => ({
     value: store.id.toString(),
@@ -271,6 +257,7 @@ export function ShoppingListDetailsPage() {
       {
         id: number | null
         name: string
+        photo: string | null
         items: ShoppingListItem[]
         cost: number
         isDone: boolean
@@ -283,6 +270,7 @@ export function ShoppingListDetailsPage() {
         storesMap.set(key, {
           id: item.store?.id ?? null,
           name: item.store?.name || 'Any Store',
+          photo: item.store?.photo || null,
           items: [],
           cost: 0,
           isDone: false,
@@ -291,7 +279,14 @@ export function ShoppingListDetailsPage() {
       const store = storesMap.get(key)
       if (store) {
         store.items.push(item)
-        store.cost += (item.price || 0) * item.quantity
+        const convertedQuantity = convertQuantity(
+          item.quantity,
+          item.unit,
+          item.item.unit,
+          item.item.pcQuantity,
+          item.item.pcUnit,
+        )
+        store.cost += (item.pricing?.price || 0) * convertedQuantity
       }
     })
 
@@ -305,17 +300,17 @@ export function ShoppingListDetailsPage() {
       // Initial count to see which categories have > 1 item
       const counts: Record<string, number> = {}
       store.items.forEach((i) => {
-        const name = i.category?.name || 'Others'
+        const name = i.item.category?.name || 'Others'
         counts[name] = (counts[name] || 0) + 1
       })
 
       store.items.forEach((item) => {
-        const rawCatName = item.category?.name || 'Others'
+        const rawCatName = item.item.category?.name || 'Others'
         const isSingleton = counts[rawCatName] === 1
         const catName = isSingleton ? 'Others' : rawCatName
 
         // If it's Others, use generic basket icon, otherwise use the category icon
-        const catIcon = catName === 'Others' ? 'IconBasket' : item.category?.icon || 'IconBasket'
+        const catIcon = catName === 'Others' ? 'IconBasket' : item.item.category?.icon || 'IconBasket'
 
         if (!categoriesMap.has(catName)) {
           categoriesMap.set(catName, { icon: catIcon, items: [], isDone: false })
@@ -340,7 +335,16 @@ export function ShoppingListDetailsPage() {
   }, [list])
 
   const totalEstimated =
-    list?.items.reduce((sum, item) => sum + (item.price || 0) * item.quantity, 0) || 0
+    list?.items.reduce((sum, item) => {
+      const convertedQuantity = convertQuantity(
+        item.quantity,
+        item.unit,
+        item.item.unit,
+        item.item.pcQuantity,
+        item.item.pcUnit,
+      )
+      return sum + (item.pricing?.price || 0) * convertedQuantity
+    }, 0) || 0
   const activeItemsCount = list?.items.filter((i) => !i.unavailable).length || 0
   const boughtItemsCount = list?.items.filter((i) => i.bought && !i.unavailable).length || 0
 
@@ -446,14 +450,32 @@ export function ShoppingListDetailsPage() {
               <Accordion.Control>
                 <Group justify="space-between" pr="md">
                   <Group gap="sm">
-                    <IconBuildingStore
-                      size={20}
-                      color={
-                        store.isDone
-                          ? 'var(--mantine-color-green-6)'
-                          : 'var(--mantine-color-indigo-6)'
-                      }
-                    />
+                    <Box
+                      w={40}
+                      h={40}
+                      bg="white"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
+                        borderRadius: 0,
+                        border: '1px solid var(--mantine-color-gray-2)',
+                      }}
+                    >
+                      {store.photo ? (
+                        <Image src={store.photo} fit="contain" w="100%" h="100%" />
+                      ) : (
+                        <IconBuildingStore
+                          size={22}
+                          color={
+                            store.isDone
+                              ? 'var(--mantine-color-green-6)'
+                              : 'var(--mantine-color-gray-5)'
+                          }
+                        />
+                      )}
+                    </Box>
                     <Text fw={700}>{store.name}</Text>
                     {store.isDone && <IconCheck size={18} color="var(--mantine-color-green-6)" />}
                   </Group>
@@ -577,33 +599,35 @@ export function ShoppingListDetailsPage() {
             data: {
               quantity: data.quantity,
               unit: data.unit,
-              price: data.price,
+              pricing: { price: data.price },
               store: selectedStore ? { id: selectedStore.id, name: selectedStore.name } : null,
-            },
+            } as any,
           })
         }}
         isPending={updateItemMutation.isPending}
       />
 
-      {/* Create New Item Modal (Nested) */}
       <CreateItemModal
         opened={createItemOpened}
         onClose={closeCreateItem}
         categoryOptions={categoryOptions}
         initialName={itemSearch}
         onSubmit={(values) => {
-          const selectedCategory = masterItemsData?._embedded?.items?.find(
-            (item) => item.category.id === parseInt(values.categoryId || '0'),
-          )?.category
+          const selectedCategory = categoriesData?._embedded?.categories?.find(
+            (cat) => cat.id === parseInt(values.categoryId || '0'),
+          )
           createItemMutation.mutate({
             name: values.name,
-            photo: values.photo,
+            photo: values.photo ? { data: String(values.photo.data) } : undefined,
+            unit: values.unit,
+            pcQuantity: values.pcQuantity,
+            pcUnit: values.pcUnit,
             category: selectedCategory || {
               id: parseInt(values.categoryId || '0'),
               name: '',
               icon: '',
             },
-          })
+          } as any)
         }}
         isPending={createItemMutation.isPending}
       />

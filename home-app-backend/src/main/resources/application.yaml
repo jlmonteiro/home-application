@@ -53,6 +53,17 @@ spring:
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
   error-base-url: ${ERROR_BASE_URL:http://localhost:8080/errors}
+  error-stack-trace-exclusions:
+    - "^java\\.base/.*"
+    - "^jdk\\.internal\\..*"
+    - "^org\\.apache\\.tomcat\\..*"
+    - "^org\\.apache\\.catalina\\..*"
+    - "^org\\.springframework\\.web\\.filter\\..*"
+    - "^org\\.springframework\\.security\\.web\\.FilterChainProxy.*"
+    - "^jakarta\\.servlet\\..*"
+    - "^org\\.springframework\\.aop\\..*"
+    - "^org\\.springframework\\.transaction\\.interceptor\\..*"
+    - "^java\\.util\\.stream\\.ReferencePipeline.*"
   photo:
     connect-timeout-ms: 3000
     read-timeout-ms: 5000

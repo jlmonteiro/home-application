@@ -15,5 +15,8 @@ public enum AppErrorType {
     SERVICE_UNAVAILABLE,
     
     /** Unexpected internal server error. */
-    INTERNAL_SERVER_ERROR
+    INTERNAL_SERVER_ERROR,
+
+    /** Authentication or authorization failure. */
+    AUTHENTICATION_ERROR
 }

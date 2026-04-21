@@ -9,14 +9,19 @@ export interface UserProfile {
   lastName: string
   enabled: boolean
   birthdate?: string
-  familyRoleId?: number
-  familyRoleName?: string
+  familyRole?: {
+    id: number
+    name: string
+    immutable: boolean
+  }
   ageGroupName: 'Adult' | 'Teenager' | 'Child'
-  photo?: string
-  facebook?: string
+  photo?: { data?: string; url?: string }
   mobilePhone?: string
-  instagram?: string
-  linkedin?: string
+  social?: {
+    facebook?: string
+    instagram?: string
+    linkedin?: string
+  }
   _links?: {
     self: Link
     [key: string]: Link

@@ -12,7 +12,12 @@ export interface ShoppingCategory {
 export interface ShoppingItem {
   id: number
   name: string
-  photo?: string
+  photo?: { data?: string; url?: string }
+  unit: string
+  pcQuantity?: number
+  pcUnit?: string
+  nutritionSampleSize: number
+  nutritionSampleUnit: string
   category: {
     id: number
     name: string
@@ -26,8 +31,11 @@ export interface ShoppingItem {
 
 export interface ShoppingItemPriceHistory {
   id: number
-  storeId: number | null
-  storeName: string | null
+  store: {
+    id: number
+    name: string
+    photo: string | null
+  } | null
   price: number
   recordedAt: string
 }
@@ -37,7 +45,7 @@ export interface ShoppingStore {
   name: string
   description?: string
   icon?: string
-  photo?: string
+  photo?: { data?: string; url?: string }
   validCouponsCount?: number
   version: number
   _links?: {
@@ -90,21 +98,29 @@ export interface Coupon {
 
 export interface ShoppingListItem {
   id: number
-  itemId: number
-  itemName: string
-  itemPhoto: string
-  category: {
+  item: {
+    id: number
     name: string
-    icon?: string
+    photo: { url: string | null } | null
+    unit: string
+    pcQuantity?: number
+    pcUnit?: string
+    category?: {
+      name: string
+      icon?: string
+    } | null
   }
   store?: {
     id: number | null
     name: string | null
+    photo?: string | null
   } | null
   quantity: number
   unit: string
-  price: number | null
-  previousPrice: number | null
+  pricing?: {
+    price: number | null
+    previousPrice: number | null
+  } | null
   bought: boolean
   unavailable: boolean
   version: number

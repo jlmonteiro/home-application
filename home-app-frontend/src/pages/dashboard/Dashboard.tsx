@@ -13,6 +13,8 @@ import {
   Box,
   Modal,
   Center,
+  Avatar,
+  Tooltip,
 } from '@mantine/core'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
@@ -30,8 +32,10 @@ import {
 import { QRCodeSVG } from 'qrcode.react'
 import Barcode from 'react-barcode'
 import { useAuth } from '../../context/AuthContext'
-import { fetchLists, fetchUserPreferences, fetchExpiringCoupons } from '../../services/api'
+import { fetchLists, fetchUserPreferences, fetchExpiringCoupons, fetchMealPlan } from '../../services/api'
 import type { Coupon } from '../../services/api'
+import dayjs from 'dayjs'
+import { getPhotoSrc } from '../../utils/photo'
 
 export function Dashboard() {
   const { user } = useAuth()
@@ -53,10 +57,27 @@ export function Dashboard() {
     enabled: preferences?.showCouponsWidget ?? true,
   })
 
+  const { data: mealPlan, isLoading: mealPlanLoading } = useQuery({
+    queryKey: ['meal-plan-today'],
+    queryFn: () => fetchMealPlan(dayjs().format('YYYY-MM-DD')),
+  })
+
   const [fullscreenCoupon, setFullscreenCoupon] = useState<Coupon | null>(null)
 
   const pendingLists = lists?.filter((l) => l.status === 'PENDING') || []
   const expiringCoupons = coupons || []
+  
+  const getDayValue = (val: any): number => {
+    if (typeof val === 'number') return val;
+    const dayMap: Record<string, number> = {
+      'MONDAY': 0, 'TUESDAY': 1, 'WEDNESDAY': 2, 'THURSDAY': 3,
+      'FRIDAY': 4, 'SATURDAY': 5, 'SUNDAY': 6
+    };
+    return dayMap[String(val).toUpperCase()] ?? 0;
+  };
+
+  const todayNum = (dayjs().day() + 6) % 7; // Convert 0(Sun)-6(Sat) to 0(Mon)-6(Sun)
+  const todayMeals = mealPlan?.entries.filter(e => getDayValue(e.dayOfWeek) === todayNum) || [];
 
   const showShopping = preferences?.showShoppingWidget ?? true
   const showCoupons = preferences?.showCouponsWidget ?? true
@@ -150,6 +171,76 @@ export function Dashboard() {
             </Paper>
           </Stack>
         )}
+
+        <Stack style={{ minWidth: rem(350), flex: 1 }}>
+          <Group justify="space-between" align="center">
+            <Title order={3}>Today's Meals</Title>
+            <Button
+              variant="subtle"
+              size="compact-sm"
+              component={Link}
+              to="/recipes/planner"
+              rightSection={<IconArrowRight size={14} />}
+            >
+              Full Planner
+            </Button>
+          </Group>
+
+          <Paper withBorder radius="md" p="md">
+            {mealPlanLoading ? (
+              <Group justify="center" py="xl"><Loader size="sm" /></Group>
+            ) : todayMeals.length === 0 ? (
+              <Stack align="center" py="xl" gap="xs">
+                <ThemeIcon variant="light" size="xl" radius="md" color="gray">
+                  <IconCalendarClock size={24} />
+                </ThemeIcon>
+                <Text size="sm" c="dimmed">No meals planned for today</Text>
+              </Stack>
+            ) : (
+              <Stack gap="sm">
+                {todayMeals.map(meal => (
+                  <Paper key={meal.id} withBorder p="sm" radius="sm">
+                    <Group justify="space-between">
+                      <Box>
+                        <Text size="xs" fw={700} c="dimmed" tt="uppercase">{meal.mealTimeName}</Text>
+                        <Stack gap={2} mt={4}>
+                          {meal.recipes.map((r, i) => (
+                            <Box key={i}>
+                              <Text size="sm" fw={500}>
+                                {r.recipe.name}
+                              </Text>
+                              {r.users.length > 0 && (
+                                <Group gap={4} mt={2}>
+                                  <Avatar.Group spacing="xs">
+                                    {r.users.map(user => (
+                                      <Tooltip key={user.id} label={user.name} withArrow>
+                                        <Avatar 
+                                          src={getPhotoSrc(user.photo as any)} 
+                                          size={30} 
+                                          radius="xl"
+                                          alt={user.name}
+                                          variant="light"
+                                          color="blue"
+                                        >
+                                          {user.name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)}
+                                        </Avatar>
+                                      </Tooltip>
+                                    ))}
+                                  </Avatar.Group>
+                                </Group>
+                              )}
+                            </Box>
+                          ))}
+                        </Stack>
+                      </Box>
+                      {meal.isDone && <Badge color="green" variant="light" size="xs">DONE</Badge>}
+                    </Group>
+                  </Paper>
+                ))}
+              </Stack>
+            )}
+          </Paper>
+        </Stack>
 
         {showCoupons && (
           <Stack style={{ minWidth: rem(350), flex: 1 }}>
@@ -256,28 +347,6 @@ export function Dashboard() {
             </Paper>
           </Stack>
         )}
-
-        <Stack style={{ minWidth: rem(350), flex: 1 }}>
-          <Title order={3}>Quick Actions</Title>
-          <Paper withBorder p="md" radius="md">
-            <Text size="sm" c="dimmed">
-              More dashboard widgets coming soon, including family member activities and household
-              tasks.
-            </Text>
-            {(!showShopping || !showCoupons) && (
-              <Text
-                size="xs"
-                mt="sm"
-                c="indigo"
-                component={Link}
-                to="/preferences"
-                style={{ textDecoration: 'none' }}
-              >
-                Enable widgets in your preferences →
-              </Text>
-            )}
-          </Paper>
-        </Stack>
       </Group>
 
       {/* Fullscreen Coupon Code View */}

@@ -12,11 +12,37 @@ This document defines the technical standards and best practices for the **Sprin
 Use **Records** for simple, read-only value objects that carry no validation or framework annotations. For DTOs that require Jakarta validation, HATEOAS `@Relation`, or mutability, use Lombok **`@Data`** classes.
 
 !!! success "Best Practices"
+
     - :material-check-all: Use Records for embedded value objects (e.g., `Category`, `Store`, `Barcode`).
     - :material-check-all: Use `@Data` classes for DTOs that need `@NotBlank`, `@Size`, `@Pattern`, or `@Relation`.
     - :material-check-all: Leverage record patterns in `instanceof` and `switch`.
+    - :material-check-all: **Group related attributes into nested objects.** Avoid flat attributes like `storeId` and `storeName`. Instead, use a nested `Store` object with `id` and `name` fields.
     - :material-alert-circle: DO NOT use records for JPA Entities (Entities require identity and proxying).
     - :material-alert-circle: DO NOT use records for DTOs that require Jakarta validation annotations.
+
+!!! example "DTO Grouping"
+    **Avoid** flat structure with duplicated entity data:
+
+    ```java
+    public class ShoppingListDTO {
+        private Long id;
+        private String name;
+        private Long storeId;      // ❌ Flat attribute
+        private String storeName;  // ❌ Flat attribute
+    }
+    ```
+
+    **Prefer** nested objects with grouped entity data:
+
+    ```java
+    public class ShoppingListDTO {
+        private Long id;
+        private String name;
+        private Store store;       // ✅ Nested object
+    }
+
+    public record Store(Long id, String name) {}
+    ```
 
 === "Record (Value Object)"
 
@@ -49,6 +75,7 @@ Use **Records** for simple, read-only value objects that carry no validation or 
 Leverage pattern matching to reduce boilerplate and improve readability when dealing with complex types.
 
 !!! tip "Switch Expressions"
+
     Use exhaustive `switch` expressions with pattern matching for business logic branching.
 
 ```java
@@ -75,6 +102,7 @@ public sealed interface CalculationResult
 Spring Boot 4.0 is optimized for **Virtual Threads**. We prefer simple blocking I/O on virtual threads over complex reactive programming for most use cases.
 
 !!! note "Scaling Strategy"
+
     - :material-lightning-bolt: Prefer `spring.threads.virtual.enabled=true`.
     - :material-alert-circle: Avoid `ThreadLocal` in favor of **Scoped Values** when using structured concurrency.
 
@@ -105,6 +133,7 @@ All controllers MUST return HATEOAS-compliant resources using HAL.
 | `DELETE`    | `ResponseEntity.noContent().build()` |
 
 !!! info "Resource Package Structure"
+
     Resource classes and assemblers live in `controller/<domain>/resource/<subdomain>/`:
 
     - :material-file-code: `<Domain>Resource` — extends `RepresentationModel`
@@ -116,6 +145,7 @@ All controllers MUST return HATEOAS-compliant resources using HAL.
 -   **Lombok:** Use `@Data` + `@EqualsAndHashCode(onlyExplicitlyIncluded = true)` on all entities.
 
 !!! warning "Circular Reference Prevention"
+
     `@EqualsAndHashCode(onlyExplicitlyIncluded = true)` is **mandatory** on every entity. Without it, bidirectional JPA relationships cause infinite loops in `hashCode()` and `toString()`. Annotate the identity field with `@EqualsAndHashCode.Include`.
 
 ```java
@@ -136,6 +166,7 @@ public class User {
 Static adapter classes handle all conversions between JPA entities and DTOs. They live in `model/adapter/<schema>/` and follow the naming convention `<Domain>Adapter`.
 
 !!! tip "Adapter Rules"
+
     - :material-check-all: Use static methods (`toDTO`, `toEntity`) — adapters are stateless.
     - :material-check-all: Place in `model/adapter/<schema>/` matching the entity's schema.
     - :material-alert-circle: Entities must **never** be exposed directly in API responses — always convert via an adapter.
@@ -158,6 +189,7 @@ public class UserProfileAdapter {
 Services are the transactional boundary and the home for all business logic.
 
 !!! success "Best Practices"
+
     - :material-check-all: Annotate the class with `@Service`, `@RequiredArgsConstructor`, `@Transactional`, and `@Validated`.
     - :material-check-all: Mark read-only methods with `@Transactional(readOnly = true)`.
     - :material-check-all: Use `@Valid` on method parameters to trigger Jakarta validation.
@@ -187,6 +219,7 @@ public class UserProfileService {
 All exceptions are mapped to **RFC 7807 Problem Detail** responses by a centralized `GlobalExceptionHandler` annotated with `@RestControllerAdvice`. Error type URIs are built from the `AppErrorType` enum and the configurable `app.error-base-url` property.
 
 !!! tip "Service Layer Rule"
+
     Services throw domain-specific exceptions. The `GlobalExceptionHandler` maps them to the correct HTTP status and Problem Detail response — services should **never** construct HTTP responses directly.
 
 ### Exception Mapping
@@ -203,7 +236,45 @@ All exceptions are mapped to **RFC 7807 Problem Detail** responses by a centrali
 | `Exception` (catch-all) | 500 | Unexpected errors |
 
 !!! warning "Spring Security Exceptions"
+
     `AccessDeniedException` must be **re-thrown** in the catch-all handler so it propagates to the Spring Security filter chain. Swallowing it would bypass authorization enforcement.
+
+### Exception Design
+
+!!! success "Best Practices"
+
+    - :material-check-all: **Never throw or catch generic `Exception` or `RuntimeException`.** Create specialized exceptions that extend `HomeAppException`.
+    - :material-check-all: **Catch specific exceptions.** Never use `catch (Exception e)` or `catch (RuntimeException e)`.
+    - :material-check-all: **Create domain-specific exceptions** for distinct error conditions (e.g., `ObjectNotFoundException`, `ValidationException`, `PhotoDownloadException`).
+    - :material-check-all: All custom exceptions MUST extend `HomeAppException` and include an `AppErrorType`.
+
+!!! example "Custom Exception"
+
+    ```java
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public class ObjectNotFoundException extends HomeAppException {
+
+        public ObjectNotFoundException(String entity, Long id) {
+            super("%s with id %d not found".formatted(entity, id));
+        }
+    }
+    ```
+
+!!! tip "Response Status Annotation"
+
+    Every custom exception exposed to REST controllers MUST have a `@ResponseStatus` annotation to set the appropriate HTTP status code. The `GlobalExceptionHandler` will then map it correctly without additional configuration.
+
+!!! warning "Anti-Pattern"
+
+    **NEVER** do this:
+
+    ```java
+    try {
+        // ...
+    } catch (Exception e) {           // ❌ Generic catch
+        throw new RuntimeException(e); // ❌ Wrapped in generic exception
+    }
+    ```
 
 ---
 
@@ -216,9 +287,42 @@ All exceptions are mapped to **RFC 7807 Problem Detail** responses by a centrali
 ### Javadoc
 
 !!! success "Javadoc Standards"
+
     - :material-check-all: **Class-level Javadoc** is mandatory on all public classes (services, controllers, entities, adapters).
     - :material-check-all: Use `@param` and `@return` tags on all public methods.
     - :material-check-all: Use `{@link ClassName}` to reference related classes and `{@code value}` for inline code.
+
+### Admonition Formatting
+
+!!! success "Best Practices"
+
+    - :material-check-all: **Always add an empty line between the admonition title and the body content.** Without this line, Material for MkDocs treats the first line as plain text and fails to render the admonition correctly.
+
+!!! example "Correct vs Incorrect"
+
+    **Incorrect** (no empty line — renders as plain text):
+
+    ```markdown
+    !!! success "Best Practices"
+    - :material-check-all: Extend `JpaRepository<Entity, Long>`.
+    ```
+
+    **Correct** (empty line after title, proper indentation — renders properly):
+
+    ```markdown
+    !!! success "Best Practices"
+
+        - :material-check-all: Extend `JpaRepository<Entity, Long>`.
+    ```
+
+### Class & Method Design
+
+!!! success "Best Practices"
+
+    - :material-check-all: **No god classes.** Avoid overly large or complex classes. Break responsibilities into focused, well-named classes with proper documentation.
+    - :material-check-all: **Keep methods short.** Each method should do one thing. Extract helper methods to improve readability, testability, and maintainability.
+    - :material-check-all: **Document intent.** Non-trivial logic must have clear Javadoc or inline comments explaining *why*, not just *what*.
+    - :material-alert-circle: **No FQDN class references.** Always import classes instead of using fully qualified names (e.g., `java.util.List`). The only exception is when two imports would conflict (e.g., `java.util.Date` vs `java.sql.Date`).
 
 ---
 
@@ -227,6 +331,7 @@ All exceptions are mapped to **RFC 7807 Problem Detail** responses by a centrali
 Use Lombok's `@Slf4j` annotation for logging across all service classes. Always use **parameterized messages** — never string concatenation.
 
 !!! success "Best Practices"
+
     - :material-check-all: Add `@Slf4j` to every `@Service` class.
     - :material-check-all: Use parameterized logging: `log.warn("Failed for user {}", userId)`.
     - :material-alert-circle: NEVER use string concatenation: `log.warn("Failed for " + email)`.
@@ -239,6 +344,7 @@ Use Lombok's `@Slf4j` annotation for logging across all service classes. Always 
 | `error` | Unexpected exceptions | `log.error("Unexpected failure in scheduled task", e)` |
 
 !!! warning "Sensitive Data"
+
     Never log PII (emails, phone numbers), tokens, or credentials. Use surrogate identifiers (e.g., user ID) instead.
 
 ---
@@ -248,6 +354,7 @@ Use Lombok's `@Slf4j` annotation for logging across all service classes. Always 
 Repositories are Spring Data JPA interfaces that provide data access for a single entity.
 
 !!! success "Best Practices"
+
     - :material-check-all: Extend `JpaRepository<Entity, Long>`.
     - :material-check-all: Prefer derived query methods (`findByEmail`) over `@Query` when the method name is readable.
     - :material-check-all: Return `Page<T>` for any operation that lists multiple records.
@@ -270,12 +377,14 @@ public interface UserRepository extends JpaRepository<User, Long> {
 All `/api/**` endpoints require a valid OAuth2 session. Non-authenticated requests return `401 Unauthorized`.
 
 !!! warning "Default Access Rule"
+
     Authentication is enforced globally by `SecurityConfig`. Every new endpoint under `/api/**` is protected automatically — no per-controller annotation is needed for basic auth.
 
 ### Authorization (Method Security)
 Use `@PreAuthorize` for endpoints that require role-based restrictions **beyond** basic authentication.
 
 !!! tip "When to Use @PreAuthorize"
+
     Only add `@PreAuthorize` when an endpoint must be restricted to a specific role. If all authenticated users should have access, the default security config is sufficient.
 
 -   **Role Naming Convention:** `ROLE_<AGE_GROUP>` (e.g., `ROLE_ADULT`, `ROLE_TEENAGER`).
@@ -296,6 +405,7 @@ public class SettingsController {
 ## AI Alignment
 
 !!! info "Directives for AI Agents"
+
     - :material-gavel: Use Records for simple value objects; use `@Data` classes for DTOs requiring validation or `@Relation`.
     - :material-gavel: ALWAYS use `@Data` + `@EqualsAndHashCode(onlyExplicitlyIncluded = true)` on JPA entities.
     - :material-gavel: NEVER expose entities in API responses — always convert via a static Adapter class.
@@ -308,3 +418,9 @@ public class SettingsController {
     - :material-gavel: Repositories extend `JpaRepository`, use derived query methods, and return `Page<T>` for lists.
     - :material-gavel: Use `@PreAuthorize` with `ROLE_<AGE_GROUP>` for role-restricted endpoints.
     - :material-gavel: ENSURE all new entities follow the Liquibase naming conventions established in the [Database Design](../specification/design/database/schema.md).
+    - :material-gavel: NEVER create god classes — break large classes into focused, single-responsibility components.
+    - :material-gavel: NEVER use fully qualified class names in code — always use imports. Only use FQDN when resolving an import conflict.
+    - :material-gavel: GROUP related entity attributes into nested objects in DTOs. Never use flat attributes like `storeId` + `storeName` — use `Store store` with nested `id` and `name`.
+    - :material-gavel: NEVER throw or catch generic `Exception` or `RuntimeException`. Create specialized exceptions extending `HomeAppException` for each distinct error condition.
+    - :material-gavel: ALWAYS annotate custom exceptions with `@ResponseStatus` to set the HTTP status code (e.g., `@ResponseStatus(HttpStatus.NOT_FOUND)`).
+    - :material-gavel: ALWAYS add an empty line between admonition titles and their content (e.g., `!!! success "Title"\n\n- item`).

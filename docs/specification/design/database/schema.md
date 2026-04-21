@@ -243,6 +243,11 @@ erDiagram
         varchar name
         text photo
         bigint category_id FK
+        varchar unit
+        decimal pc_quantity
+        varchar pc_unit
+        decimal nutrition_sample_size
+        varchar nutrition_sample_unit
         bigint version
         timestamp created_at
         timestamp updated_at
@@ -309,13 +314,13 @@ erDiagram
 
 | Table | Description |
 |-------|-------------|
-| `shopping_lists` | Shared lists with status tracking (ACTIVE, COMPLETED). |
-| `shopping_list_items` | Individual entries in a list, including prices and check-off status. |
-| `shopping_items` | Master catalog of items shared across the household. |
+| `shopping_lists` | Shared lists with status tracking (PENDING, COMPLETED). |
+| `shopping_list_items` | Individual entries in a list, including prices, bought status, and unavailable status. |
+| `shopping_items` | Master catalog of items with `unit`, optional piece conversion (`pc_quantity`/`pc_unit`), and nutrition sample config (`nutrition_sample_size`/`nutrition_sample_unit`). Unique constraint on `(name, category_id)`. |
 | `shopping_categories` | Taxonomies for organizing shopping items. |
 | `shopping_stores` | Favorite shopping locations. |
 | `loyalty_cards` | Digital storage for store cards with Barcode/QR support. |
-| `coupons` | Store-specific discounts with expiration tracking. |
+| `coupons` | Store-specific discounts with expiration tracking and optional barcode (`code`/`barcode_type`). |
 | `shopping_item_price_history` | Historical price data used for intelligent suggestions. |
 
 ---
@@ -337,6 +342,7 @@ erDiagram
     RECIPES ||--o{ RECIPE_RATINGS : "rated_by"
     SHOPPING_ITEMS ||--o{ RECIPE_INGREDIENTS : "used_in"
     SHOPPING_ITEMS ||--o{ NUTRITION_ENTRIES : "has"
+    NUTRIENTS ||--o{ NUTRITION_ENTRIES : "defines"
     USER ||--o{ RECIPES : "creates"
     USER ||--o{ RECIPE_COMMENTS : "writes"
     USER ||--o{ RECIPE_RATINGS : "rates"
@@ -349,7 +355,6 @@ erDiagram
         text source_link
         text video_link
         integer prep_time_minutes
-        bigint default_photo_id FK
         bigint created_by FK
         bigint version
         timestamp created_at
@@ -359,8 +364,8 @@ erDiagram
     RECIPE_PHOTOS {
         bigint id PK
         bigint recipe_id FK
-        text photo
-        integer sort_order
+        varchar photo_name
+        boolean is_default
         bigint version
         timestamp created_at
         timestamp updated_at
@@ -378,12 +383,23 @@ erDiagram
         bigint label_id PK_FK
     }
 
+    NUTRIENTS {
+        bigint id PK
+        varchar name UK
+        text description
+        varchar unit
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
     RECIPE_INGREDIENTS {
         bigint id PK
         bigint recipe_id FK
         bigint item_id FK
         decimal quantity
         varchar unit
+        varchar group_name
         bigint version
         timestamp created_at
         timestamp updated_at
@@ -404,7 +420,7 @@ erDiagram
         bigint id PK
         bigint recipe_id FK
         bigint user_id FK
-        text content
+        text comment
         timestamp created_at
         timestamp updated_at
     }
@@ -413,7 +429,7 @@ erDiagram
         bigint id PK
         bigint recipe_id FK
         bigint user_id FK
-        integer score
+        integer rating
         timestamp created_at
         timestamp updated_at
     }
@@ -421,9 +437,8 @@ erDiagram
     NUTRITION_ENTRIES {
         bigint id PK
         bigint item_id FK
-        varchar nutrient_key
+        bigint nutrient_id FK
         decimal value
-        varchar unit
         bigint version
         timestamp created_at
         timestamp updated_at
@@ -434,15 +449,16 @@ erDiagram
 
 | Table | Description |
 |-------|-------------|
-| `recipes` | Core recipe records with metadata, markdown description, and creator reference. |
-| `recipe_photos` | Base64-encoded photos with sort order. One can be designated as default via `recipes.default_photo_id`. |
+| `recipes` | Core recipe records with metadata, markdown description, and creator reference. Unique constraint on `(name, created_by)`. |
+| `recipe_photos` | Photos referencing the centralized media service by `photo_name`. One can be designated as default via `is_default` boolean. |
 | `labels` | Dynamic label catalog. Created on demand, auto-deleted when no recipe references them. |
 | `recipe_labels` | Junction table linking recipes to labels (many-to-many). |
-| `recipe_ingredients` | Links shopping items as recipe ingredients with quantity and unit (same enum as shopping: KG, G, L, ML, PACK, UNIT). |
+| `nutrients` | Master catalog of predefined nutrients (Energy, Fat, Protein, etc.) with name, description, and unit. |
+| `recipe_ingredients` | Links shopping items as recipe ingredients with quantity, unit (same enum as shopping: KG, G, L, ML, PACK, UNIT), and optional `group_name` for visual grouping. |
 | `recipe_steps` | Ordered preparation steps with markdown instructions and optional time. `sort_order` determines display order. |
-| `recipe_comments` | User comments on recipes with author and timestamp. |
-| `recipe_ratings` | Individual 1-5 star ratings per user per recipe (unique constraint on recipe_id + user_id). Average computed on-the-fly. |
-| `nutrition_entries` | Flexible key-value-unit nutrition data per shopping item (0:N). e.g., `fat: 2.3 g`, `protein: 23.4 g`. Used for on-the-fly recipe nutrition calculation. |
+| `recipe_comments` | User comments on recipes with author and timestamp. Column: `comment`. |
+| `recipe_ratings` | Individual 1-5 star ratings per user per recipe (unique constraint on recipe_id + user_id). Column: `rating`. Average computed on-the-fly. |
+| `nutrition_entries` | Nutrition data per shopping item, referencing the `nutrients` master table via `nutrient_id` FK. Unique constraint on `(item_id, nutrient_id)`. |
 
 ### Cross-Schema References
 
@@ -451,8 +467,9 @@ erDiagram
 | `recipes.created_by` | `profiles.user(id)` | RESTRICT |
 | `recipe_comments.user_id` | `profiles.user(id)` | CASCADE |
 | `recipe_ratings.user_id` | `profiles.user(id)` | CASCADE |
-| `recipe_ingredients.item_id` | `shopping.shopping_items(id)` | RESTRICT |
+| `recipe_ingredients.item_id` | `shopping.shopping_items(id)` | CASCADE |
 | `nutrition_entries.item_id` | `shopping.shopping_items(id)` | CASCADE |
+| `nutrition_entries.nutrient_id` | `recipes.nutrients(id)` | RESTRICT |
 
 ---
 
@@ -468,15 +485,16 @@ erDiagram
     MEAL_PLANS ||--o{ MEAL_PLAN_ENTRIES : "contains"
     MEAL_PLAN_ENTRIES }o--|| MEAL_TIMES : "for"
     MEAL_PLAN_ENTRIES ||--o{ MEAL_PLAN_ENTRY_RECIPES : "includes"
-    MEAL_PLAN_ENTRIES ||--o{ MEAL_PLAN_ENTRY_MEMBERS : "assigned_to"
+    MEAL_PLAN_ENTRIES ||--o{ MEAL_PLAN_ENTRY_ITEMS : "includes"
+    MEAL_PLAN_ENTRIES ||--o{ MEAL_PLAN_VOTES : "rated_by"
     RECIPES ||--o{ MEAL_PLAN_ENTRY_RECIPES : "used_in"
-    USER ||--o{ MEAL_PLANS : "creates"
     USER ||--o{ MEAL_PLAN_ENTRY_RECIPES : "assigned_to"
-    USER ||--o{ MEAL_PLAN_ENTRY_MEMBERS : "responds"
+    USER ||--o{ MEAL_PLAN_VOTES : "votes"
 
     MEAL_TIMES {
         bigint id PK
         varchar name
+        integer sort_order
         bigint version
         timestamp created_at
         timestamp updated_at
@@ -486,7 +504,7 @@ erDiagram
         bigint id PK
         bigint meal_time_id FK
         integer day_of_week
-        time time_of_day
+        time start_time
         bigint version
         timestamp created_at
         timestamp updated_at
@@ -495,7 +513,6 @@ erDiagram
     MEAL_PLANS {
         bigint id PK
         date week_start_date UK
-        bigint created_by FK
         varchar status
         bigint version
         timestamp created_at
@@ -508,7 +525,6 @@ erDiagram
         bigint meal_time_id FK
         integer day_of_week
         boolean is_done
-        integer reminder_offset_minutes
         bigint version
         timestamp created_at
         timestamp updated_at
@@ -519,14 +535,26 @@ erDiagram
         bigint entry_id FK
         bigint recipe_id FK
         bigint user_id FK
+        decimal multiplier
         timestamp created_at
+        timestamp updated_at
     }
 
-    MEAL_PLAN_ENTRY_MEMBERS {
+    MEAL_PLAN_ENTRY_ITEMS {
+        bigint id PK
+        bigint entry_id FK
+        bigint item_id FK
+        bigint user_id FK
+        decimal quantity
+        varchar unit
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MEAL_PLAN_VOTES {
         bigint id PK
         bigint entry_id FK
         bigint user_id FK
-        varchar status
         boolean vote
         timestamp created_at
         timestamp updated_at
@@ -537,21 +565,23 @@ erDiagram
 
 | Table | Description |
 |-------|-------------|
-| `meal_times` | Named meal occasions (e.g., Breakfast, Lunch, Dinner). |
-| `meal_time_schedules` | Per-day-of-week time configuration for each meal time. `day_of_week` uses ISO 8601 (1=Monday, 7=Sunday). |
-| `meal_plans` | Weekly plans with a unique `week_start_date` (Monday). Status: `DRAFT` or `PUBLISHED`. |
-| `meal_plan_entries` | Individual meal slots: a specific meal time on a specific day. Supports `is_done` flag and optional `reminder_offset_minutes`. |
-| `meal_plan_entry_recipes` | Recipes assigned to an entry. `user_id` is nullable — null means "for everyone". Supports multi-recipe meals. |
-| `meal_plan_entry_members` | Tracks each member's response (`PENDING`, `ACCEPTED`, `CHANGED`) and optional thumbs up/down `vote`. |
+| `meal_times` | Named meal occasions (e.g., Breakfast, Lunch, Dinner) with `sort_order` for display ordering. |
+| `meal_time_schedules` | Per-day-of-week time configuration for each meal time. `day_of_week` uses 0-6 (0=Monday, 6=Sunday). Column: `start_time`. |
+| `meal_plans` | Weekly plans with a unique `week_start_date` (Monday). Status: `PENDING`, `PUBLISHED`, `ACCEPTED`, `CHANGED`. |
+| `meal_plan_entries` | Individual meal slots: a specific meal time on a specific day. Supports `is_done` flag. |
+| `meal_plan_entry_recipes` | Recipes assigned to an entry with `multiplier` (default 1.0). `user_id` is nullable — null means "for everyone". Supports multi-recipe meals. |
+| `meal_plan_entry_items` | Standalone shopping items assigned to an entry with `quantity` and `unit`. `user_id` is nullable — null means "for everyone". |
+| `meal_plan_votes` | Thumbs up/down feedback per entry per user. Unique constraint on `(entry_id, user_id)`. `vote` boolean: true = thumbs-up, false = thumbs-down. |
 
 ### Cross-Schema References
 
 | Column | References | On Delete |
 |--------|-----------|-----------|
-| `meal_plans.created_by` | `profiles.user(id)` | RESTRICT |
-| `meal_plan_entry_recipes.recipe_id` | `recipes.recipes(id)` | RESTRICT |
-| `meal_plan_entry_recipes.user_id` | `profiles.user(id)` | CASCADE |
-| `meal_plan_entry_members.user_id` | `profiles.user(id)` | CASCADE |
+| `meal_plan_entry_recipes.recipe_id` | `recipes.recipes(id)` | CASCADE |
+| `meal_plan_entry_recipes.user_id` | `profiles.user(id)` | SET NULL |
+| `meal_plan_entry_items.item_id` | `shopping.shopping_items(id)` | CASCADE |
+| `meal_plan_entry_items.user_id` | `profiles.user(id)` | SET NULL |
+| `meal_plan_votes.user_id` | `profiles.user(id)` | CASCADE |
 
 ---
 
@@ -569,13 +599,13 @@ erDiagram
 
     NOTIFICATIONS {
         bigint id PK
-        bigint user_id FK
+        bigint recipient_id FK
+        bigint sender_id FK
         varchar type
         varchar title
         text message
-        bigint reference_id
-        varchar reference_type
-        boolean read
+        varchar link
+        boolean is_read
         timestamp created_at
     }
 
@@ -584,7 +614,7 @@ erDiagram
         bigint sender_id FK
         bigint recipient_id FK
         text content
-        boolean read
+        boolean is_read
         timestamp created_at
     }
 ```
@@ -593,16 +623,40 @@ erDiagram
 
 | Table | Description |
 |-------|-------------|
-| `notifications` | Typed notifications with polymorphic reference (`reference_id` + `reference_type`) to source entities. Types: `MEAL_PLAN_PUBLISHED`, `MEAL_REMINDER`, `MEAL_SUGGESTION_MADE`, `NEW_RECIPE_COMMENT`, `NEW_MESSAGE`. |
+| `notifications` | Typed notifications with `link` (URL path) for navigation and `sender_id`/`sender_name` for attribution. Types: `MEAL_PLAN_PUBLISHED`, `MEAL_REMINDER`, `NEW_RECIPE_COMMENT`, `NEW_MESSAGE`. |
 | `messages` | Direct messages between household members with read status tracking. |
 
 ### Cross-Schema References
 
 | Column | References | On Delete |
 |--------|-----------|-----------|
-| `notifications.user_id` | `profiles.user(id)` | CASCADE |
+| `notifications.recipient_id` | `profiles.user(id)` | CASCADE |
+| `notifications.sender_id` | `profiles.user(id)` | SET NULL |
 | `messages.sender_id` | `profiles.user(id)` | CASCADE |
 | `messages.recipient_id` | `profiles.user(id)` | CASCADE |
+
+---
+
+## media Schema
+
+This schema provides centralized binary photo storage for all modules.
+
+### Table Definition
+
+| Table | Description |
+|-------|-------------|
+| `photos` | Binary image storage with unique `name`, `type` (profile, recipe, item, store), `extension`, `content_type`, and `data` (BYTEA). Served via `/api/images/{name}`. |
+
+### Columns
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | BIGINT PK | Auto-generated identifier. |
+| `name` | VARCHAR(255) UK | Unique filename used as the URL path segment. |
+| `type` | VARCHAR(50) | Category: profile, recipe, item, store. |
+| `extension` | VARCHAR(10) | File extension: png, jpg, svg, etc. |
+| `content_type` | VARCHAR(100) | MIME type for HTTP response headers. |
+| `data` | BYTEA | Binary image content. |
 
 ---
 

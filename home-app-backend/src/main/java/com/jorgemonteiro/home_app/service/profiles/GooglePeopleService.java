@@ -27,21 +27,37 @@ public class GooglePeopleService {
      * @throws AuthenticationException if the token is invalid or expired
      */
     public Optional<LocalDate> fetchBirthdate(String accessToken) {
+        log.debug("Fetching birthdate from Google People API...");
         try {
             GooglePeopleResponseDTO response = googlePeopleClient.getPersonData(
                     "birthdays",
                     "Bearer " + accessToken
             );
 
-            if (response == null || response.birthdays() == null || response.birthdays().isEmpty()) {
-                log.debug("No birthdate information returned from Google People API");
+            if (response == null) {
+                log.warn("Google People API returned null response");
                 return Optional.empty();
             }
 
+            if (response.birthdays() == null || response.birthdays().isEmpty()) {
+                log.info("No birthdate information found in Google profile for this user");
+                return Optional.empty();
+            }
+
+            log.debug("Found {} birthday entries in Google profile", response.birthdays().size());
+
             return response.birthdays().stream()
                     .map(GooglePeopleResponseDTO.BirthdayContainer::date)
-                    .filter(date -> date != null && date.year() != null && date.month() != null && date.day() != null)
-                    .map(date -> LocalDate.of(date.year(), date.month(), date.day()))
+                    .filter(date -> {
+                        boolean valid = date != null && date.year() != null && date.month() != null && date.day() != null;
+                        if (!valid) log.debug("Skipping incomplete birthday date: {}", date);
+                        return valid;
+                    })
+                    .map(date -> {
+                        LocalDate ld = LocalDate.of(date.year(), date.month(), date.day());
+                        log.info("Successfully parsed birthdate: {}", ld);
+                        return ld;
+                    })
                     .findFirst();
 
         } catch (FeignException.Unauthorized e) {

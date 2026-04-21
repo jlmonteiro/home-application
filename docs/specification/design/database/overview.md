@@ -8,7 +8,7 @@ The Home Application uses **PostgreSQL 17** as its primary data store. The datab
 
 -   :material-database-lock: **Multi-Schema Design**
     
-    Uses `profiles`, `shopping`, `recipes`, `meals`, and `notifications` schemas to enforce domain boundaries and simplify access control.
+    Uses `profiles`, `shopping`, `recipes`, `meals`, `notifications`, and `media` schemas to enforce domain boundaries and simplify access control.
 
 -   :material-history: **Audit Tracking**
     
@@ -30,7 +30,8 @@ Manages identity, authentication, and the household organizational structure.
 | Entity | Description |
 |--------|-------------|
 | **Users** | Core authentication record linked to Google email. |
-| **User Profiles** | Extended profile data (birthdate, social links, photo). |
+| **User Profiles** | Extended profile data (birthdate, social links, photo URL). |
+| **User Preferences** | UI-specific settings like dashboard widget visibility. |
 | **Family Roles** | Defined roles (Mother, Father, etc.) with custom support. |
 | **Age Groups** | Configurable age ranges for classification logic. |
 
@@ -39,10 +40,13 @@ Contains all data related to the collaborative shopping experience.
 
 | Entity | Description |
 |--------|-------------|
-| **Shopping Lists** | Shared lists with status tracking. |
-| **Items** | Master catalog items and individual list entries. |
+| **Shopping Lists** | Shared lists with status tracking (PENDING/COMPLETED). |
+| **Shopping Items** | Master catalog items with unit, piece conversion, and nutrition sample config. |
+| **Shopping List Items** | Individual list entries with bought/unavailable status. |
 | **Stores** | Favorite shopping locations with associated metadata. |
-| **Loyalty & Coupons** | Digital representation of cards and expiration tracking. |
+| **Loyalty Cards** | Digital cards with QR/Code 128 barcode support. |
+| **Coupons** | Store discounts with expiration tracking and optional barcode. |
+| **Price History** | Historical price data for intelligent suggestions. |
 
 ### 3. Recipes Schema
 Manages the family cookbook and nutritional information.
@@ -50,31 +54,40 @@ Manages the family cookbook and nutritional information.
 | Entity | Description |
 |--------|-------------|
 | **Recipes** | Core recipe records with markdown descriptions and metadata. |
-| **Photos** | Multiple Base64-encoded photos per recipe with default selection. |
+| **Recipe Photos** | Photos referencing the centralized media service by `photo_name`. |
 | **Labels** | Dynamic tags created on demand, auto-deleted when orphaned. |
-| **Ingredients** | Links to shopping items with quantity and unit. |
+| **Nutrients** | Master catalog of predefined nutrients (Energy, Fat, Protein, etc.). |
+| **Ingredients** | Links to shopping items with quantity, unit, and optional `group_name`. |
+| **Nutrition Entries** | Per-item nutrition values referencing the nutrients master catalog. |
 | **Steps** | Ordered preparation instructions with optional time. |
 | **Comments & Ratings** | Collaborative feedback: comments and 1-5 star ratings. |
-| **Nutrition Data** | Per-item nutrition (1:1 with shopping items). |
 
 ### 4. Meals Schema
-Handles weekly meal planning and the approval workflow.
+Handles weekly meal planning and feedback.
 
 | Entity | Description |
 |--------|-------------|
-| **Meal Times** | Named meal occasions with per-day-of-week schedules. |
-| **Meal Plans** | Weekly plans (Monday–Sunday) with DRAFT/PUBLISHED status. |
-| **Entries** | Individual meal slots with done flag and reminder offset. |
-| **Entry Recipes** | Recipe assignments per entry, optionally per member. |
-| **Entry Members** | Member response tracking (PENDING/ACCEPTED/CHANGED) and thumbs up/down. |
+| **Meal Times** | Named meal occasions with per-day-of-week schedules and sort order. |
+| **Meal Plans** | Weekly plans (Monday–Sunday) with PENDING/PUBLISHED status. |
+| **Entries** | Individual meal slots with done flag. |
+| **Entry Recipes** | Recipe assignments per entry with multiplier, optionally per member. |
+| **Entry Items** | Standalone shopping item assignments per entry, optionally per member. |
+| **Votes** | Thumbs up/down feedback per entry per user. |
 
 ### 5. Notifications Schema
 Manages in-app notifications and direct messaging.
 
 | Entity | Description |
 |--------|-------------|
-| **Notifications** | Typed events with polymorphic reference to source entities. |
+| **Notifications** | Typed events with `link` for navigation and sender info. |
 | **Messages** | Direct messages between household members with read tracking. |
+
+### 6. Media Schema
+Centralized binary photo storage serving all modules.
+
+| Entity | Description |
+|--------|-------------|
+| **Photos** | Binary image data (BYTEA) with name, type, extension, and content type. |
 
 ---
 

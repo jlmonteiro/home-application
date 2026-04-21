@@ -15,6 +15,7 @@ import {
   Modal,
   Box,
   useComputedColorScheme,
+  ThemeIcon,
 } from '@mantine/core'
 import { modals } from '@mantine/modals'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -28,10 +29,11 @@ import {
   type ApiError,
 } from '../../services/api'
 import { notifications } from '@mantine/notifications'
-import { IconCheck, IconDeviceFloppy, IconPlus, IconTrash, IconPencil } from '@tabler/icons-react'
+import { IconCheck, IconDeviceFloppy, IconPlus, IconTrash, IconPencil, IconClock, IconArrowRight, IconFlask } from '@tabler/icons-react'
 import { useState, useEffect } from 'react'
 import { useDisclosure } from '@mantine/hooks'
 import type { AgeGroupConfig, FamilyRole } from '../../services/api'
+import { Link } from 'react-router-dom'
 
 export function SettingsPage() {
   const queryClient = useQueryClient()
@@ -179,6 +181,57 @@ export function SettingsPage() {
           <Title order={2}>Household Settings</Title>
           <Text c="dimmed">Configure family roles and automated age classification</Text>
         </Stack>
+
+        {/* Meal Times Section */}
+        <Paper withBorder p="xl" radius="md">
+          <Group justify="space-between" align="center">
+            <Group gap="md">
+              <ThemeIcon variant="light" color="indigo" size="xl" radius="md">
+                <IconClock size={24} />
+              </ThemeIcon>
+              <div>
+                <Title order={4}>Meal Times & Schedule</Title>
+                <Text size="sm" c="dimmed">
+                  Configure breakfast, lunch, and dinner times for each day of the week.
+                </Text>
+              </div>
+            </Group>
+            <Button 
+              variant="light" 
+              component={Link} 
+              to="/settings/meal-times"
+              rightSection={<IconArrowRight size={16} />}
+            >
+              Configure
+            </Button>
+          </Group>
+        </Paper>
+
+        {/* Nutrients Section */}
+        <Paper withBorder p="xl" radius="md">
+          <Group justify="space-between" align="center">
+            <Group gap="md">
+              <ThemeIcon variant="light" color="orange" size="xl" radius="md">
+                <IconFlask size={24} />
+              </ThemeIcon>
+              <div>
+                <Title order={4}>Nutrient Definitions</Title>
+                <Text size="sm" c="dimmed">
+                  Manage the global list of nutrients available for items and recipes.
+                </Text>
+              </div>
+            </Group>
+            <Button 
+              variant="light" 
+              color="orange"
+              component={Link} 
+              to="/settings/nutrients"
+              rightSection={<IconArrowRight size={16} />}
+            >
+              Manage
+            </Button>
+          </Group>
+        </Paper>
 
         {/* Age Groups Section */}
         <Paper withBorder p="xl" radius="md">

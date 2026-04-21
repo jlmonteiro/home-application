@@ -19,6 +19,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
 import spock.lang.Shared
+import spock.lang.Subject
 import spock.lang.Title
 
 import java.time.Instant
@@ -39,6 +40,7 @@ so that the household hierarchy is correctly established.
 ])
 @ActiveProfiles("test")
 @Transactional
+@Subject(CustomOAuth2UserService)
 class OnboardingIntegrationSpec extends BaseIntegrationTest {
 
     @Shared

@@ -1,7 +1,8 @@
 package com.jorgemonteiro.home_app.controller.profiles
 
+import com.jorgemonteiro.home_app.model.dtos.shared.PhotoDTO
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository
-import com.jorgemonteiro.home_app.service.profiles.PhotoService
+import com.jorgemonteiro.home_app.service.media.PhotoService
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import groovy.json.JsonOutput
 import org.springframework.beans.factory.annotation.Autowired
@@ -14,6 +15,7 @@ import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
 
 import static groovy.json.JsonOutput.toJson
@@ -35,6 +37,7 @@ So that my contact and social details are current
 @ActiveProfiles("test")
 @Transactional
 @AutoConfigureMockMvc
+@Subject(UserProfileController)
 class UserProfileUpdateSpec extends BaseIntegrationTest {
 
     @Autowired
@@ -55,16 +58,20 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
 
         and: "a request body with new values and some immutable values"
             def requestBody = [
-                photo: "new-photo-base64",
+                email: targetEmail,
+                photo: [data: "new-photo-base64", url: null],
                 facebook: "https://facebook.com/new",
                 mobilePhone: "+9876543210",
                 instagram: "https://instagram.com/new",
                 linkedin: "https://linkedin.com/new",
                 // Immutable fields - should be ignored
-                email: "hacker@example.com",
                 firstName: "Hacker",
                 lastName: "Man"
             ]
+
+        and: "stubbed photo service"
+            doReturn("user-1-profile.png")
+                .when(photoService).savePhoto(anyString(), anyString(), anyString())
 
         when: "updating the 'me' profile"
             def response = mockMvc.perform(put("/api/user/me")
@@ -77,7 +84,7 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
                     .andExpect(content().contentType(HAL_JSON_VALUE))
 
         and: "allowed fields are updated"
-            response.andExpect(jsonPath('$.photo').value("new-photo-base64"))
+            response.andExpect(jsonPath('$.photo.url').value("/api/images/user-1-profile.png"))
                     .andExpect(jsonPath('$.facebook').value("https://facebook.com/new"))
                     .andExpect(jsonPath('$.mobilePhone').value("+9876543210"))
                     .andExpect(jsonPath('$.instagram').value("https://instagram.com/new"))
@@ -85,28 +92,32 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
 
         and: "immutable fields remain unchanged"
             response.andExpect(jsonPath('$.email').value(targetEmail))
-                    .andExpect(jsonPath('$.firstName').value(existingUser.firstName))
-                    .andExpect(jsonPath('$.lastName').value(existingUser.lastName))
+            response.andExpect(jsonPath('$.firstName').value(existingUser.firstName))
+            response.andExpect(jsonPath('$.lastName').value(existingUser.lastName))
+
 
         and: "database is updated correctly"
             def updatedUser = userRepository.findByEmail(targetEmail).get()
-            updatedUser.userProfile.photo == "new-photo-base64"
+            updatedUser.userProfile.photo == "user-1-profile.png"
             updatedUser.firstName == "John"
     }
 
     @Sql("/scripts/sql/user-profile-test-data.sql")
-    def "PUT /api/user/me should convert photo URL to base64 using PhotoService"() {
+    def "PUT /api/user/me should save photo using PhotoService"() {
         given: "an authenticated user session"
             def targetEmail = "existing@example.com"
             def auth = oauth2Login().attributes { it.put("email", targetEmail) }
 
-        and: "a request with a photo URL"
-            def photoUrl = "https://example.com/photo.jpg"
-            def requestBody = [ photo: photoUrl ]
+        and: "a request with base64 photo data"
+            def photoData = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
+            def requestBody = [
+                email: targetEmail,
+                photo: [data: photoData, url: null]
+            ]
 
-        and: "stubbed network response via Spy (necessary to avoid real network call)"
-            doReturn("converted-base64-data")
-                .when(photoService).downloadAndConvertToBase64(anyString())
+        and: "stubbed photo service"
+            doReturn("user-1-profile.png")
+                .when(photoService).savePhoto(anyString(), anyString(), anyString())
 
         when: "updating the 'me' profile"
             def response = mockMvc.perform(put("/api/user/me")
@@ -114,9 +125,10 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(toJson(requestBody)))
 
-        then: "response contains the converted base64 photo"
+        then: "response contains the saved photo filename"
             response.andExpect(status().isOk())
-                    .andExpect(jsonPath('$.photo').value("converted-base64-data"))
+                    .andExpect(jsonPath('$.photo.url').value("/api/images/user-1-profile.png"))
+
     }
 
     @Sql("/scripts/sql/user-profile-test-data.sql")
@@ -126,6 +138,7 @@ class UserProfileUpdateSpec extends BaseIntegrationTest {
 
         and: "an invalid request body"
             def requestBody = [
+                email: "existing@example.com",
                 facebook: "not-a-url",
                 mobilePhone: "short"
             ]

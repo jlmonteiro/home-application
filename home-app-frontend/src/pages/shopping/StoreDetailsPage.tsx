@@ -7,7 +7,6 @@ import {
   Group,
   Stack,
   ActionIcon,
-  rem,
   LoadingOverlay,
   Box,
   Badge,
@@ -46,6 +45,7 @@ import {
 } from '../../services/api'
 import type { Coupon } from '../../services/api'
 import { useState } from 'react'
+import dayjs from 'dayjs'
 import { getPhotoSrc } from '../../utils/photo'
 import { formatEuro } from '../../utils/currency'
 import { AddCardModal, type CardFormValues } from '../../components/shopping/AddCardModal'
@@ -106,7 +106,7 @@ export function StoreDetailsPage() {
   })
 
   const deleteCardMutation = useMutation({
-    mutationFn: deleteLoyaltyCard,
+    mutationFn: (cardId: number) => deleteLoyaltyCard(storeId, cardId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loyalty-cards', storeId] })
       notifications.show({ title: 'Success', message: 'Card removed', color: 'green' })
@@ -157,7 +157,7 @@ export function StoreDetailsPage() {
   })
 
   const removeCouponMutation = useMutation({
-    mutationFn: deleteCoupon,
+    mutationFn: (couponId: number) => deleteCoupon(storeId, couponId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coupons', storeId] })
       notifications.show({ title: 'Success', message: 'Coupon removed', color: 'green' })
@@ -174,7 +174,7 @@ export function StoreDetailsPage() {
       name: values.name,
       description: values.description || undefined,
       value: values.value || undefined,
-      dueDate: values.dueDate || undefined,
+      dueDate: values.dueDate ? dayjs(values.dueDate).format('YYYY-MM-DD') : undefined,
       barcode: values.code ? { code: values.code, type: values.barcodeType } : undefined,
     }
 

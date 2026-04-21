@@ -36,8 +36,11 @@
 
 !!! success "Acceptance Criteria"
     1. :material-check-all:{ title="Ubiquitous" } The system shall allow users to create categories with a `name`, `description`, and a library icon.
-    2. :material-check-all:{ title="Ubiquitous" } The system shall allow users to create items with a `name` and either a library icon or an uploaded photo.
+    2. :material-check-all:{ title="Ubiquitous" } The system shall allow users to create items with a `name`, a `unit` (the default selling unit), and either a library icon or an uploaded photo stored via the centralized media service.
     3. :material-check-all:{ title="Ubiquitous" } The system shall establish a link between every shopping item and exactly one category.
+    4. :material-check-all:{ title="Ubiquitous" } The system shall enforce a unique constraint on `(name, category_id)` to prevent duplicate items within the same category.
+    5. :material-plus-circle-outline:{ title="Optional" } Where an item is sold in discrete pieces (e.g., a 1L bottle), the system shall allow users to specify `pc_quantity` and `pc_unit` for piece-to-unit conversion.
+    6. :material-check-all:{ title="Ubiquitous" } The system shall store `nutrition_sample_size` (default 100) and `nutrition_sample_unit` (default 'g') to define the reference portion for nutrition data.
 
 !!! quote "Rationale"
     **So That** I can organize my needs, I want to manage shopping categories and master items.
@@ -84,6 +87,7 @@
 
 !!! success "Acceptance Criteria"
     1. :material-play-circle:{ title="Event-driven" } When a user marks an item as "Bought", the system shall move the item to the end of the list and apply a strikethrough style to its name.
+    2. :material-play-circle:{ title="Event-driven" } When a user marks an item as "Unavailable", the system shall visually distinguish it from bought and pending items, indicating the item could not be found at the store.
 
 !!! quote "Rationale"
     **So That** I don't miss anything while shopping, I want to track what I've already put in my cart.
@@ -110,8 +114,9 @@
 #### FR-13: Store Coupons {: #fr-13 }
 
 !!! success "Acceptance Criteria"
-    1. :material-check-all:{ title="Ubiquitous" } The system shall allow users to store coupons with a `name`, `description`, `value`, `photo`, and `due date`.
-    2. :material-play-circle:{ title="Event-driven" } When a user marks a coupon as "Used", the system shall hide it from all default active views.
+    1. :material-check-all:{ title="Ubiquitous" } The system shall allow users to store coupons with a `name`, `description`, `value`, `photo`, `due date`, and an optional `barcode` (code + type).
+    2. :material-plus-circle-outline:{ title="Optional" } Where a coupon has a barcode configured, the system shall render it as either a QR Code or a Code 128 barcode for scanning at checkout.
+    3. :material-play-circle:{ title="Event-driven" } When a user marks a coupon as "Used", the system shall hide it from all default active views.
 
 !!! quote "Rationale"
     **So That** I can save money, I want to manage my digital and physical coupons.

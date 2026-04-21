@@ -6,6 +6,8 @@ import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingCategoryDTO
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingItemDTO
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListDTO
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingListItemDTO
+import com.jorgemonteiro.home_app.model.dtos.shared.CategorySummaryDTO
+import com.jorgemonteiro.home_app.model.dtos.shared.ItemSummaryDTO
 import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingListStatus
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingItemPriceHistoryRepository
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingListRepository
@@ -16,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
 
 import static com.jorgemonteiro.home_app.model.entities.shopping.ShoppingListStatus.COMPLETED
@@ -30,6 +33,7 @@ So that I can plan and track my shopping trips
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Subject(ShoppingListService)
 class ShoppingListServiceSpec extends BaseIntegrationTest {
 
     @Autowired
@@ -134,17 +138,17 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
         given: "a list, category, and item"
             def list = listService.createList(new ShoppingListDTO(name: "Test"), "existing@example.com")
             def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "ListTestCat-${UUID.randomUUID()}"))
-            def item = catalogService.createItem(new ShoppingItemDTO(name: "Milk", category: new ShoppingItemDTO.Category(id: category.id)))
+            def item = catalogService.createItem(new ShoppingItemDTO(name: "Milk", unit: "pcs", category: new CategorySummaryDTO(id: category.id)))
 
         and: "a list item DTO with price and unit"
-            def dto = new ShoppingListItemDTO(itemId: item.id, quantity: 2.0, unit: "pcs", price: 1.99)
+            def dto = new ShoppingListItemDTO(item: new ItemSummaryDTO(id: item.id), quantity: 2.0, unit: "pcs", pricing: new ShoppingListItemDTO.Pricing(price: 1.99))
 
         when: "adding item to list"
             def result = listService.addItemToList(list.id, dto)
 
         then: "item is added"
             result.id != null
-            result.itemName == "Milk"
+            result.item.name == "Milk"
             result.quantity == 2.0
 
         and: "price history is recorded"
@@ -153,7 +157,7 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
 
     def "addItemToList should throw ValidationException when itemId is null"() {
         when: "adding item without itemId"
-            listService.addItemToList(1L, new ShoppingListItemDTO(quantity: 1.0))
+            listService.addItemToList(1L, new ShoppingListItemDTO(item: new ItemSummaryDTO(id: null), quantity: 1.0))
 
         then: "ValidationException is thrown"
             thrown(ValidationException)
@@ -161,7 +165,7 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
 
     def "addItemToList should throw ValidationException when quantity is null"() {
         when: "adding item without quantity"
-            listService.addItemToList(1L, new ShoppingListItemDTO(itemId: 1L))
+            listService.addItemToList(1L, new ShoppingListItemDTO(item: new ItemSummaryDTO(id: null)))
 
         then: "ValidationException is thrown"
             thrown(ValidationException)
@@ -172,8 +176,8 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
         given: "a list with an item"
             def list = listService.createList(new ShoppingListDTO(name: "Test"), "existing@example.com")
             def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "UpdItemCat-${UUID.randomUUID()}"))
-            def item = catalogService.createItem(new ShoppingItemDTO(name: "Bread", category: new ShoppingItemDTO.Category(id: category.id)))
-            def listItem = listService.addItemToList(list.id, new ShoppingListItemDTO(itemId: item.id, quantity: 1.0, unit: "pcs"))
+            def item = catalogService.createItem(new ShoppingItemDTO(name: "Bread", unit: "pcs", category: new CategorySummaryDTO(id: category.id)))
+            def listItem = listService.addItemToList(list.id, new ShoppingListItemDTO(item: new ItemSummaryDTO(id: item.id), quantity: 1.0, unit: "pcs"))
 
         when: "updating the list item"
             def result = listService.updateListItem(listItem.id, new ShoppingListItemDTO(quantity: 3.0, bought: true))
@@ -188,8 +192,8 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
         given: "a list with an item"
             def list = listService.createList(new ShoppingListDTO(name: "Test"), "existing@example.com")
             def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "RemItemCat-${UUID.randomUUID()}"))
-            def item = catalogService.createItem(new ShoppingItemDTO(name: "Butter", category: new ShoppingItemDTO.Category(id: category.id)))
-            def listItem = listService.addItemToList(list.id, new ShoppingListItemDTO(itemId: item.id, quantity: 1.0, unit: "pcs"))
+            def item = catalogService.createItem(new ShoppingItemDTO(name: "Butter", unit: "pcs", category: new CategorySummaryDTO(id: category.id)))
+            def listItem = listService.addItemToList(list.id, new ShoppingListItemDTO(item: new ItemSummaryDTO(id: item.id), quantity: 1.0, unit: "pcs"))
 
         when: "removing the item"
             listService.removeListItem(listItem.id)
@@ -208,8 +212,8 @@ class ShoppingListServiceSpec extends BaseIntegrationTest {
         given: "a list item with a recorded price"
             def list = listService.createList(new ShoppingListDTO(name: "Test"), "existing@example.com")
             def category = catalogService.createCategory(new ShoppingCategoryDTO(name: "PriceCat-${UUID.randomUUID()}"))
-            def item = catalogService.createItem(new ShoppingItemDTO(name: "Eggs", category: new ShoppingItemDTO.Category(id: category.id)))
-            listService.addItemToList(list.id, new ShoppingListItemDTO(itemId: item.id, quantity: 1.0, unit: "pcs", price: 2.49))
+            def item = catalogService.createItem(new ShoppingItemDTO(name: "Eggs", unit: "pcs", category: new CategorySummaryDTO(id: category.id)))
+            listService.addItemToList(list.id, new ShoppingListItemDTO(item: new ItemSummaryDTO(id: item.id), quantity: 1.0, unit: "pcs", pricing: new ShoppingListItemDTO.Pricing(price: 2.49)))
 
         when: "suggesting a price"
             def result = listService.suggestPrice(item.id, null)

@@ -20,6 +20,17 @@
 !!! quote "Rationale"
     **So That** the interface remains organized as the application grows, all functional modules SHALL follow a consistent navigation pattern.
 
+### FR-42: Centralized Media Service {: #fr-42 }
+
+!!! success "Acceptance Criteria"
+    1. :material-check-all:{ title="Ubiquitous" } The system shall store all uploaded photos (profile, recipe, item, store) in a centralized `media.photos` table with binary data (BYTEA), content type, and a unique `name` identifier.
+    2. :material-check-all:{ title="Ubiquitous" } The system shall serve photos via a public endpoint (`GET /api/images/{name}`) returning the binary data with the appropriate `Content-Type` header.
+    3. :material-check-all:{ title="Ubiquitous" } The system shall categorize photos by `type` (profile, recipe, item, store) for organizational purposes.
+    4. :material-play-circle:{ title="Event-driven" } When a user uploads a photo in any module, the system shall store it in the centralized media table and return the URL reference for the calling module to persist.
+
+!!! quote "Rationale"
+    **So That** photo storage is consistent, deduplicated, and efficiently served across all modules, the system uses a single media service rather than per-table Base64 storage.
+
 ---
 
 ## 2. Non-Functional Requirements (Global)

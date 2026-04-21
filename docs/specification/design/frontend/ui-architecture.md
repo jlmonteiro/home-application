@@ -39,8 +39,11 @@ The Home Application frontend is built as a highly interactive **Single Page App
     | :--- | :--- |
     | :material-barcode: **react-barcode** | Linear 1D barcode generation (Code 128). |
     | :material-qrcode: **qrcode.react** | 2D QR code generation for digital cards. |
-    | :material-clock-outline: **date-fns** | Modern date manipulation and formatting. |
+    | :material-clock-outline: **dayjs** | Lightweight date manipulation and formatting. |
     | :material-alphabetical: **Tabler Icons** | High-quality SVG icon system. |
+    | :material-code-braces: **react-syntax-highlighter** | Syntax highlighting for code blocks in markdown. |
+    | :material-drag: **@dnd-kit/core** | Drag-and-drop for recipe step reordering. |
+    | :material-text: **react-markdown** | Markdown rendering for recipe descriptions and steps. |
 
 ---
 
@@ -77,31 +80,35 @@ src/
 ├── App.tsx              # Application shell & providers
 ├── theme.ts             # Mantine theme configuration
 ├── components/          # Reusable components
-│   ├── Layout.tsx       # Main layout wrapper
-│   ├── Sidebar.tsx      # Navigation (FR-14)
-│   ├── shopping/        # Shopping domain UI
-│   ├── recipes/         # Recipe domain UI (photos, steps, ingredients)
-│   ├── meals/           # Meal planning UI (planner grid, entry cards)
-│   └── notifications/   # Notification bell, notification list
+│   ├── Layout.tsx       # Main layout wrapper (sidebar + header)
+│   ├── ProtectedRoute.tsx # Auth guard
+│   ├── PhotoUpload.tsx  # Reusable photo upload component
+│   ├── NotificationBell.tsx # Header notification bell
+│   ├── MarkdownContent.tsx  # Markdown renderer
+│   ├── shopping/        # Shopping domain UI (modals, list items, barcodes)
+│   └── recipes/         # Recipe domain UI (steps, feedback, export, markdown editor)
 ├── context/             # React Context (Auth)
-├── hooks/               # Custom hooks (useStore, useList, useRecipes, useMealPlan)
+├── hooks/               # Custom hooks (usePhotoUpload)
 ├── pages/               # Route-level components
 │   ├── dashboard/       # Dashboard with widgets
-│   ├── shopping/        # Shopping pages
-│   ├── recipes/         # RecipesListPage, RecipeDetailPage, RecipeFormPage
-│   ├── meals/           # MealTimesConfigPage, MealPlannerPage, MealsThisWeekPage
-│   ├── notifications/   # NotificationsPage
-│   ├── settings/        # Settings pages
-│   ├── user/            # Profile pages
-│   └── auth/            # Login page
+│   ├── shopping/        # Shopping pages (lists, items, stores, categories)
+│   ├── recipes/         # RecipesListPage, RecipeDetailPage, RecipeFormPage, MealPlannerPage
+│   ├── notifications/   # NotificationsPage, MessagingPage
+│   ├── settings/        # SettingsPage, PreferencesPage, MealTimesPage, NutrientSettingsPage
+│   ├── user/            # ProfilePage
+│   ├── errors/          # ErrorPage (404, etc.)
+│   └── auth/            # LoginPage
 ├── services/
-│   └── api.ts           # Fetch client with CSRF support
+│   └── api.tsx          # Fetch client with CSRF support
 ├── types/               # TypeScript interfaces
 │   ├── shopping.ts
-│   ├── recipes.ts       # Recipe, Ingredient, Step, Comment, Rating, Label, NutritionData
-│   ├── meals.ts         # MealTime, MealPlan, MealPlanEntry, MealPlanResponse
-│   └── notifications.ts # Notification, Message, Conversation
-└── utils/               # Formatting & calculations
+│   ├── recipes.ts       # Recipe, Ingredient, Step, Comment, Rating, Label, Nutrient, NutritionEntry
+│   ├── meals.ts         # MealTime, MealPlan, MealPlanEntry, MealPlanEntryItem, MealPlanEntryRecipe
+│   ├── notifications.ts # Notification, Message
+│   ├── user.ts          # UserProfile
+│   ├── settings.ts      # AgeGroupConfig, FamilyRole, UserPreference
+│   └── api.ts           # ProblemDetail, ApiError, PagedResponse
+└── utils/               # Formatting & calculations (units, currency, photo)
 ```
 
 ---
@@ -281,9 +288,14 @@ Recipe descriptions and step instructions support **markdown** content. The exis
 The sidebar adds a **Recipes & Meals** parent menu with sub-items:
 
 - :material-chef-hat: Recipes
-- :material-clock-edit: Meal Times
 - :material-calendar-week: Meal Planner
-- :material-view-week: Meals This Week
+
+And a **Settings** parent menu with sub-items:
+
+- :material-account-cog: Family & Roles
+- :material-heart-pulse: Preferences
+- :material-clock-edit: Meal Times
+- :material-flask: Nutrients
 
 Notifications are accessed via the **bell icon** in the header, not the sidebar.
 

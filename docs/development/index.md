@@ -20,9 +20,9 @@ By formalizing these patterns, we enable a highly autonomous development workflo
     
     Guidelines for writing expressive BDD tests using Groovy, Testcontainers, and Mocking strategies.
 
--   :simple-vitest: **[Frontend Tests](frontend-tests-guidelines.md)**
+-   :simple-playwright: **[Frontend E2E Tests](frontend-e2e-tests-guidelines.md)**
     
-    Vitest unit tests with Testing Library and MSW, Playwright E2E with Page Object Model.
+    Playwright E2E with Page Object Model and API mocking.
 
 -   :material-book-open-page-variant: **[Documentation Guidelines](documentation/documentation-guidelines.md)**
     

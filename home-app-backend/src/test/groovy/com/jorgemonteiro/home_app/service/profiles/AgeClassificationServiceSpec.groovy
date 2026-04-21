@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import jakarta.transaction.Transactional
+import spock.lang.Subject
 import spock.lang.Unroll
 
 import java.time.LocalDate
@@ -20,6 +21,7 @@ so that I can enforce age-appropriate permissions later.
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Subject(AgeClassificationService)
 class AgeClassificationServiceSpec extends BaseIntegrationTest {
 
     @Autowired

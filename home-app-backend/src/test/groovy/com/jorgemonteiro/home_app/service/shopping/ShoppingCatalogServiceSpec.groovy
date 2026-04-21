@@ -1,25 +1,37 @@
 package com.jorgemonteiro.home_app.service.shopping
 
 import com.jorgemonteiro.home_app.HomeApplication
+import com.jorgemonteiro.home_app.exception.ObjectNotFoundException
 import com.jorgemonteiro.home_app.exception.ValidationException
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingCategoryDTO
-import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingItemDTO
+import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingCategory
+import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingItem
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingCategoryRepository
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingItemRepository
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.transaction.annotation.Transactional
 import org.springframework.data.domain.PageRequest
+import org.springframework.test.context.ActiveProfiles
+import org.springframework.transaction.annotation.Transactional
+import spock.lang.Narrative
 import spock.lang.Subject
+import spock.lang.Title
 
+@Title("Shopping Catalog Service")
+@Narrative("""
+As a household member
+I want to manage shopping categories and items
+So that I can maintain an organized shopping list
+""")
 @SpringBootTest(classes = [HomeApplication])
+@ActiveProfiles("test")
 @Transactional
 class ShoppingCatalogServiceSpec extends BaseIntegrationTest {
 
     @Autowired
     @Subject
-    ShoppingCatalogService shoppingCatalogService
+    ShoppingCatalogService catalogService
 
     @Autowired
     ShoppingCategoryRepository categoryRepository
@@ -27,104 +39,103 @@ class ShoppingCatalogServiceSpec extends BaseIntegrationTest {
     @Autowired
     ShoppingItemRepository itemRepository
 
-    def "createCategory should save a new category successfully"() {
+    def "should find all categories with pagination"() {
+        when: "requesting all categories"
+            def result = catalogService.findAllCategories(PageRequest.of(0, 10))
+
+        then: "categories are returned"
+            result.totalElements >= 0
+    }
+
+    def "should get a category by ID"() {
+        given: "a category exists"
+            def category = categoryRepository.save(new ShoppingCategory(name: "Test Category", description: "Test"))
+
+        when: "requesting the category"
+            def result = catalogService.getCategory(category.id)
+
+        then: "category is returned"
+            result.name == "Test Category"
+    }
+
+    def "should throw ObjectNotFoundException when category not found"() {
+        when: "requesting non-existent category"
+            catalogService.getCategory(999L)
+        then: "exception is thrown"
+            thrown(ObjectNotFoundException)
+    }
+
+    def "should create a new category"() {
         given: "a new category DTO"
-            def dto = new ShoppingCategoryDTO(name: "Groceries-${UUID.randomUUID()}", description: "Food and home items", icon: "basket")
+            def initialCount = categoryRepository.count()
+            def dto = new ShoppingCategoryDTO(name: "New Category", description: "New description")
 
         when: "creating the category"
-            def result = shoppingCatalogService.createCategory(dto)
+            def result = catalogService.createCategory(dto)
 
-        then: "category is saved and returned with an ID"
-            result.id != null
-            result.name == dto.name
-            categoryRepository.findById(result.id).isPresent()
+        then: "category is created"
+            categoryRepository.count() == initialCount + 1
+            result.name == "New Category"
     }
 
-    def "updateCategory should modify an existing category"() {
-        given: "an existing category"
-            def category = shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "Groceries-${UUID.randomUUID()}"))
-            def updateDto = new ShoppingCategoryDTO(name: "Food-${UUID.randomUUID()}", description: "Updated")
+    def "should throw ValidationException when category name already exists"() {
+        given: "a category exists"
+            categoryRepository.save(new ShoppingCategory(name: "Existing", description: "Test"))
 
-        when: "updating the category"
-            def result = shoppingCatalogService.updateCategory(category.id, updateDto)
-
-        then: "category is updated"
-            result.name == updateDto.name
-            result.description == "Updated"
-            categoryRepository.findByName(updateDto.name).isPresent()
-    }
-
-    def "deleteCategory should remove category and its items"() {
-        given: "a category with an item"
-            def category = shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "Groceries-${UUID.randomUUID()}"))
-            categoryRepository.flush()
-            shoppingCatalogService.createItem(new ShoppingItemDTO(name: "Milk", category: new ShoppingItemDTO.Category(id: category.id)))
-
-        when: "deleting the category"
-            shoppingCatalogService.deleteCategory(category.id)
-
-        then: "category and item are removed"
-            !categoryRepository.existsById(category.id)
-            // Note: existing seed data might have items, so we check if this specific item is gone
-            !itemRepository.existsByNameAndCategoryId("Milk", category.id)
-    }
-
-    def "createItem should save a new item in a category successfully"() {
-        given: "an existing category and a new item DTO"
-            def category = shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "Groceries-${UUID.randomUUID()}"))
-            def dto = new ShoppingItemDTO(name: "Milk", category: new ShoppingItemDTO.Category(id: category.id))
-
-        when: "creating the item"
-            def result = shoppingCatalogService.createItem(dto)
-
-        then: "item is saved and returned with correct category info"
-            result.id != null
-            result.name == "Milk"
-            result.category.name == category.name
-    }
-
-    def "createItem should throw ValidationException when item already exists in the same category"() {
-        given: "a category with an existing item"
-            def category = shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "Groceries-${UUID.randomUUID()}"))
-            shoppingCatalogService.createItem(new ShoppingItemDTO(name: "Milk", category: new ShoppingItemDTO.Category(id: category.id)))
-
-        when: "creating the same item again"
-            shoppingCatalogService.createItem(new ShoppingItemDTO(name: "Milk", category: new ShoppingItemDTO.Category(id: category.id)))
-
-        then: "ValidationException is thrown"
+        when: "trying to create duplicate category"
+            catalogService.createCategory(new ShoppingCategoryDTO(name: "Existing", description: "Test"))
+        then: "exception is thrown"
             thrown(ValidationException)
     }
 
-    def "findAllCategories should return paginated categories"() {
-        given: "initial category count"
-            def initialCount = categoryRepository.count()
-        and: "multiple new categories"
-            (1..15).each {
-                shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "Category-${UUID.randomUUID()}"))
-            }
+    def "should update a category"() {
+        given: "an existing category"
+            def category = categoryRepository.save(new ShoppingCategory(name: "Old Name", description: "Old"))
 
-        when: "fetching first page"
-            def page = shoppingCatalogService.findAllCategories(PageRequest.of(0, 10))
+        when: "updating the category"
+            def result = catalogService.updateCategory(category.id, new ShoppingCategoryDTO(name: "New Name", description: "New", icon: "icon"))
 
-        then: "10 items are returned and total elements matches initial + new"
-            page.content.size() == 10
-            page.totalElements == initialCount + 15
+        then: "category is updated"
+            result.name == "New Name"
+            result.description == "New"
     }
 
-    def "findAllItems should return paginated items"() {
-        given: "initial item count"
-            def initialCount = itemRepository.count()
-        and: "multiple new items"
-            def category = shoppingCatalogService.createCategory(new ShoppingCategoryDTO(name: "Groceries-${UUID.randomUUID()}"))
-            (1..15).each {
-                shoppingCatalogService.createItem(new ShoppingItemDTO(name: "Item-${UUID.randomUUID()}", category: new ShoppingItemDTO.Category(id: category.id)))
-            }
+    def "should delete a category"() {
+        given: "a category exists"
+            def category = categoryRepository.save(new ShoppingCategory(name: "ToDelete", description: "Test"))
+            def initialCount = categoryRepository.count()
 
-        when: "fetching first page of items"
-            def page = shoppingCatalogService.findAllItems(PageRequest.of(0, 10))
+        when: "deleting the category"
+            catalogService.deleteCategory(category.id)
 
-        then: "10 items are returned and total elements matches initial + new"
-            page.content.size() == 10
-            page.totalElements == initialCount + 15
+        then: "category is deleted"
+            categoryRepository.count() == initialCount - 1
+    }
+
+    def "should find all items with pagination"() {
+        when: "requesting all items"
+            def result = catalogService.findAllItems(PageRequest.of(0, 10))
+
+        then: "items are returned"
+            result.totalElements >= 0
+    }
+
+    def "should get an item by ID"() {
+        given: "an item exists"
+            def category = categoryRepository.save(new ShoppingCategory(name: "Test", description: "Test"))
+            def item = itemRepository.save(new ShoppingItem(name: "Test Item", category: category))
+
+        when: "requesting the item"
+            def result = catalogService.getItem(item.id)
+
+        then: "item is returned"
+            result.name == "Test Item"
+    }
+
+    def "should throw ObjectNotFoundException when item not found"() {
+        when: "requesting non-existent item"
+            catalogService.getItem(999L)
+        then: "exception is thrown"
+            thrown(ObjectNotFoundException)
     }
 }

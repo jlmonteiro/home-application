@@ -12,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
 
 @Title("Settings Service")
@@ -23,6 +24,7 @@ So that the household hierarchy is correctly maintained
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Subject(SettingsService)
 class SettingsServiceSpec extends BaseIntegrationTest {
 
     @Autowired

@@ -2,6 +2,7 @@ package com.jorgemonteiro.home_app.controller.shopping
 
 import com.jorgemonteiro.home_app.HomeApplication
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingStoreDTO
+import com.jorgemonteiro.home_app.controller.shopping.StoreController
 import com.jorgemonteiro.home_app.service.shopping.ShoppingStoreService
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import groovy.json.JsonOutput
@@ -12,6 +13,8 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.transaction.annotation.Transactional
+import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
 
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user
@@ -19,10 +22,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 
 @Title("Coupon API Integration")
+@Narrative("""
+As a household member
+I want to manage store coupons
+So that I can save money during shopping
+""")
 @SpringBootTest(classes = [HomeApplication])
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Transactional
+@Subject(StoreController)
 class CouponApiSpec extends BaseIntegrationTest {
 
     @Autowired

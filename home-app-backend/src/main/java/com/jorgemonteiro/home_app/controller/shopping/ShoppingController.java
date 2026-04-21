@@ -75,8 +75,9 @@ public class ShoppingController {
 
     @GetMapping("/items")
     public ResponseEntity<PagedModel<ShoppingItemResource>> listItems(
+            @RequestParam(required = false) String search,
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) Pageable pageable) {
-        Page<ShoppingItemDTO> page = catalogService.findAllItems(pageable);
+        Page<ShoppingItemDTO> page = catalogService.findAllItems(search, pageable);
         PagedModel<ShoppingItemResource> pagedModel = pagedItemAssembler.toModel(page, itemAssembler);
         return ResponseEntity.ok(pagedModel);
     }

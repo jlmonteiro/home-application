@@ -389,44 +389,22 @@
     - [FR-31: Weekly Meal Plan](../../requirements/recipes-meals.md#fr-31)
 
 ### TS-45: Meal Plan Publish & Notify :material-check-circle: {: #ts-45 }
-- :material-arrow-right-circle: **Given**: A DRAFT meal plan with entries.
+- :material-arrow-right-circle: **Given**: A PENDING meal plan with entries.
 - :material-play-circle: **When**: The creator clicks "Notify Household".
 - :material-check-all: **Then**: The system SHALL set status to `PUBLISHED` and create `MEAL_PLAN_PUBLISHED` notifications for all household members.
 
 !!! info "Validates"
-    - [FR-32: Meal Plan Approval Workflow](../../requirements/recipes-meals.md#fr-32)
-
-### TS-46: Member Accepts Meal :material-check-circle: {: #ts-46 }
-- :material-arrow-right-circle: **Given**: A published meal plan with a PENDING entry for User B.
-- :material-play-circle: **When**: User B accepts the entry.
-- :material-check-all: **Then**: The system SHALL set User B's status to `ACCEPTED`.
-
-!!! info "Validates"
-    - [FR-32: Meal Plan Approval Workflow](../../requirements/recipes-meals.md#fr-32)
-
-### TS-47: Member Suggests Change (Auto-Replace) :material-check-circle: {: #ts-47 }
-- :material-arrow-right-circle: **Given**: A published meal plan with "Toast" assigned to Fernanda for Monday breakfast.
-- :material-play-circle: **When**: Fernanda suggests "Pancakes" instead.
-- :material-check-all: **Then**: The system SHALL replace Fernanda's assignment with "Pancakes", set her status to `CHANGED`, and create a `MEAL_SUGGESTION_MADE` notification for the plan creator.
-
-!!! info "Validates"
-    - [FR-32: Meal Plan Approval Workflow](../../requirements/recipes-meals.md#fr-32)
+    - [FR-32: Meal Plan Publish & Notify](../../requirements/recipes-meals.md#fr-32)
 
 ### TS-48: Thumbs Up/Down on Meal :material-check-circle: {: #ts-48 }
 - :material-arrow-right-circle: **Given**: A meal entry marked as "done".
 - :material-play-circle: **When**: User A gives a thumbs-up.
-- :material-check-all: **Then**: The system SHALL set `vote = true` on User A's `meal_plan_entry_members` record.
+- :material-check-all: **Then**: The system SHALL create a record in `meal_plan_votes` with `vote = true` for User A on that entry.
+- :material-play-circle: **When**: User A changes their vote to thumbs-down.
+- :material-check-all: **Then**: The system SHALL update the existing vote record to `vote = false`.
 
 !!! info "Validates"
     - [FR-37: Meal Thumbs Up/Down](../../requirements/recipes-meals.md#fr-37)
-
-### TS-49: Meal Reminder Generation :material-check-circle: {: #ts-49 }
-- :material-arrow-right-circle: **Given**: A meal entry for Monday lunch at 12:00 with `reminder_offset_minutes = 60`.
-- :material-play-circle: **When**: The reminder check task runs at 11:00.
-- :material-check-all: **Then**: The system SHALL create `MEAL_REMINDER` notifications for all assigned members.
-
-!!! info "Validates"
-    - [FR-33: Meal Preparation Reminders](../../requirements/recipes-meals.md#fr-33)
 
 ### TS-50: Meal Plan Retention :material-check-circle: {: #ts-50 }
 - :material-arrow-right-circle: **Given**: A meal plan with `week_start_date` 11 weeks ago.
@@ -501,3 +479,84 @@
 - **Verification:** 100% of BDD scenarios (Happy & Sad) MUST pass.
 - **Integrity:** RFC 7807 validation for all error responses.
 - **Immutability:** email, firstName, and lastName remain unchanged after any profile update.
+
+---
+
+## New Scenarios (Post-Implementation)
+
+### TS-58: Centralized Photo Upload & Retrieval :material-check-circle: {: #ts-58 }
+- :material-arrow-right-circle: **Given**: An authenticated user.
+- :material-play-circle: **When**: The user uploads a photo via any module (profile, recipe, item, store).
+- :material-check-all: **Then**: The system SHALL store the binary data in `media.photos` and return a URL reference (`/api/images/{name}`).
+- :material-play-circle: **When**: The URL is requested via GET.
+- :material-check-all: **Then**: The system SHALL return the binary image with the correct `Content-Type` header.
+
+!!! info "Validates"
+    - [FR-42: Centralized Media Service](../../requirements/shared.md#fr-42)
+
+### TS-59: Standalone Item Assignment to Meal Entry :material-check-circle: {: #ts-59 }
+- :material-arrow-right-circle: **Given**: A meal plan with a Monday breakfast entry.
+- :material-play-circle: **When**: The user assigns "Fresh Orange Juice" (2 UNIT) directly to the entry for the entire household.
+- :material-check-all: **Then**: The system SHALL create a `meal_plan_entry_items` record with `item_id`, `quantity=2`, `unit=UNIT`, and `user_id=null`.
+
+!!! info "Validates"
+    - [FR-41: Standalone Meal Items](../../requirements/recipes-meals.md#fr-41)
+
+### TS-60: Nutrient Master Catalog CRUD :material-check-circle: {: #ts-60 }
+- :material-arrow-right-circle: **Given**: An authenticated Adult user.
+- :material-play-circle: **When**: The user creates a new nutrient "Omega-3" with unit "mg".
+- :material-check-all: **Then**: The system SHALL persist the nutrient in `recipes.nutrients`.
+- :material-play-circle: **When**: The user attempts to delete a nutrient referenced by nutrition entries.
+- :material-check-all: **Then**: The system SHALL return a validation error and prevent deletion.
+
+!!! info "Validates"
+    - [FR-40: Nutrient Master Catalog](../../requirements/recipes-meals.md#fr-40)
+
+### TS-61: Ingredient Grouping :material-check-circle: {: #ts-61 }
+- :material-arrow-right-circle: **Given**: A recipe with ingredients.
+- :material-play-circle: **When**: The user adds "Flour" with `group_name = "For the dough"` and "Tomato Sauce" with `group_name = "For the topping"`.
+- :material-check-all: **Then**: The system SHALL persist the `group_name` and the UI SHALL display ingredients grouped by their group name.
+
+!!! info "Validates"
+    - [FR-25: Recipe Ingredients](../../requirements/recipes-meals.md#fr-25)
+
+### TS-62: Coupon Barcode Rendering :material-check-circle: {: #ts-62 }
+- :material-arrow-right-circle: **Given**: A coupon with `code = "SAVE10"` and `barcode_type = "QR"`.
+- :material-play-circle: **When**: The user views the coupon details.
+- :material-check-all: **Then**: The system SHALL render a QR code encoding "SAVE10".
+
+!!! info "Validates"
+    - [FR-13: Store Coupons](../../requirements/shopping-list.md#fr-13)
+
+### TS-63: Shopping List Item Unavailability :material-check-circle: {: #ts-63 }
+- :material-arrow-right-circle: **Given**: A shopping list with an item "Organic Milk".
+- :material-play-circle: **When**: The user marks "Organic Milk" as unavailable.
+- :material-check-all: **Then**: The system SHALL set `unavailable = true` and visually distinguish it from bought and pending items.
+
+!!! info "Validates"
+    - [FR-10: In-Store Progress Tracking](../../requirements/shopping-list.md#fr-10)
+
+### TS-64: Recipe Multiplier in Meal Plan :material-check-circle: {: #ts-64 }
+- :material-arrow-right-circle: **Given**: A meal plan entry with "Pancakes" assigned.
+- :material-play-circle: **When**: The user sets the multiplier to 2.0.
+- :material-check-all: **Then**: The system SHALL persist `multiplier = 2.0` on the `meal_plan_entry_recipes` record and use it for shopping list export quantity calculations.
+
+!!! info "Validates"
+    - [FR-31: Weekly Meal Plan](../../requirements/recipes-meals.md#fr-31)
+
+### TS-65: Shopping Item Enriched Fields :material-check-circle: {: #ts-65 }
+- :material-arrow-right-circle: **Given**: An authenticated user creating a shopping item "Milk (1L Bottle)".
+- :material-play-circle: **When**: The user sets `unit = "pcs"`, `pc_quantity = 1.0`, `pc_unit = "L"`, `nutrition_sample_size = 100`, `nutrition_sample_unit = "ml"`.
+- :material-check-all: **Then**: The system SHALL persist all fields and use them for unit conversion and nutrition calculations.
+
+!!! info "Validates"
+    - [FR-5: Category & Item Management](../../requirements/shopping-list.md#fr-5)
+
+### TS-66: Meal Plan Export with Standalone Items :material-check-circle: {: #ts-66 }
+- :material-arrow-right-circle: **Given**: A meal plan with a recipe requiring "Eggs" (6 UNIT) and a standalone item "Orange Juice" (2 L).
+- :material-play-circle: **When**: The user requests an export preview.
+- :material-check-all: **Then**: The system SHALL include both recipe ingredients and standalone items in the merge preview.
+
+!!! info "Validates"
+    - [FR-36: Shopping List Integration](../../requirements/recipes-meals.md#fr-36)
+    - [FR-41: Standalone Meal Items](../../requirements/recipes-meals.md#fr-41)

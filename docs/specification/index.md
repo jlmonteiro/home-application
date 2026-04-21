@@ -20,7 +20,7 @@ The project specification is organized into a hierarchical structure to ensure c
     
     Functional (FR) and Non-Functional (NFR) requirements grouped by domain.
 
--   :material-pencil-ruler: **[Design](design/design.md)**
+-   IconPencil **[Design](design/design.md)**
     
     High-level architecture, database schema, and module-specific implementation details.
 

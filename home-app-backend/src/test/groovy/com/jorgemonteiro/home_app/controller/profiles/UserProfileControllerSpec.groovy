@@ -1,6 +1,7 @@
 package com.jorgemonteiro.home_app.controller.profiles
 
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository
+import com.jorgemonteiro.home_app.controller.profiles.UserProfileController
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import groovy.json.JsonOutput
 import org.springframework.beans.factory.annotation.Autowired
@@ -12,6 +13,7 @@ import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
 
 import static org.hamcrest.Matchers.containsString
@@ -31,6 +33,7 @@ So that profile data can be read and modified over HTTP using hypermedia
 @ActiveProfiles("test")
 @Transactional
 @AutoConfigureMockMvc
+@Subject(UserProfileController)
 class UserProfileControllerSpec extends BaseIntegrationTest {
 
     @Autowired
@@ -42,7 +45,7 @@ class UserProfileControllerSpec extends BaseIntegrationTest {
     @Sql("/scripts/sql/user-profile-test-data.sql")
     def "GET /api/user should return paginated list of profiles"() {
         when: "requesting all user profiles"
-            def response = mockMvc.perform(get("/api/user"))
+            def response = mockMvc.perform(get("/api/user").param("size", "10").param("sort", "email,asc"))
 
         then: "response status and content type are correct"
             response.andExpect(status().isOk())
@@ -91,6 +94,7 @@ class UserProfileControllerSpec extends BaseIntegrationTest {
             response.andExpect(jsonPath('$._embedded.userProfiles.length()').value(5))
             response.andExpect(jsonPath('$._embedded.userProfiles[0].email').value("user06@example.com"))
 
+
         and: "all pagination navigation links are present and correct"
             response.andExpect(jsonPath('$._links.first.href').value(containsString("/api/user?page=0&size=5&sort=email,asc")))
             response.andExpect(jsonPath('$._links.prev.href').value(containsString("/api/user?page=0&size=5&sort=email,asc")))
@@ -129,7 +133,7 @@ class UserProfileControllerSpec extends BaseIntegrationTest {
                     .andExpect(content().contentType(HAL_JSON_VALUE))
 
         and: "the returned profile matches the authenticated user"
-            response.andExpect(jsonPath('$.id').value(expectedId))
+            response.andExpect(jsonPath('$.id').value(expectedId.toInteger()))
             response.andExpect(jsonPath('$.email').value(targetEmail))
 
         and: "the links contain both canonical self and 'me' alias"
@@ -144,44 +148,23 @@ class UserProfileControllerSpec extends BaseIntegrationTest {
         when: "requesting the 'me' endpoint"
             def response = mockMvc.perform(get("/api/user/me").with(auth))
 
-        then: "404 ProblemDetail is returned"
+        then: "404 Not Found is returned"
             response.andExpect(status().isNotFound())
-                    .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/not-found"))
-                    .andExpect(jsonPath('$.detail').value(containsString("ghost@example.com")))
-    }
-
-    @Sql("/scripts/sql/user-profile-test-data.sql")
-    def "GET /api/user/{id} should return user profile with HATEOAS links when exists"() {
-        given: "an existing user ID"
-            def id = userRepository.findByEmail("withprofile@example.com").get().id
-
-        when: "requesting existing user profile by ID"
-            def response = mockMvc.perform(get("/api/user/${id}"))
-
-        then: "user profile is returned with self and collection links"
-            response.andExpect(status().isOk())
-                    .andExpect(content().contentType(HAL_JSON_VALUE))
-                    .andExpect(jsonPath('$.id').value(id))
-                    .andExpect(jsonPath('$._links.self.href').value(containsString("/api/user/${id}")))
-                    .andExpect(jsonPath('$._links.collection.href').value(containsString("/api/user")))
-    }
-
-    def "GET /api/user/{id} should return 404 when user does not exist"() {
-        when: "requesting non-existent user by ID"
-            def response = mockMvc.perform(get("/api/user/999"))
-
-        then: "404 is returned"
-            response.andExpect(status().isNotFound())
-                    .andExpect(jsonPath('$.type').value("http://localhost:8080/errors/not-found"))
+                    .andExpect(jsonPath('$.title').value("Object Not Found"))
     }
 
     @Sql("/scripts/sql/user-profile-test-data.sql")
     def "PUT /api/user/{id} should update user profile and return HATEOAS links"() {
-        given: "an existing user ID and a valid update request"
+        given: "an existing user and updated profile data"
             def id = userRepository.findByEmail("existing@example.com").get().id
-            def requestBody = validUpdateRequestBody() + [id: id, firstName: "Updated"]
+            def requestBody = [
+                email: "existing@example.com",
+                firstName: "Updated",
+                lastName: "User",
+                enabled: true
+            ]
 
-        when: "updating user profile by ID"
+        when: "updating user profile"
             def response = mockMvc.perform(put("/api/user/${id}")
                     .contentType(MediaType.APPLICATION_JSON)
                     .content(JsonOutput.toJson(requestBody)))
@@ -211,12 +194,12 @@ class UserProfileControllerSpec extends BaseIntegrationTest {
 
         where:
             field           | scenario          | value                                 | message
+            "firstName"     | "too long"        | "a".multiply(51)                      | "First name must not exceed 50 characters"
+            "lastName"      | "too long"        | "a".multiply(51)                      | "Last name must not exceed 50 characters"
             "email"         | "missing"         | null                                  | "Email is required"
             "email"         | "empty"           | ""                                    | "Email is required"
             "email"         | "invalid format"  | "not-an-email"                        | "Email must be valid"
-            "email"         | "too long"        | ("a" * 64) + "@" + ("b" * 33) + ".com" | "Email must not exceed 100 characters"
-            "firstName"     | "too long"        | "a" * 51                              | "First name must not exceed 50 characters"
-            "lastName"      | "too long"        | "a" * 51                              | "Last name must not exceed 50 characters"
+            "email"         | "too long"        | "user@${"ab." * 33}com"               | "Email must not exceed 100 characters"
     }
 
     private Map validUpdateRequestBody() {

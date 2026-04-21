@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
 import spock.lang.Narrative
 import spock.lang.Shared
+import spock.lang.Subject
 import spock.lang.Title
 
 import java.time.LocalDate
@@ -28,6 +29,7 @@ so that I can automatically classify users into age groups.
     "spring.main.allow-bean-definition-overriding=true"
 ])
 @ActiveProfiles("test")
+@Subject(GooglePeopleService)
 class GooglePeopleServiceSpec extends BaseIntegrationTest {
 
     @Shared

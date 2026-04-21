@@ -41,23 +41,22 @@ import {
   IconPackages,
   IconUserCircle,
   IconAdjustments,
+  IconChefHat,
 } from '@tabler/icons-react'
 import { useAuth } from '../context/AuthContext'
+import { NotificationBell } from './NotificationBell'
 
 export function Layout() {
   const { user, logout } = useAuth()
   const location = useLocation()
   const [opened, { toggle }] = useDisclosure(true)
-  const [shoppingOpened, { toggle: toggleShopping }] = useDisclosure(true)
-  // @ts-expect-error: setColorScheme is not in the type definition but available in runtime for Mantine v7+
+  const [shoppingOpened, { toggle: toggleShopping }] = useDisclosure(false)
+  const [recipesOpened, { toggle: toggleRecipes }] = useDisclosure(true)
+  const [settingsOpened, { toggle: toggleSettings }] = useDisclosure(false)
   const { setColorScheme } = useMantineColorScheme()
   const computedColorScheme = useComputedColorScheme('light', { getInitialValueInEffect: true })
 
-  const photoSrc = user?.photo?.startsWith('http')
-    ? user.photo
-    : user?.photo?.startsWith('data:image')
-      ? user.photo
-      : `data:image/png;base64,${user?.photo}`
+  const photoSrc = user?.photo?.url || null
 
   const isAdult = user?.ageGroupName === 'Adult'
 
@@ -100,6 +99,24 @@ export function Layout() {
         })
       } else if (path.includes('/items')) {
         crumbs.push({ title: 'Items', href: '/shopping/items', icon: <IconPackages size={16} /> })
+      }
+    } else if (path.startsWith('/recipes')) {
+      crumbs.push({
+        title: 'Recipes & Meals',
+        href: '/recipes',
+        icon: <IconChefHat size={16} />,
+      })
+
+      if (path === '/recipes') {
+        crumbs[crumbs.length - 1].title = 'Recipes'
+      } else if (path === '/recipes/new') {
+        crumbs.push({ title: 'New Recipe', href: path })
+      } else if (path.match(/\/recipes\/\d+$/)) {
+        crumbs.push({ title: 'Recipe Details', href: path })
+      } else if (path.match(/\/recipes\/\d+\/edit$/)) {
+        const recipeId = path.split('/')[2]
+        crumbs.push({ title: 'Recipe Details', href: `/recipes/${recipeId}` })
+        crumbs.push({ title: 'Edit Recipe', href: path })
       }
     } else if (path === '/profile') {
       crumbs.push({ title: 'Profile', href: '/profile', icon: <IconUserCircle size={16} /> })
@@ -175,6 +192,7 @@ export function Layout() {
             </Group>
 
             <Group gap="lg">
+              <NotificationBell />
               <ActionIcon
                 onClick={() => setColorScheme(computedColorScheme === 'light' ? 'dark' : 'light')}
                 variant="subtle"
@@ -224,9 +242,9 @@ export function Layout() {
                           <Text size="sm" fw={600} lh={1}>
                             {user?.firstName} {user?.lastName}
                           </Text>
-                          {user?.familyRoleName && (
+                          {user?.familyRole?.name && (
                             <Text size="xs" c="dimmed" lh={1.2}>
-                              {user.familyRoleName}
+                              {user.familyRole.name}
                             </Text>
                           )}
                         </Stack>
@@ -272,15 +290,15 @@ export function Layout() {
                     </>
                   )}
 
-                  {(user?.facebook || user?.instagram || user?.linkedin) && (
+                  {(user?.social?.facebook || user?.social?.instagram || user?.social?.linkedin) && (
                     <>
                       <Menu.Divider />
                       <Menu.Label>Social Profiles</Menu.Label>
                       <Group gap={4} px="sm" py="xs">
-                        {user?.facebook && (
+                        {user?.social?.facebook && (
                           <ActionIcon
                             component="a"
-                            href={user.facebook}
+                            href={user.social.facebook}
                             target="_blank"
                             variant="subtle"
                             color="blue"
@@ -289,10 +307,10 @@ export function Layout() {
                             <IconBrandFacebook size={18} stroke={1.5} />
                           </ActionIcon>
                         )}
-                        {user?.instagram && (
+                        {user?.social?.instagram && (
                           <ActionIcon
                             component="a"
-                            href={user.instagram}
+                            href={user.social.instagram}
                             target="_blank"
                             variant="subtle"
                             color="pink"
@@ -301,10 +319,10 @@ export function Layout() {
                             <IconBrandInstagram size={18} stroke={1.5} />
                           </ActionIcon>
                         )}
-                        {user?.linkedin && (
+                        {user?.social?.linkedin && (
                           <ActionIcon
                             component="a"
-                            href={user.linkedin}
+                            href={user.social.linkedin}
                             target="_blank"
                             variant="subtle"
                             color="blue"
@@ -398,6 +416,27 @@ export function Layout() {
             />
           </NavLink>
 
+          <NavLink
+            label="Recipes & Meals"
+            leftSection={<IconChefHat size={20} stroke={1.5} />}
+            childrenOffset={28}
+            opened={recipesOpened}
+            onChange={toggleRecipes}
+          >
+            <NavLink
+              component={Link}
+              to="/recipes/planner"
+              label="Meal Planner"
+              active={isActive('/recipes/planner')}
+            />
+            <NavLink
+              component={Link}
+              to="/recipes"
+              label="Recipes"
+              active={isActive('/recipes') && location.pathname === '/recipes'}
+            />
+          </NavLink>
+
           {isAdult && (
             <>
               <Divider my="sm" />
@@ -413,14 +452,25 @@ export function Layout() {
                 Administration
               </Text>
               <NavLink
-                component={Link}
-                to="/settings"
                 label="Household Settings"
                 leftSection={<IconSettings size={20} stroke={1.5} />}
-                active={isActive('/settings')}
-                variant="filled"
-                color="indigo"
-              />
+                opened={settingsOpened}
+                onChange={toggleSettings}
+                childrenOffset={28}
+              >
+                <NavLink
+                  component={Link}
+                  to="/settings"
+                  label="General Setup"
+                  active={isActive('/settings') && location.pathname === '/settings'}
+                />
+                <NavLink
+                  component={Link}
+                  to="/settings/meal-times"
+                  label="Meal Times"
+                  active={isActive('/settings/meal-times')}
+                />
+              </NavLink>
             </>
           )}
         </Stack>

@@ -12,11 +12,12 @@ import {
   Text,
   Divider,
   Button,
+  Badge,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useCombobox } from '@mantine/core'
 import { IconPlus, IconBasket } from '@tabler/icons-react'
-import type { ShoppingItem, ShoppingStore } from '../../services/api'
+import type { ShoppingItem } from '../../services/api'
 import { getPhotoSrc } from '../../utils/photo'
 import { fetchSuggestedPrice } from '../../services/api'
 
@@ -58,7 +59,7 @@ export function AddItemModal({
       storeId: '',
       quantity: 1,
       unit: 'pcs',
-      price: '' as string | number,
+      price: undefined as number | undefined,
     },
     validate: {
       itemId: (v) => (!v ? 'Select an item' : null),
@@ -68,6 +69,11 @@ export function AddItemModal({
   const filteredMasterItems = useMemo(
     () => masterItems.filter((item) => item.name.toLowerCase().includes(itemSearch.toLowerCase())),
     [masterItems, itemSearch],
+  )
+
+  const selectedMasterItem = useMemo(
+    () => masterItems.find((i) => i.id.toString() === form.values.itemId),
+    [masterItems, form.values.itemId],
   )
 
   // Fetch suggested price when item or store changes
@@ -86,10 +92,25 @@ export function AddItemModal({
     } else {
       form.setFieldValue('itemId', val)
       const selected = masterItems.find((i) => i.id.toString() === val)
-      if (selected) setItemSearch(selected.name)
+      if (selected) {
+        setItemSearch(selected.name)
+        form.setFieldValue('unit', selected.unit)
+      }
     }
     combobox.closeDropdown()
   }
+
+  const unitOptions = [
+    { value: 'pcs', label: 'Pieces (pcs)' },
+    { value: 'kg', label: 'Kilograms (kg)' },
+    { value: 'g', label: 'Grams (g)' },
+    { value: 'l', label: 'Liters (l)' },
+    { value: 'ml', label: 'Milliliters (ml)' },
+    { value: 'pack', label: 'Pack' },
+    { value: 'box', label: 'Box' },
+    { value: 'bottle', label: 'Bottle' },
+    { value: 'can', label: 'Can' },
+  ]
 
   return (
     <Modal opened={opened} onClose={onClose} title="Add Item to List" radius="md" zIndex={2000}>
@@ -130,23 +151,26 @@ export function AddItemModal({
                   <>
                     {filteredMasterItems.map((item) => (
                       <Combobox.Option value={item.id.toString()} key={item.id}>
-                        <Group gap="sm">
-                          <Box
-                            w={24}
-                            h={24}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            {item.photo ? (
-                              <Image src={getPhotoSrc(item.photo)} fit="contain" h={24} w={24} />
-                            ) : (
-                              <IconBasket size={14} />
-                            )}
-                          </Box>
-                          <Text size="sm">{item.name}</Text>
+                        <Group gap="sm" justify="space-between">
+                          <Group gap="sm">
+                            <Box
+                              w={24}
+                              h={24}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              {item.photo ? (
+                                <Image src={getPhotoSrc(item.photo)} fit="contain" h={24} w={24} />
+                              ) : (
+                                <IconBasket size={14} />
+                              )}
+                            </Box>
+                            <Text size="sm">{item.name}</Text>
+                          </Group>
+                          <Badge size="xs" variant="outline">{item.unit}</Badge>
                         </Group>
                       </Combobox.Option>
                     ))}
@@ -198,7 +222,7 @@ export function AddItemModal({
             {...form.getInputProps('storeId')}
           />
 
-          <Group grow>
+          <Group grow align="flex-end">
             <NumberInput
               label="Quantity"
               min={0.1}
@@ -207,14 +231,16 @@ export function AddItemModal({
             />
             <Select
               label="Unit"
-              data={['pcs', 'kg', 'g', 'L', 'ml', 'pack', 'bottle']}
+              placeholder="Select unit"
+              data={unitOptions}
+              searchable
               comboboxProps={{ withinPortal: true, zIndex: 3000 }}
               {...form.getInputProps('unit')}
             />
           </Group>
 
           <NumberInput
-            label="Price per Unit (€)"
+            label={"Price per " + (selectedMasterItem?.unit || 'Unit') + " (€)"}
             placeholder="Suggested price will load if available"
             min={0}
             decimalScale={2}

@@ -1,14 +1,22 @@
 package com.jorgemonteiro.home_app.model.adapter.profiles
 
 import com.jorgemonteiro.home_app.model.dtos.profiles.UserProfileDTO
+import com.jorgemonteiro.home_app.model.dtos.shared.PhotoDTO
 import com.jorgemonteiro.home_app.model.entities.profiles.User
 import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile
+import com.jorgemonteiro.home_app.service.media.PhotoService
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.test.context.ActiveProfiles
+import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
+
+import static org.mockito.ArgumentMatchers.anyString
+import static org.mockito.Mockito.when
 
 @Title("User Profile Adapter")
 @Narrative("""
@@ -19,7 +27,14 @@ So that entities are never exposed directly in API responses
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
+@Subject(UserProfileAdapter)
 class UserProfileAdapterSpec extends BaseIntegrationTest {
+
+    @Autowired
+    UserProfileAdapter userProfileAdapter
+
+    @MockitoBean
+    PhotoService photoService
 
     def "toDTO should convert user with profile correctly"() {
         given: "a user with profile"
@@ -44,8 +59,11 @@ class UserProfileAdapterSpec extends BaseIntegrationTest {
                 userProfile: userProfile
             )
 
+        and: "stubbed photo service"
+            when(photoService.getPhotoUrl(targetPhoto)).thenReturn("/api/photos/" + targetPhoto)
+
         when: "converting to DTO"
-            def result = UserProfileAdapter.toDTO(user)
+            def result = userProfileAdapter.toDTO(user)
 
         then: "DTO is correctly populated"
             result != null
@@ -54,7 +72,8 @@ class UserProfileAdapterSpec extends BaseIntegrationTest {
                 firstName == targetFirstName
                 lastName == targetLastName
                 enabled == true
-                photo == targetPhoto
+                photo != null
+                photo.url == "/api/photos/photo.jpg"
                 facebook == "https://facebook.com/user"
                 mobilePhone == "+1234567890"
                 instagram == "https://instagram.com/user"
@@ -74,7 +93,7 @@ class UserProfileAdapterSpec extends BaseIntegrationTest {
             )
 
         when: "converting to DTO"
-            def result = UserProfileAdapter.toDTO(user)
+            def result = userProfileAdapter.toDTO(user)
 
         then: "DTO has user data but null profile fields"
             result != null
@@ -88,7 +107,7 @@ class UserProfileAdapterSpec extends BaseIntegrationTest {
 
     def "toDTO should return null when user is null"() {
         when: "converting null user"
-            def result = UserProfileAdapter.toDTO(null)
+            def result = userProfileAdapter.toDTO(null)
 
         then: "null is returned"
             result == null
@@ -102,7 +121,7 @@ class UserProfileAdapterSpec extends BaseIntegrationTest {
                 firstName: "Jane",
                 lastName: "Smith",
                 enabled: false,
-                photo: "new-photo.jpg",
+                photo: new PhotoDTO("new-photo.jpg", null),
                 facebook: "https://facebook.com/jane",
                 mobilePhone: "+9876543210",
                 instagram: "https://instagram.com/jane",
@@ -110,7 +129,7 @@ class UserProfileAdapterSpec extends BaseIntegrationTest {
             )
 
         when: "converting to entity"
-            def result = UserProfileAdapter.toEntity(dto)
+            def result = userProfileAdapter.toEntity(dto)
 
         then: "user entity is correctly populated"
             result != null
@@ -126,7 +145,7 @@ class UserProfileAdapterSpec extends BaseIntegrationTest {
 
     def "toEntity should return null when DTO is null"() {
         when: "converting null DTO"
-            def result = UserProfileAdapter.toEntity(null)
+            def result = userProfileAdapter.toEntity(null)
 
         then: "null is returned"
             result == null
@@ -136,7 +155,7 @@ class UserProfileAdapterSpec extends BaseIntegrationTest {
         given: "a DTO and user"
             def targetPhoto = "test-photo.jpg"
             def dto = new UserProfileDTO(
-                photo: targetPhoto,
+                photo: new PhotoDTO(targetPhoto, null),
                 facebook: "https://facebook.com/test",
                 mobilePhone: "+1111111111",
                 instagram: "https://instagram.com/test",
@@ -145,7 +164,7 @@ class UserProfileAdapterSpec extends BaseIntegrationTest {
             def user = new User(email: "test@example.com")
 
         when: "creating user profile entity"
-            def result = UserProfileAdapter.toUserProfileEntity(dto, user)
+            def result = userProfileAdapter.toUserProfileEntity(dto, user)
 
         then: "profile is correctly created"
             result != null
@@ -161,7 +180,7 @@ class UserProfileAdapterSpec extends BaseIntegrationTest {
             def user = new User()
 
         when: "creating profile with null DTO"
-            def result = UserProfileAdapter.toUserProfileEntity(null, user)
+            def result = userProfileAdapter.toUserProfileEntity(null, user)
 
         then: "null is returned"
             result == null
@@ -172,7 +191,7 @@ class UserProfileAdapterSpec extends BaseIntegrationTest {
             def dto = new UserProfileDTO()
 
         when: "creating profile with null user"
-            def result = UserProfileAdapter.toUserProfileEntity(dto, null)
+            def result = userProfileAdapter.toUserProfileEntity(dto, null)
 
         then: "null is returned"
             result == null

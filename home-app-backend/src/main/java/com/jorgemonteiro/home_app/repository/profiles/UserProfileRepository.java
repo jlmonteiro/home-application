@@ -21,6 +21,8 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
      */
     Optional<UserProfile> findByUserId(Long userId);
 
+    Optional<UserProfile> findByUserEmail(String email);
+
     /**
      * Checks if any user profile is currently assigned the given family role ID.
      *

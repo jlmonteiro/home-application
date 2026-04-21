@@ -19,7 +19,7 @@ public class UserProfileResourceAssembler extends RepresentationModelAssemblerSu
     public UserProfileResource toModel(UserProfileDTO entity) {
         UserProfileResource resource = new UserProfileResource(entity);
         resource.add(linkTo(methodOn(UserProfileController.class).getUserProfile(entity.getId())).withSelfRel());
-        resource.add(linkTo(methodOn(UserProfileController.class).list(Pageable.unpaged())).withRel("collection"));
+        resource.add(linkTo(methodOn(UserProfileController.class).getAllProfiles(Pageable.unpaged())).withRel("collection"));
         return resource;
     }
 }

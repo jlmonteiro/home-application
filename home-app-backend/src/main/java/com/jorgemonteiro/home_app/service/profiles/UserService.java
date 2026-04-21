@@ -5,11 +5,17 @@ import com.jorgemonteiro.home_app.model.entities.profiles.User;
 import com.jorgemonteiro.home_app.model.entities.profiles.UserProfile;
 import com.jorgemonteiro.home_app.repository.profiles.UserProfileRepository;
 import com.jorgemonteiro.home_app.repository.profiles.UserRepository;
+import com.jorgemonteiro.home_app.service.media.PhotoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.util.Optional;
 
@@ -46,12 +52,21 @@ public class UserService {
                 .orElseGet(() -> createNewUser(email, firstName, lastName, pictureUrl, birthdate));
     }
 
+    @Transactional(readOnly = true)
+    public java.util.List<User> listAllUsers() {
+        return userRepository.findAll();
+    }
+
     private User syncExistingUser(User user, Optional<LocalDate> birthdate) {
         UserProfile profile = user.getUserProfile();
-        if (profile != null && birthdate.isPresent() && !birthdate.get().equals(profile.getBirthdate())) {
-            profile.setBirthdate(birthdate.get());
-            profile.setAgeGroupName(ageClassificationService.classify(birthdate.get()));
-            userProfileRepository.save(profile);
+        if (profile != null && birthdate.isPresent()) {
+            boolean dateChanged = profile.getBirthdate() == null || !birthdate.get().equals(profile.getBirthdate());
+            if (dateChanged) {
+                log.info("Syncing birthdate for existing user {}: {}", user.getEmail(), birthdate.get());
+                profile.setBirthdate(birthdate.get());
+                profile.setAgeGroupName(ageClassificationService.classify(birthdate.get()));
+                userProfileRepository.save(profile);
+            }
         }
         return user;
     }
@@ -69,7 +84,7 @@ public class UserService {
 
         UserProfile profile = new UserProfile();
         profile.setUser(user);
-        
+
         birthdate.ifPresent(profile::setBirthdate);
 
         // Bootstrap: First user is always an Adult
@@ -80,16 +95,52 @@ public class UserService {
         }
 
         if (pictureUrl != null && !pictureUrl.isEmpty()) {
-            try {
-                profile.setPhoto(photoService.downloadAndConvertToBase64(pictureUrl));
-            } catch (PhotoDownloadException e) {
-                log.warn("Could not download profile photo for new user {}, proceeding without photo: {}", email, e.getMessage());
-            }
+            String savedPhotoName = downloadAndSaveGooglePhoto(pictureUrl, "user-" + user.getId() + "-profile");
+            profile.setPhoto(savedPhotoName);
         }
 
         userProfileRepository.save(profile);
         user.setUserProfile(profile);
 
         return user;
+    }
+
+    /**
+     * Downloads a photo from the given URL and saves it to local media storage.
+     *
+     * @param imageUrl the URL to download the image from
+     * @param targetName the desired filename (without extension)
+     * @return the name of the saved photo file, or null if download failed
+     */
+    private String downloadAndSaveGooglePhoto(String imageUrl, String targetName) {
+        try {
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(imageUrl))
+                    .GET()
+                    .build();
+
+            HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+            if (response.statusCode() == 200) {
+                byte[] imageBytes = response.body();
+                String contentType = response.headers().firstValue("content-type").orElse("image/jpeg");
+                String extension = contentType.substring(contentType.lastIndexOf("/") + 1);
+                
+                // Convert byte array to base64 data URI
+                String base64Data = "data:" + contentType + ";base64," + java.util.Base64.getEncoder().encodeToString(imageBytes);
+                
+                String fileName = photoService.savePhoto(base64Data, targetName, "profile");
+                log.info("Downloaded and saved Google profile photo: {} for user", fileName);
+                return fileName;
+            } else {
+                log.warn("Failed to download Google profile photo: HTTP {}", response.statusCode());
+                return null;
+            }
+        } catch (IOException | InterruptedException e) {
+            log.error("Error downloading Google profile photo", e);
+            Thread.currentThread().interrupt();
+            return null;
+        }
     }
 }

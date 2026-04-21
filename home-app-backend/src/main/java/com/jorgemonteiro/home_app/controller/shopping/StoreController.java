@@ -4,6 +4,7 @@ import com.jorgemonteiro.home_app.controller.shopping.resource.HateoasResource;
 import com.jorgemonteiro.home_app.controller.shopping.resource.store.*;
 import com.jorgemonteiro.home_app.controller.shopping.resource.coupon.*;
 import com.jorgemonteiro.home_app.controller.shopping.resource.loyalty.*;
+import com.jorgemonteiro.home_app.model.dtos.shared.StoreSummaryDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.CouponDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.LoyaltyCardDTO;
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingStoreDTO;
@@ -89,7 +90,7 @@ public class StoreController {
         ofNullable(dto.getStore())
                 .ifPresentOrElse(
                     store -> store.setId(id),
-                    () -> dto.setStore(new LoyaltyCardDTO.Store(id, null))
+                    () -> dto.setStore(new StoreSummaryDTO(id, null, null))
                 );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(cardAssembler.toModel(storeService.createLoyaltyCard(dto)));
@@ -123,7 +124,7 @@ public class StoreController {
         ofNullable(dto.getStore())
                 .ifPresentOrElse(
                     store -> store.setId(id),
-                    () -> dto.setStore(new CouponDTO.Store(id, null))
+                    () -> dto.setStore(new StoreSummaryDTO(id, null, null))
                 );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(couponAssembler.toModel(storeService.createCoupon(dto)));

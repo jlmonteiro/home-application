@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Modal, Stack, TextInput, Textarea, Select, Divider, Button, Text } from '@mantine/core'
+import { DateInput } from '@mantine/dates'
 import { useForm } from '@mantine/form'
 import { IconBarcode } from '@tabler/icons-react'
 import { formatEuro } from '../../utils/currency'
@@ -17,7 +18,7 @@ export interface CouponFormValues {
   name: string
   description: string
   value: string
-  dueDate: string
+  dueDate: Date | null
   code: string
   barcodeType: 'QR' | 'CODE_128'
 }
@@ -34,7 +35,7 @@ export function CouponFormModal({
       name: '',
       description: '',
       value: '',
-      dueDate: '',
+      dueDate: null,
       code: '',
       barcodeType: 'CODE_128',
     },
@@ -50,7 +51,7 @@ export function CouponFormModal({
         name: editingCoupon.name,
         description: editingCoupon.description || '',
         value: editingCoupon.value?.replace('€', '') || '',
-        dueDate: editingCoupon.dueDate ? new Date(editingCoupon.dueDate).toISOString().split('T')[0] : '',
+        dueDate: editingCoupon.dueDate ? new Date(editingCoupon.dueDate) : null,
         code: editingCoupon.barcode?.code || '',
         barcodeType: (editingCoupon.barcode?.type as 'QR' | 'CODE_128') || 'CODE_128',
       })
@@ -64,7 +65,7 @@ export function CouponFormModal({
     // Format value to Euro before submitting
     const formattedValues: CouponFormValues = {
       ...values,
-      value: formatEuro(values.value) || undefined,
+      value: formatEuro(values.value),
     }
     onSubmit(formattedValues)
   }
@@ -96,7 +97,12 @@ export function CouponFormModal({
             placeholder="Optional details"
             {...form.getInputProps('description')}
           />
-          <TextInput label="Due Date" type="date" {...form.getInputProps('dueDate')} />
+          <DateInput
+            label="Due Date"
+            placeholder="When does this coupon expire?"
+            clearable
+            {...form.getInputProps('dueDate')}
+          />
 
           <Divider label="Code Details" labelPosition="center" />
 

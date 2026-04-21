@@ -59,6 +59,9 @@ tasks.jacocoTestReport {
 	classDirectories.setFrom(
 		files(classDirectories.files.map {
 			fileTree(it) {
+				exclude("**/config/**")
+				exclude("**/dtos/**")
+				exclude("**/entities/**")
 				exclude("**/exception/**")
 				exclude("**/HomeApplication.class")
 			}

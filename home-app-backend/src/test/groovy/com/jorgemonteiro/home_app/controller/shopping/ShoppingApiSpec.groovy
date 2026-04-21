@@ -3,6 +3,7 @@ package com.jorgemonteiro.home_app.controller.shopping
 import com.jorgemonteiro.home_app.HomeApplication
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingCategoryDTO
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingItemDTO
+import com.jorgemonteiro.home_app.controller.shopping.ShoppingController
 import com.jorgemonteiro.home_app.service.shopping.ShoppingCatalogService
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
 import groovy.json.JsonOutput
@@ -14,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.transaction.annotation.Transactional
 import spock.lang.Narrative
+import spock.lang.Subject
 import spock.lang.Title
 
 import static org.hamcrest.Matchers.hasItem
@@ -30,6 +32,7 @@ So that I can use the shopping list module
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
+@Subject(ShoppingController)
 class ShoppingApiSpec extends BaseIntegrationTest {
 
     @Autowired
@@ -65,7 +68,7 @@ class ShoppingApiSpec extends BaseIntegrationTest {
         given: "an existing category"
             String categoryName = "Category-${UUID.randomUUID()}"
             def category = shoppingService.createCategory(new ShoppingCategoryDTO(name: categoryName))
-            def itemJson = JsonOutput.toJson([name: "Milk", category: [id: category.id]])
+            def itemJson = JsonOutput.toJson([name: "Milk", unit: "pcs", category: [id: category.id]])
 
         when: "posting to items endpoint"
             def createResponse = mockMvc.perform(post("/api/shopping/items")

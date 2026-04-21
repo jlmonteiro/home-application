@@ -5,6 +5,7 @@ import com.jorgemonteiro.home_app.exception.ObjectNotFoundException
 import com.jorgemonteiro.home_app.model.dtos.shopping.CouponDTO
 import com.jorgemonteiro.home_app.model.dtos.shopping.LoyaltyCardDTO
 import com.jorgemonteiro.home_app.model.dtos.shopping.ShoppingStoreDTO
+import com.jorgemonteiro.home_app.model.dtos.shared.StoreSummaryDTO
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingStoreRepository
 import com.jorgemonteiro.home_app.service.shopping.ShoppingStoreService
 import com.jorgemonteiro.home_app.test.BaseIntegrationTest
@@ -12,16 +13,26 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.data.domain.PageRequest
+import spock.lang.Narrative
 import spock.lang.Subject
+import spock.lang.Title
+import org.springframework.test.context.ActiveProfiles
 
 import java.time.LocalDate
 
+@Title("Shopping Store Service")
+@Narrative("""
+As a household member
+I want to manage stores, loyalty cards, and coupons
+So that I can optimize my shopping and use my rewards
+""")
 @SpringBootTest(classes = [HomeApplication])
+@ActiveProfiles("test")
 @Transactional
+@Subject(ShoppingStoreService)
 class ShoppingStoreServiceSpec extends BaseIntegrationTest {
 
     @Autowired
-    @Subject
     ShoppingStoreService storeService
 
     @Autowired
@@ -91,7 +102,7 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
 
         and: "a loyalty card DTO"
             def dto = new LoyaltyCardDTO(
-                store: new LoyaltyCardDTO.Store(id: store.id, name: store.name),
+                store: new StoreSummaryDTO(id: store.id, name: store.name),
                 name: "Plus Card",
                 barcode: new LoyaltyCardDTO.Barcode(code: "123456", type: "CODE_128")
             )
@@ -108,7 +119,7 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
         given: "a store with a loyalty card"
             def store = storeService.createStore(new ShoppingStoreDTO(name: "FindCardStore-${UUID.randomUUID()}"))
             storeService.createLoyaltyCard(new LoyaltyCardDTO(
-                store: new LoyaltyCardDTO.Store(id: store.id, name: store.name),
+                store: new StoreSummaryDTO(id: store.id, name: store.name),
                 name: "Card1",
                 barcode: new LoyaltyCardDTO.Barcode(code: "111", type: "QR")
             ))
@@ -137,7 +148,7 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
 
         and: "a coupon DTO"
             def dto = new CouponDTO(
-                store: new CouponDTO.Store(id: store.id, name: store.name),
+                store: new StoreSummaryDTO(id: store.id, name: store.name),
                 name: "10% off",
                 barcode: new CouponDTO.Barcode(code: "C123", type: "CODE_128"),
                 dueDate: LocalDate.now().plusDays(3)
@@ -155,7 +166,7 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
         given: "an existing coupon"
             def store = storeService.createStore(new ShoppingStoreDTO(name: "UpdCouponStore-${UUID.randomUUID()}"))
             def coupon = storeService.createCoupon(new CouponDTO(
-                store: new CouponDTO.Store(id: store.id, name: store.name),
+                store: new StoreSummaryDTO(id: store.id, name: store.name),
                 name: "Old",
                 barcode: new CouponDTO.Barcode(code: "OLD", type: "CODE_128")
             ))
@@ -163,12 +174,13 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
         when: "updating the coupon"
             def result = storeService.updateCoupon(coupon.id, new CouponDTO(
                 name: "New",
-                barcode: new CouponDTO.Barcode(code: "NEW", type: "QR"),
+                barcode: new CouponDTO.Barcode(code: "NEW_CODE", type: "QR"),
                 used: true
             ))
 
         then: "coupon is updated"
             result.name == "New"
+            result.barcode.code == "NEW_CODE"
             result.barcode.type == "QR"
             result.used
     }
@@ -184,9 +196,9 @@ class ShoppingStoreServiceSpec extends BaseIntegrationTest {
     def "findExpiringCoupons should return unused coupons expiring within 4 days"() {
         given: "a store with coupons at various dates"
             def store = storeService.createStore(new ShoppingStoreDTO(name: "ExpStore-${UUID.randomUUID()}"))
-            storeService.createCoupon(new CouponDTO(store: new CouponDTO.Store(id: store.id, name: store.name), name: "Expiring soon", barcode: new CouponDTO.Barcode(code: "E1", type: "CODE_128"), dueDate: LocalDate.now().plusDays(2)))
-            storeService.createCoupon(new CouponDTO(store: new CouponDTO.Store(id: store.id, name: store.name), name: "Far away", barcode: new CouponDTO.Barcode(code: "F1", type: "CODE_128"), dueDate: LocalDate.now().plusDays(30)))
-            storeService.createCoupon(new CouponDTO(store: new CouponDTO.Store(id: store.id, name: store.name), name: "Already used", barcode: new CouponDTO.Barcode(code: "U1", type: "CODE_128"), dueDate: LocalDate.now().plusDays(1), used: true))
+            storeService.createCoupon(new CouponDTO(store: new StoreSummaryDTO(id: store.id, name: store.name), name: "Expiring soon", barcode: new CouponDTO.Barcode(code: "E1", type: "CODE_128"), dueDate: LocalDate.now().plusDays(2)))
+            storeService.createCoupon(new CouponDTO(store: new StoreSummaryDTO(id: store.id, name: store.name), name: "Far away", barcode: new CouponDTO.Barcode(code: "F1", type: "CODE_128"), dueDate: LocalDate.now().plusDays(30)))
+            storeService.createCoupon(new CouponDTO(store: new StoreSummaryDTO(id: store.id, name: store.name), name: "Already used", barcode: new CouponDTO.Barcode(code: "U1", type: "CODE_128"), dueDate: LocalDate.now().plusDays(1), used: true))
 
         when: "finding expiring coupons"
             def result = storeService.findExpiringCoupons()

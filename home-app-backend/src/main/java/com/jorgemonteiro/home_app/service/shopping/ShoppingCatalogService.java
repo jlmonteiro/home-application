@@ -11,8 +11,10 @@ import com.jorgemonteiro.home_app.model.entities.shopping.ShoppingItem;
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingCategoryRepository;
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingItemPriceHistoryRepository;
 import com.jorgemonteiro.home_app.repository.shopping.ShoppingItemRepository;
+import com.jorgemonteiro.home_app.service.media.PhotoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Manages shopping catalogue master data: categories, items, and item price history.
@@ -28,12 +31,14 @@ import java.util.List;
 @RequiredArgsConstructor
 @Transactional
 @Validated
+@Slf4j
 public class ShoppingCatalogService {
 
     private final ShoppingCategoryRepository categoryRepository;
     private final ShoppingItemRepository itemRepository;
     private final ShoppingItemPriceHistoryRepository priceHistoryRepository;
     private final ShoppingAdapter shoppingAdapter;
+    private final PhotoService photoService;
 
     // --- Categories ---
 
@@ -74,7 +79,10 @@ public class ShoppingCatalogService {
     // --- Items ---
 
     @Transactional(readOnly = true)
-    public Page<ShoppingItemDTO> findAllItems(Pageable pageable) {
+    public Page<ShoppingItemDTO> findAllItems(String search, Pageable pageable) {
+        if (search != null && !search.isBlank()) {
+            return itemRepository.findByNameContainingIgnoreCase(search, pageable).map(shoppingAdapter::toItemDTO);
+        }
         return itemRepository.findAll(pageable).map(shoppingAdapter::toItemDTO);
     }
 
@@ -93,7 +101,15 @@ public class ShoppingCatalogService {
     public ShoppingItemDTO createItem(@Valid ShoppingItemDTO dto) {
         ShoppingCategory category = requireCategory(dto.getCategory().getId());
         assertItemNameUniqueInCategory(dto.getName(), dto.getCategory().getId());
+        
         ShoppingItem entity = shoppingAdapter.toItemEntity(dto);
+        
+        // Handle photo saving to central storage
+        if (dto.getPhoto() != null && dto.getPhoto().getData() != null && dto.getPhoto().getData().startsWith("data:image")) {
+            String fileName = photoService.generateFileName(dto.getName(), "item");
+            entity.setPhoto(photoService.savePhoto(dto.getPhoto().getData(), fileName, "item"));
+        }
+        
         category.addItem(entity);
         return shoppingAdapter.toItemDTO(itemRepository.save(entity));
     }
@@ -101,14 +117,35 @@ public class ShoppingCatalogService {
     public ShoppingItemDTO updateItem(Long id, @Valid ShoppingItemDTO dto) {
         ShoppingItem existing = requireItem(id);
         ShoppingCategory category = requireCategory(dto.getCategory().getId());
+        
         boolean nameOrCategoryChanged = !existing.getName().equals(dto.getName())
                 || !existing.getCategory().getId().equals(dto.getCategory().getId());
         if (nameOrCategoryChanged) {
             assertItemNameUniqueInCategory(dto.getName(), dto.getCategory().getId());
         }
+        
         existing.setName(dto.getName());
-        existing.setPhoto(dto.getPhoto());
         existing.setCategory(category);
+        existing.setUnit(dto.getUnit() != null ? dto.getUnit() : "pcs");
+        
+        if (dto.getNutritionSampleSize() != null) {
+            existing.setNutritionSampleSize(dto.getNutritionSampleSize());
+        }
+        if (dto.getNutritionSampleUnit() != null) {
+            existing.setNutritionSampleUnit(dto.getNutritionSampleUnit());
+        }
+        
+        // Handle photo update/saving to central storage
+        if (dto.getPhoto() != null && dto.getPhoto().getData() != null && dto.getPhoto().getData().startsWith("data:image")) {
+            String fileName = photoService.generateFileName(dto.getName(), "item");
+            existing.setPhoto(photoService.savePhoto(dto.getPhoto().getData(), fileName, "item"));
+        } else if (dto.getPhoto() != null && dto.getPhoto().getData() == null) {
+            existing.setPhoto(null);
+        } else if (dto.getPhoto() != null && !dto.getPhoto().getData().startsWith("/api/images/")) {
+            // If it's a URL or another name, keep it (though usually it's base64 from UI)
+            existing.setPhoto(dto.getPhoto().getData());
+        }
+
         return shoppingAdapter.toItemDTO(itemRepository.save(existing));
     }
 

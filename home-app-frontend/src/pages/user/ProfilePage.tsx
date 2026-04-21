@@ -50,30 +50,34 @@ export function ProfilePage() {
     queryFn: fetchFamilyRoles,
   })
 
-  const form = useForm<Partial<UserProfile>>({
-    initialValues: {
-      photo: user?.photo || '',
-      facebook: user?.facebook || '',
-      mobilePhone: user?.mobilePhone || '',
-      instagram: user?.instagram || '',
-      linkedin: user?.linkedin || '',
-      birthdate: user?.birthdate || '',
-      familyRoleId: user?.familyRoleId,
-    },
-
-    validate: {
-      mobilePhone: (value) =>
-        value && !PHONE_REGEX.test(value) ? 'Mobile phone must be a valid phone number' : null,
-      facebook: (value) =>
-        value && !FACEBOOK_REGEX.test(value) ? 'Facebook must be a valid Facebook URL' : null,
-      instagram: (value) =>
-        value && !INSTAGRAM_REGEX.test(value) ? 'Instagram must be a valid Instagram URL' : null,
-      linkedin: (value) =>
-        value && !LINKEDIN_REGEX.test(value) ? 'LinkedIn must be a valid LinkedIn URL' : null,
-      birthdate: (value) => (!value ? 'Birthdate is required' : null),
-      familyRoleId: (value) => (!value ? 'Family role is required' : null),
-    },
-  })
+    const form = useForm<Partial<UserProfile>>({
+      initialValues: {
+        photo: user?.photo || {},
+        social: {
+          facebook: user?.social?.facebook || '',
+          instagram: user?.social?.instagram || '',
+          linkedin: user?.social?.linkedin || '',
+        },
+        mobilePhone: user?.mobilePhone || '',
+        birthdate: user?.birthdate || '',
+        familyRole: user?.familyRole,
+      },
+  
+      validate: {
+        mobilePhone: (value) =>
+          value && !PHONE_REGEX.test(value) ? 'Mobile phone must be a valid phone number' : null,
+        social: {
+          facebook: (value) =>
+            value && !FACEBOOK_REGEX.test(value) ? 'Facebook must be a valid Facebook URL' : null,
+          instagram: (value) =>
+            value && !INSTAGRAM_REGEX.test(value) ? 'Instagram must be a valid Instagram URL' : null,
+          linkedin: (value) =>
+            value && !LINKEDIN_REGEX.test(value) ? 'LinkedIn must be a valid LinkedIn URL' : null,
+        },
+        birthdate: (value) => (!value ? 'Birthdate is required' : null),
+        familyRole: (value) => (!value?.id ? 'Family role is required' : null),
+      },
+    })
 
   const mutation = useMutation({
     mutationFn: updateUserProfile,
@@ -117,7 +121,7 @@ export function ProfilePage() {
 
       const reader = new FileReader()
       reader.onloadend = () => {
-        form.setFieldValue('photo', reader.result as string)
+        form.setFieldValue('photo', { data: reader.result as string })
       }
       reader.readAsDataURL(file)
     }
@@ -126,9 +130,10 @@ export function ProfilePage() {
   const handleSubmit = (values: Partial<UserProfile>) => {
     const payload = {
       ...values,
+      email: user?.email,
       birthdate: values.birthdate ? dayjs(values.birthdate).format('YYYY-MM-DD') : undefined,
     }
-    mutation.mutate(payload)
+    mutation.mutate(payload as any)
   }
 
   if (!user) return null
@@ -165,7 +170,7 @@ export function ProfilePage() {
               <Group align="flex-start" wrap="nowrap">
                 <Stack align="center" gap="xs">
                   <Avatar
-                    src={getPhotoSrc(form.values.photo)}
+                    src={getPhotoSrc(form.values.photo?.data || form.values.photo?.url)}
                     size={120}
                     radius={120}
                     variant="filled"
@@ -239,11 +244,12 @@ export function ProfilePage() {
                       data={roleOptions}
                       leftSection={<IconUsers size={16} />}
                       required
-                      {...form.getInputProps('familyRoleId')}
-                      value={form.values.familyRoleId?.toString()}
-                      onChange={(val) =>
-                        form.setFieldValue('familyRoleId', val ? parseInt(val) : undefined)
-                      }
+                      value={form.values.familyRole?.id?.toString()}
+                      onChange={(val) => {
+                        const selectedRole = roles?.find(r => r.id.toString() === val);
+                        form.setFieldValue('familyRole', selectedRole);
+                      }}
+                      error={form.errors.familyRole}
                     />
                   </SimpleGrid>
 
@@ -265,19 +271,19 @@ export function ProfilePage() {
                   label="Facebook"
                   placeholder="https://facebook.com/username"
                   leftSection={<IconBrandFacebook size={16} color="var(--mantine-color-blue-6)" />}
-                  {...form.getInputProps('facebook')}
+                  {...form.getInputProps('social.facebook')}
                 />
                 <TextInput
                   label="Instagram"
                   placeholder="https://instagram.com/username"
                   leftSection={<IconBrandInstagram size={16} color="var(--mantine-color-pink-6)" />}
-                  {...form.getInputProps('instagram')}
+                  {...form.getInputProps('social.instagram')}
                 />
                 <TextInput
                   label="LinkedIn"
                   placeholder="https://linkedin.com/in/username"
                   leftSection={<IconBrandLinkedin size={16} color="var(--mantine-color-blue-7)" />}
-                  {...form.getInputProps('linkedin')}
+                  {...form.getInputProps('social.linkedin')}
                 />
               </SimpleGrid>
 

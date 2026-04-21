@@ -44,6 +44,7 @@ import {
 } from '../../services/api'
 import type { ShoppingStore } from '../../services/api'
 import { getPhotoSrc } from '../../utils/photo'
+import { PhotoUpload, type PhotoDTO } from '../../components/PhotoUpload'
 
 export function StoresPage() {
   const queryClient = useQueryClient()
@@ -62,7 +63,7 @@ export function StoresPage() {
       name: '',
       description: '',
       icon: 'IconBuildingStore',
-      photo: '',
+      photo: null as PhotoDTO | null,
     },
     validate: {
       name: (value) => (value.length < 2 ? 'Name must have at least 2 characters' : null),
@@ -130,23 +131,34 @@ export function StoresPage() {
 
   const handleEdit = (store: ShoppingStore) => {
     setEditingStore(store)
+    const photoDto: PhotoDTO | null = store.photo?.url ? { url: store.photo.url } : null
     form.setValues({
       name: store.name,
       description: store.description || '',
       icon: store.icon || 'IconBuildingStore',
-      photo: store.photo || '',
+      photo: photoDto as any,
     })
     open()
   }
 
   const handleSubmit = (values: typeof form.values) => {
+    const photoPayload = (values.photo as any)?.data
+      ? { data: String((values.photo as any).data) }
+      : undefined
+
+    const storePayload = {
+      name: values.name,
+      description: values.description,
+      icon: values.icon,
+      photo: photoPayload,
+    };
+
     if (editingStore) {
-      updateMutation.mutate({ id: editingStore.id, store: values })
+      updateMutation.mutate({ id: editingStore.id, store: storePayload as any })
     } else {
-      createMutation.mutate(values)
+      createMutation.mutate(storePayload as any)
     }
   }
-
   const handleDelete = (id: number) => {
     if (
       window.confirm(
@@ -330,32 +342,12 @@ export function StoresPage() {
               {...form.getInputProps('name')}
             />
 
-            <Group align="flex-end">
-              <Box
-                w={80}
-                h={80}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  border: '1px solid var(--mantine-color-gray-3)',
-                  borderRadius: rem(4),
-                  overflow: 'hidden',
-                }}
-              >
-                {form.values.photo ? (
-                  <Image src={getPhotoSrc(form.values.photo)} fit="contain" h={80} w={80} />
-                ) : (
-                  <SelectedIcon size={40} stroke={1.5} color="var(--mantine-color-gray-4)" />
-                )}
-              </Box>
-              <TextInput
-                label="Photo URL"
-                placeholder="/logos/tesco.svg or https://..."
-                style={{ flex: 1 }}
-                {...form.getInputProps('photo')}
-              />
-            </Group>
+            <PhotoUpload
+              photo={form.values.photo as any || undefined}
+              onChange={(photo) => form.setFieldValue('photo', photo as any)}
+              description="Upload a store logo (PNG, JPG or SVG)."
+              size={80}
+            />
 
             <TextInput
               label="Icon Fallback"

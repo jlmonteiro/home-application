@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Modal, Stack, Select, NumberInput, Group, Button } from '@mantine/core'
 import { useForm } from '@mantine/form'
-import type { ShoppingListItem, ShoppingStore } from '../../services/api'
+import type { ShoppingListItem } from '../../services/api'
 
 interface EditItemModalProps {
   opened: boolean
@@ -20,12 +20,24 @@ export function EditItemModal({
   onSubmit,
   isPending,
 }: EditItemModalProps) {
+  const unitOptions = [
+    { value: 'pcs', label: 'Pieces (pcs)' },
+    { value: 'kg', label: 'Kilograms (kg)' },
+    { value: 'g', label: 'Grams (g)' },
+    { value: 'l', label: 'Liters (l)' },
+    { value: 'ml', label: 'Milliliters (ml)' },
+    { value: 'pack', label: 'Pack' },
+    { value: 'box', label: 'Box' },
+    { value: 'bottle', label: 'Bottle' },
+    { value: 'can', label: 'Can' },
+  ]
+
   const form = useForm({
     initialValues: {
       storeId: '',
       quantity: 1,
       unit: 'pcs',
-      price: '' as string | number,
+      price: undefined as number | undefined,
     },
   })
 
@@ -36,12 +48,12 @@ export function EditItemModal({
         storeId: item.store?.id?.toString() || '',
         quantity: item.quantity,
         unit: item.unit,
-        price: item.price ?? '',
+        price: item.pricing?.price ?? undefined,
       })
     } else {
       form.reset()
     }
-  }, [item?.id, item?.store?.id, item?.quantity, item?.unit, item?.price])
+  }, [item?.id, item?.store?.id, item?.quantity, item?.unit, item?.pricing?.price])
 
   const handleSubmit = () => {
     if (item) {
@@ -53,7 +65,7 @@ export function EditItemModal({
     <Modal
       opened={opened}
       onClose={onClose}
-      title={item ? `Edit ${item.itemName}` : 'Edit Item'}
+      title={item ? `Edit ${item.item.name}` : 'Edit Item'}
       radius="md"
       zIndex={2000}
     >
@@ -69,7 +81,7 @@ export function EditItemModal({
             {...form.getInputProps('storeId')}
           />
 
-          <Group grow>
+          <Group grow align="flex-end">
             <NumberInput
               label="Quantity"
               min={0.1}
@@ -78,14 +90,16 @@ export function EditItemModal({
             />
             <Select
               label="Unit"
-              data={['pcs', 'kg', 'g', 'L', 'ml', 'pack', 'bottle']}
+              placeholder="Select unit"
+              data={unitOptions}
+              searchable
               comboboxProps={{ withinPortal: true, zIndex: 3000 }}
               {...form.getInputProps('unit')}
             />
           </Group>
 
           <NumberInput
-            label="Price per Unit (€)"
+            label={"Price per " + (item?.item.unit || 'Unit') + " (€)"}
             min={0}
             decimalScale={2}
             {...form.getInputProps('price')}

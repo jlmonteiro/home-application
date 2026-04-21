@@ -155,20 +155,22 @@ graph TD
 
 ### Database Schema
 
-The database uses **PostgreSQL 17+** with five logical schemas: `profiles` for user and authentication data, `shopping` 
-for shopping-related data, `recipes` for the family cookbook and nutrition, `meals` for weekly meal planning, and `notifications` for in-app notifications and messaging.
+The database uses **PostgreSQL 17+** with six logical schemas: `profiles` for user and authentication data, `shopping` 
+for shopping-related data, `recipes` for the family cookbook and nutrition, `meals` for weekly meal planning, `notifications` for in-app notifications and messaging, and `media` for centralized binary photo storage.
 
 This separation provides clear domain boundaries and simplifies access control. 
 
 The `profiles` schema manages user accounts, extended profile data, family roles, and age group configurations. 
 
-The `shopping` schema handles shopping lists, items, categories, stores, loyalty cards, and coupons. 
+The `shopping` schema handles shopping lists, items (with unit, piece conversion, and nutrition sample config), categories, stores, loyalty cards, and coupons (with optional barcode support). 
 
-The `recipes` schema manages recipes, photos, dynamic labels, ingredients (linked to shopping items), preparation steps, comments, ratings, and per-item nutrition data.
+The `recipes` schema manages recipes, photos (referencing centralized media by name), dynamic labels, ingredients (linked to shopping items with optional grouping), preparation steps, comments, ratings, a nutrients master catalog, and per-item nutrition data.
 
-The `meals` schema handles meal time configuration with per-day schedules, weekly meal plans (Monday–Sunday), multi-recipe meal entries, member assignments, approval workflows, and thumbs up/down feedback.
+The `meals` schema handles meal time configuration with per-day schedules and sort order, weekly meal plans (Monday–Sunday), multi-recipe meal entries with multipliers, standalone item assignments, and thumbs up/down votes.
 
-The `notifications` schema manages typed in-app notifications with polymorphic references and direct user-to-user messaging.
+The `notifications` schema manages typed in-app notifications with link-based navigation and sender attribution, plus direct user-to-user messaging.
+
+The `media` schema provides centralized binary photo storage (BYTEA) served via `/api/images/{name}`, used by all modules for profile, recipe, item, and store photos.
 
 All tables include audit columns (`created_at`, `updated_at`, `version`) for optimistic locking and data tracking.
 
@@ -207,12 +209,17 @@ graph TD
         meal_plans["meal_plans\nWeekly plans"]
         meal_plan_entries["meal_plan_entries\nMeal slots"]
         meal_plan_entry_recipes["meal_plan_entry_recipes\nAssigned recipes"]
-        meal_plan_entry_members["meal_plan_entry_members\nMember responses"]
+        meal_plan_entry_items["meal_plan_entry_items\nAssigned items"]
+        meal_plan_votes["meal_plan_votes\nFeedback"]
     end
 
     subgraph notifications
         notifications_table["notifications\nEvents"]
         messages["messages\nDirect messages"]
+    end
+
+    subgraph media
+        photos_table["photos\nBinary storage"]
     end
 
     users --> user_profiles
@@ -233,7 +240,8 @@ graph TD
     shopping_items --> nutrition_entries
     meal_plans --> meal_plan_entries
     meal_plan_entries --> meal_plan_entry_recipes
-    meal_plan_entries --> meal_plan_entry_members
+    meal_plan_entries --> meal_plan_entry_items
+    meal_plan_entries --> meal_plan_votes
     recipes_table --> meal_plan_entry_recipes
     users --> notifications_table
     users --> messages
@@ -289,6 +297,8 @@ graph TD
 | Multi-recipe meals                 | Accepted | A meal entry can combine multiple recipes (e.g., protein + salad) |
 | Dynamic labels with auto-cleanup   | Accepted | Labels created on demand, deleted when orphaned. No predefined set |
 | On-the-fly nutrition calculation   | Accepted | Recipe nutrition totals computed at query time, not stored. Always accurate |
+| Centralized media service          | Accepted | All photos stored in `media.photos` (BYTEA), served via `/api/images/{name}`. Replaces per-table Base64 |
+| Predefined nutrient catalog        | Accepted | Nutrition entries reference a managed `recipes.nutrients` master table instead of free-form key-value-unit |
 
 
 ## 5. Performance & Caching
@@ -304,7 +314,7 @@ graph TD
 - **Retention Task (Shopping):** Daily at 02:00 AM ([:octicons-clock-24: FR-11](../requirements/shopping-list.md#fr-11))
 - **Retention Task (Meals):** Daily at 03:00 AM ([:octicons-clock-24: FR-34](../requirements/recipes-meals.md#fr-34))
 - **Age Recalculation:** Daily at 00:01 AM ([:octicons-person-24: FR-16](../requirements/auth-profile.md#fr-16))
-- **Meal Reminder Check:** Every 15 minutes ([:material-bell-ring: FR-33](../requirements/recipes-meals.md#fr-33))
+- **Meal Reminder Check:** Every 15 minutes ([:material-bell-ring: FR-33](../requirements/recipes-meals.md#fr-33)) — **Deferred, not yet functional**
 
 ### Frontend
 

@@ -3,9 +3,11 @@ package com.jorgemonteiro.home_app.service.profiles;
 import com.jorgemonteiro.home_app.model.entities.profiles.AgeGroupConfig;
 import com.jorgemonteiro.home_app.repository.profiles.AgeGroupConfigRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.LocalDate;
 import java.time.Period;
@@ -13,6 +15,9 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
+@Validated
+@Slf4j
 public class AgeClassificationService {
 
     static final String CACHE_NAME = "ageGroupConfigs";

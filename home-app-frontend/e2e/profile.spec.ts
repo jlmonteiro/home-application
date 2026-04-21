@@ -2,11 +2,7 @@ import { test, expect } from '@playwright/test'
 import { ProfilePage } from './pages/ProfilePage'
 
 test.describe('Profile Management Behavioral Flow', () => {
-  // In a real scenario, we would use a global setup to login once and reuse the state
-  // or mock the /api/user/me call to return a logged-in user.
-
   test.beforeEach(async ({ page }) => {
-    // Mocking the current user API for the E2E test to simulate being logged in
     await page.route('**/api/user/me', async (route) => {
       await route.fulfill({
         status: 200,
@@ -18,19 +14,20 @@ test.describe('Profile Management Behavioral Flow', () => {
           lastName: 'User',
           ageGroupName: 'Adult',
           birthdate: '1990-01-01',
-          familyRoleId: 1,
+          familyRole: { id: 1, name: 'Parent', immutable: true },
+          social: { facebook: '', instagram: '', linkedin: '' },
+          version: 1,
         }),
       })
     })
 
-    // Mock family roles
     await page.route('**/api/settings/roles', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify([
-          { id: 1, name: 'Parent', immutable: true },
-          { id: 2, name: 'Child', immutable: false },
+          { id: 1, name: 'Parent', immutable: true, version: 1 },
+          { id: 2, name: 'Child', immutable: false, version: 1 },
         ]),
       })
     })
@@ -45,7 +42,6 @@ test.describe('Profile Management Behavioral Flow', () => {
     })
 
     await test.step('When they update their mobile phone and social links', async () => {
-      // Mock the update API call
       await page.route('**/api/user/me', async (route) => {
         if (route.request().method() === 'PUT') {
           await route.fulfill({
@@ -58,11 +54,14 @@ test.describe('Profile Management Behavioral Flow', () => {
               lastName: 'User',
               ageGroupName: 'Adult',
               birthdate: '1990-01-01',
-              familyRoleId: 1,
+              familyRole: { id: 1, name: 'Parent', immutable: true },
               mobilePhone: '+351912345678',
-              facebook: 'https://facebook.com/testuser',
+              social: { facebook: 'https://facebook.com/testuser' },
+              version: 2,
             }),
           })
+        } else {
+          await route.continue()
         }
       })
 
@@ -85,9 +84,7 @@ test.describe('Profile Management Behavioral Flow', () => {
     })
 
     await test.step('When they enter an invalid Facebook URL', async () => {
-      await profilePage.updateProfile({
-        facebook: 'invalid-url',
-      })
+      await profilePage.updateProfile({ facebook: 'invalid-url' })
     })
 
     await test.step('Then a validation message for Facebook should appear', async () => {

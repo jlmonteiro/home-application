@@ -1,11 +1,11 @@
 package com.jorgemonteiro.home_app.model.dtos.shopping;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.CategorySummaryDTO;
+import com.jorgemonteiro.home_app.model.dtos.shared.PhotoDTO;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.hateoas.server.core.Relation;
 
 /**
@@ -24,21 +24,22 @@ public class ShoppingItemDTO {
     private String name;
 
     /** Base64-encoded photo data or URL. */
-    private String photo;
+    private PhotoDTO photo;
+
+    @NotBlank(message = "Unit is required")
+    @Size(max = 20, message = "Unit must not exceed 20 characters")
+    private String unit;
+
+    private java.math.BigDecimal pcQuantity;
+    private String pcUnit;
+
+    private java.math.BigDecimal nutritionSampleSize;
+    private String nutritionSampleUnit;
 
     /** The category this item belongs to. */
     @NotNull(message = "Category is required")
-    private Category category;
+    private CategorySummaryDTO category;
 
     /** Version number for optimistic locking. */
     private Long version;
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Category {
-        private Long id;
-        private String name;
-        private String icon;
-    }
 }

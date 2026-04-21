@@ -4,6 +4,7 @@ package com.jorgemonteiro.home_app.model.entities.profiles;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -54,5 +55,6 @@ public class User {
 
     /** The associated profile record. Cascades all operations and is owned by {@link UserProfile}. */
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @ToString.Exclude
     private UserProfile userProfile;
 }

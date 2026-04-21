@@ -1,8 +1,8 @@
 package com.jorgemonteiro.home_app.model.dtos.shopping;
 
+import com.jorgemonteiro.home_app.model.dtos.shared.PhotoDTO;
+import com.jorgemonteiro.home_app.model.dtos.shared.StoreSummaryDTO;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -20,7 +20,7 @@ public class CouponDTO {
 
     private Long id;
 
-    private Store store;
+    private StoreSummaryDTO store;
 
     @NotBlank(message = "Coupon name is required")
     @Size(max = 100, message = "Coupon name must not exceed 100 characters")
@@ -31,7 +31,7 @@ public class CouponDTO {
     @Size(max = 100, message = "Value description must not exceed 100 characters")
     private String value;
 
-    private String photo;
+    private PhotoDTO photo;
 
     private LocalDate dueDate;
 
@@ -40,14 +40,6 @@ public class CouponDTO {
     private boolean used;
 
     private Long version;
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class Store {
-        private Long id;
-        private String name;
-    }
 
     @Data
     @NoArgsConstructor

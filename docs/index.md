@@ -73,7 +73,7 @@ Explore the comprehensive documentation to understand the "Why", "How", and "Wha
     
     The definitive source of truth using **EARS** syntax and traceable User Journeys.
 
--   :material-pencil-ruler: **[Technical Design](specification/design/design.md)**
+-   IconPencil **[Technical Design](specification/design/design.md)**
     
     Detailed architecture, ER diagrams, and frontend component patterns.
 
