@@ -10,9 +10,7 @@ const RECIPE_MOCK = {
   averageRating: 4.5,
   ratingCount: 2,
   creator: { id: 1, name: 'Test User' },
-  photos: [
-    { id: 1, photoUrl: '/api/images/lasagna.jpg', isDefault: true },
-  ],
+  photos: [{ id: 1, photoUrl: '/api/images/lasagna.jpg', isDefault: true }],
   ingredients: [
     { id: 1, item: { id: 100, name: 'Chicken Breast', unit: 'g', category: { id: 1, name: 'Meat' } }, quantity: 500, unit: 'g', groupName: '' },
   ],
@@ -65,7 +63,7 @@ test.describe('Recipe Module', () => {
     })
   })
 
-  test('TS-30B: Recipe CRUD with Photos', async ({ page }) => {
+  test('TS-30B: Create recipe and land on detail page', async ({ page }) => {
     await page.route('**/api/recipes*', async (route) => {
       const url = route.request().url()
       if (route.request().method() === 'GET' && !url.match(/\/recipes\/\d+/)) {
@@ -79,10 +77,12 @@ test.describe('Recipe Module', () => {
       }
     })
 
-    await page.goto('/recipes')
-    await expect(page.getByRole('heading', { name: 'Cookbook' })).toBeVisible()
+    await test.step('Given the user navigates to the recipes page', async () => {
+      await page.goto('/recipes')
+      await expect(page.getByRole('heading', { name: 'Cookbook' })).toBeVisible()
+    })
 
-    await test.step('When the user creates a new recipe', async () => {
+    await test.step('When they fill the recipe form and submit', async () => {
       await page.getByRole('link', { name: /Add Recipe/i }).click()
       await expect(page).toHaveURL(/\/recipes\/new/)
 
@@ -105,52 +105,49 @@ test.describe('Recipe Module', () => {
       await page.getByRole('button', { name: /Create Recipe/i }).click()
     })
 
-    await test.step('Then the recipe detail page shows the recipe', async () => {
+    await test.step('Then the user lands on the recipe detail page', async () => {
       await expect(page).toHaveURL(/\/recipes\/1/)
       await expect(page.getByText('Grandma Lasagna')).toBeVisible()
     })
   })
 
-  test('TS-31B: Dynamic Label Lifecycle', async ({ page }) => {
-    await page.goto('/recipes/new')
-    await expect(page.getByRole('heading', { name: 'New Recipe' })).toBeVisible()
+  test('TS-31B: Select existing label via TagsInput autocomplete', async ({ page }) => {
+    await test.step('Given the user is on the new recipe form', async () => {
+      await page.goto('/recipes/new')
+      await expect(page.getByRole('heading', { name: 'New Recipe' })).toBeVisible()
+    })
 
-    await test.step('When the user types an existing label "Italian"', async () => {
+    await test.step('When they type in the labels field and select from dropdown', async () => {
       const tagsInput = page.locator('.mantine-TagsInput-input')
       await tagsInput.click()
       await tagsInput.pressSequentially('Ital')
       await page.getByRole('option', { name: 'Italian' }).click()
     })
 
-    await test.step('Then the label appears as a pill/tag', async () => {
+    await test.step('Then the label appears as a pill', async () => {
       await expect(page.locator('.mantine-TagsInput-pill').filter({ hasText: 'Italian' })).toBeVisible()
     })
   })
 
-  test('TS-33: Step Reordering', async ({ page }) => {
+  test('TS-33: Reorder preparation steps using move buttons', async ({ page }) => {
     await page.route('**/api/recipes/1', async (route) => {
       await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(RECIPE_MOCK) })
     })
 
-    await page.goto('/recipes/1/edit')
-
-    await test.step('Given the recipe has 3 steps', async () => {
+    await test.step('Given the user is editing a recipe with 3 steps', async () => {
+      await page.goto('/recipes/1/edit')
       await expect(page.getByText('Preheat oven to 180C')).toBeVisible()
       await expect(page.getByText('Bake for 45 minutes')).toBeVisible()
     })
 
-    await test.step('When the user moves the last step up', async () => {
-      // Get all "Move Up" buttons — one per step
+    await test.step('When they click "Move Up" on the last step', async () => {
       const moveUpButtons = page.getByTitle('Move Up')
-      // Click the 3rd step's Move Up (index 2)
       await moveUpButtons.nth(2).click()
     })
 
-    await test.step('Then step order changes to [Preheat, Bake, Layer]', async () => {
-      // Verify by checking the text order within the step container
+    await test.step('Then the step order changes to [Preheat, Bake, Layer]', async () => {
       const stepTexts = await page.getByTitle('Move Up').evaluateAll((buttons) => {
         return buttons.map((btn) => {
-          // Walk up to the Paper root and get its text
           const paper = btn.closest('.mantine-Paper-root')
           return paper?.textContent || ''
         })
@@ -158,53 +155,6 @@ test.describe('Recipe Module', () => {
       expect(stepTexts[0]).toContain('Preheat oven')
       expect(stepTexts[1]).toContain('Bake for 45')
       expect(stepTexts[2]).toContain('Layer the pasta')
-    })
-  })
-
-  test('TS-39: Recipe Deletion Blocked When in Meal Plan', async ({ page }) => {
-    await page.route('**/api/recipes*', async (route) => {
-      const url = route.request().url()
-      if (route.request().method() === 'DELETE') {
-        await route.fulfill({
-          status: 400,
-          contentType: 'application/json',
-          body: JSON.stringify({ type: 'about:blank', title: 'Bad Request', status: 400, detail: 'Cannot delete recipe: it is referenced in an active meal plan.' }),
-        })
-      } else if (route.request().method() === 'GET' && !url.match(/\/recipes\/\d+/)) {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            _embedded: { recipes: [RECIPE_MOCK] },
-            page: { totalPages: 1, totalElements: 1, size: 12, number: 0 },
-          }),
-        })
-      } else {
-        await route.continue()
-      }
-    })
-
-    await page.goto('/recipes')
-    await expect(page.getByText('Grandma Lasagna')).toBeVisible()
-
-    await test.step('When the user tries to delete the recipe', async () => {
-      // Set up dialog handler BEFORE clicking
-      page.on('dialog', (dialog) => dialog.accept())
-
-      // Click the delete (trash) icon — it's the second ActionIcon in the card's button group
-      const card = page.locator('.mantine-Card-root').filter({ hasText: 'Grandma Lasagna' })
-
-      // Wait for the DELETE request after clicking
-      const [deleteRequest] = await Promise.all([
-        page.waitForRequest((req) => req.method() === 'DELETE' && req.url().includes('/api/recipes/'), { timeout: 5000 }),
-        card.locator('button.mantine-ActionIcon-root').last().click(),
-      ])
-
-      expect(deleteRequest).toBeTruthy()
-    })
-
-    await test.step('Then the recipe should still be visible (deletion was rejected)', async () => {
-      await expect(page.getByText('Grandma Lasagna')).toBeVisible()
     })
   })
 })

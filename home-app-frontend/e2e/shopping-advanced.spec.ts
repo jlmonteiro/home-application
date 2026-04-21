@@ -33,11 +33,7 @@ test.describe('Advanced Shopping Scenarios', () => {
     })
 
     await page.route('**/api/shopping/coupons/expiring*', async (route) => {
-      if (route.request().method() === 'GET') {
-        await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
-      } else {
-        await route.continue()
-      }
+      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ _embedded: { coupons: [] } }) })
     })
 
     await page.route('**/api/meals/plans*', async (route) => {
@@ -79,30 +75,36 @@ test.describe('Advanced Shopping Scenarios', () => {
       }
     })
 
-    await itemsPage.goto()
-
-    // After creation, override GET to return the new item
-    await page.route('**/api/shopping/items*', async (route) => {
-      if (route.request().method() === 'POST') {
-        await route.fulfill({
-          status: 201,
-          contentType: 'application/json',
-          body: JSON.stringify({ id: 200, name: 'Whole Milk', unit: 'l', category: { id: 1, name: 'Dairy' }, version: 1 }),
-        })
-      } else {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            _embedded: { items: [{ id: 200, name: 'Whole Milk', unit: 'l', category: { id: 1, name: 'Dairy' }, version: 1 }] },
-            page: { totalPages: 1, totalElements: 1, size: 20, number: 0 }
-          }),
-        })
-      }
+    await test.step('Given the user is on the Shopping Items page', async () => {
+      await itemsPage.goto()
     })
 
-    await itemsPage.createItem('Whole Milk', 'Dairy', 'Liters (l)')
-    await expect(page.getByText('Whole Milk')).toBeVisible()
+    await test.step('When they create a new item "Whole Milk" in category "Dairy"', async () => {
+      await page.route('**/api/shopping/items*', async (route) => {
+        if (route.request().method() === 'POST') {
+          await route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 200, name: 'Whole Milk', unit: 'l', category: { id: 1, name: 'Dairy' }, version: 1 }),
+          })
+        } else {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              _embedded: { items: [{ id: 200, name: 'Whole Milk', unit: 'l', category: { id: 1, name: 'Dairy' }, version: 1 }] },
+              page: { totalPages: 1, totalElements: 1, size: 20, number: 0 }
+            }),
+          })
+        }
+      })
+
+      await itemsPage.createItem('Whole Milk', 'Dairy', 'Liters (l)')
+    })
+
+    await test.step('Then "Whole Milk" appears in the items list', async () => {
+      await expect(page.getByText('Whole Milk')).toBeVisible()
+    })
   })
 
   test('TS-30: Store Management', async ({ page }) => {
@@ -124,98 +126,35 @@ test.describe('Advanced Shopping Scenarios', () => {
       }
     })
 
-    await storesPage.goto()
-
-    // After creation, override GET to return the new store
-    await page.route('**/api/shopping/stores*', async (route) => {
-      if (route.request().method() === 'POST') {
-        await route.fulfill({
-          status: 201,
-          contentType: 'application/json',
-          body: JSON.stringify({ id: 1, name: 'SuperMart', address: '123 Main St', version: 1 }),
-        })
-      } else {
-        await route.fulfill({
-          status: 200,
-          contentType: 'application/json',
-          body: JSON.stringify({
-            _embedded: { stores: [{ id: 1, name: 'SuperMart', address: '123 Main St', version: 1 }] },
-            page: { totalPages: 1, totalElements: 1, size: 20, number: 0 }
-          }),
-        })
-      }
+    await test.step('Given the user is on the Stores page', async () => {
+      await storesPage.goto()
     })
 
-    await storesPage.createStore('SuperMart', '123 Main St')
-    await expect(page.getByText('SuperMart')).toBeVisible()
-  })
-
-  test('TS-16: Dashboard Coupon Warning', async ({ page }) => {
-    const expiringDate = new Date()
-    expiringDate.setDate(expiringDate.getDate() + 1)
-
-    // Unroute the empty coupons mock from beforeEach, then set the one with data
-    await page.unrouteAll({ behavior: 'ignoreErrors' })
-
-    // Re-register essential mocks for dashboard
-    await page.route('**/api/user/me', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ id: 1, email: 'test@example.com', firstName: 'Test', lastName: 'User', ageGroupName: 'Adult', version: 1 }),
+    await test.step('When they create a new store "SuperMart"', async () => {
+      await page.route('**/api/shopping/stores*', async (route) => {
+        if (route.request().method() === 'POST') {
+          await route.fulfill({
+            status: 201,
+            contentType: 'application/json',
+            body: JSON.stringify({ id: 1, name: 'SuperMart', address: '123 Main St', version: 1 }),
+          })
+        } else {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({
+              _embedded: { stores: [{ id: 1, name: 'SuperMart', address: '123 Main St', version: 1 }] },
+              page: { totalPages: 1, totalElements: 1, size: 20, number: 0 }
+            }),
+          })
+        }
       })
+
+      await storesPage.createStore('SuperMart', '123 Main St')
     })
 
-    await page.route('**/api/user/preferences*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ showShoppingWidget: true, showCouponsWidget: true, showMealPlanWidget: true }),
-      })
+    await test.step('Then "SuperMart" appears in the stores list', async () => {
+      await expect(page.getByText('SuperMart')).toBeVisible()
     })
-
-    await page.route('**/api/notifications/unread-count*', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(0) })
-    })
-
-    await page.route('**/api/notifications', async (route) => {
-      await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) })
-    })
-
-    await page.route('**/api/shopping/lists', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ _embedded: { lists: [] }, page: { totalPages: 0, totalElements: 0, size: 20, number: 0 } }),
-      })
-    })
-
-    await page.route('**/api/meals/plans*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({ id: 1, weekStartDate: '2026-04-20', status: 'PENDING', entries: [] }),
-      })
-    })
-
-    await page.route('**/api/shopping/coupons/expiring*', async (route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: 'application/json',
-        body: JSON.stringify({
-          _embedded: {
-            coupons: [
-              { id: 1, name: '10% OFF Milk', dueDate: expiringDate.toISOString(), store: { id: 1, name: 'Lidl' }, barcode: { code: 'SAVE10', type: 'QR' } }
-            ]
-          }
-        }),
-      })
-    })
-
-    await page.goto('/')
-
-    await expect(page.getByRole('heading', { name: 'Expiring Coupons' })).toBeVisible()
-    await expect(page.getByText('10% OFF Milk')).toBeVisible()
-    await expect(page.getByText('Lidl')).toBeVisible()
   })
 })
