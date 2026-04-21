@@ -1,0 +1,3106 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Household management platform for families">
+      
+      
+        <meta name="author" content="Home App Team">
+      
+      
+        <link rel="canonical" href="https://jlmonteiro.github.io/home-application/specification/design/database/schema/">
+      
+      
+        <link rel="prev" href="../overview/">
+      
+      
+        <link rel="next" href="../../test-strategy/architecture/">
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+    
+    
+      
+        <title>Schema - Home Application</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.8608ea7d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+      
+        <meta  property="og:type"  content="website" >
+      
+        <meta  property="og:title"  content="Schema - Home Application" >
+      
+        <meta  property="og:description"  content="Household management platform for families" >
+      
+        <meta  property="og:image"  content="https://jlmonteiro.github.io/home-application/assets/images/social/specification/design/database/schema.png" >
+      
+        <meta  property="og:image:type"  content="image/png" >
+      
+        <meta  property="og:image:width"  content="1200" >
+      
+        <meta  property="og:image:height"  content="630" >
+      
+        <meta  property="og:url"  content="https://jlmonteiro.github.io/home-application/specification/design/database/schema/" >
+      
+        <meta  name="twitter:card"  content="summary_large_image" >
+      
+        <meta  name="twitter:title"  content="Schema - Home Application" >
+      
+        <meta  name="twitter:description"  content="Household management platform for families" >
+      
+        <meta  name="twitter:image"  content="https://jlmonteiro.github.io/home-application/assets/images/social/specification/design/database/schema.png" >
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="red">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#database-schema" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../.." title="Home Application" class="md-header__button md-logo" aria-label="Home Application" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Home Application
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Schema
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jlmonteiro/home-application" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jlmonteiro/home-application
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../../.." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../help/getting-started/" class="md-tabs__link">
+          
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../../../development/" class="md-tabs__link">
+          
+  
+  Development and Design Guidelines
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../../" class="md-tabs__link">
+          
+  
+  Specifications
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="Home Application" class="md-nav__button md-logo" aria-label="Home Application" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Home Application
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jlmonteiro/home-application" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jlmonteiro/home-application
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../help/getting-started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../help/shopping/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shopping Assistant
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../help/recipes-meals/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recipes &amp; Meals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../help/profile/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    User Profile
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Development and Design Guidelines
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Development and Design Guidelines
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../development/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Guidelines
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guidelines
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../development/java-guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Java Guidelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../development/spock-tests-guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Spock Tests
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../development/frontend-guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Frontend Guidelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../development/frontend-e2e-tests-guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Frontend Tests
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../development/database-guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Database Guidelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../development/documentation/documentation-guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Documentation Guidelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../development/documentation/sdd/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SDD Methodology
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Specifications
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Specifications
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Design
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_2" id="__nav_4_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Backend
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Backend
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../backend/overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_2_2" id="__nav_4_2_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_4_2_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../backend/api/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../backend/api/reference/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_3" id="__nav_4_2_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Frontend
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Frontend
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../frontend/overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../frontend/ui-architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_2_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_4" id="__nav_4_2_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Database
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_2_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            Database
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Schema
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Schema
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schemas" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schemas
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schemas">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#system-er-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      System ER Overview
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#profiles-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      profiles Schema
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="profiles Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detailed-entity-relationship-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detailed Entity Relationship Diagram
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table Definitions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shopping-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      shopping Schema
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="shopping Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detailed-entity-relationship-diagram_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detailed Entity Relationship Diagram
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-definitions_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table Definitions
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recipes-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      recipes Schema
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="recipes Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detailed-entity-relationship-diagram_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detailed Entity Relationship Diagram
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-definitions_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table Definitions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-schema-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cross-Schema References
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#meals-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      meals Schema
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="meals Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detailed-entity-relationship-diagram_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detailed Entity Relationship Diagram
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-definitions_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table Definitions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-schema-references_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cross-Schema References
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notifications-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      notifications Schema
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="notifications Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#detailed-entity-relationship-diagram_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Detailed Entity Relationship Diagram
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#table-definitions_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table Definitions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cross-schema-references_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      Cross-Schema References
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#media-schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      media Schema
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="media Schema">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#table-definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      Table Definition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Columns
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#technical-standards" class="md-nav__link">
+    <span class="md-ellipsis">
+      Technical Standards
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Technical Standards">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-columns" class="md-nav__link">
+    <span class="md-ellipsis">
+      Common Columns
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimistic-locking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Optimistic Locking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-retention" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Retention
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Related Documentation
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_5" id="__nav_4_2_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Test Strategy
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            Test Strategy
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../test-strategy/architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Test Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../test-strategy/test-scenarios/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Test Scenarios
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Requirements
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            Requirements
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../requirements/requirements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Index
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../requirements/auth-profile/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Authentication / Profile
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../requirements/settings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Settings
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../requirements/shopping-list/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shopping List
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../requirements/recipes-meals/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recipes & Meals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../requirements/notifications/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notifications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../requirements/documentation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../requirements/shared/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Common
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Roadmap
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            Roadmap
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../roadmap/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Index
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../roadmap/01-update-user-profile.tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    User Profile
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../roadmap/02-shopping-list.tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shopping List
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../roadmap/03-family-hierarchy.tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Family Hierarchy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../roadmap/04-recipes-meals.tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recipes & Meals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="database-schema">Database Schema</h1>
+<h2 id="overview">Overview</h2>
+<p>This document details the PostgreSQL 17 database schema, table relationships, and migration rules for the Home Application.</p>
+<h2 id="schemas">Schemas</h2>
+<p>The database is organized into five distinct logical schemas:
+- <code>profiles</code> - Identity, authentication, and family structure.
+- <code>shopping</code> - Collaborative shopping lists, master catalog, and store-related data.
+- <code>recipes</code> - Family cookbook: recipes, photos, labels, ingredients, steps, comments, ratings, and nutrition.
+- <code>meals</code> - Meal time configuration, weekly meal plans, and approval workflows.
+- <code>notifications</code> - In-app notifications and direct messaging.</p>
+<h3 id="system-er-overview">System ER Overview</h3>
+<p>This diagram illustrates the high-level grouping and relationships between all schemas.</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph profiles_schema [profiles Schema]
+        direction TB
+        USER
+        USER_PROFILE
+        USER_PREFERENCES
+        FAMILY_ROLES
+        AGE_GROUP_CONFIG
+
+        USER --- USER_PROFILE
+        USER --- USER_PREFERENCES
+        FAMILY_ROLES --- USER_PROFILE
+        AGE_GROUP_CONFIG --- USER_PROFILE
+    end
+
+    subgraph shopping_schema [shopping Schema]
+        direction TB
+        SHOPPING_LISTS
+        SHOPPING_CATEGORIES
+        SHOPPING_ITEMS
+        SHOPPING_STORES
+        LOYALTY_CARDS
+        COUPONS
+        SHOPPING_LIST_ITEMS
+        SHOPPING_ITEM_PRICE_HISTORY
+
+        SHOPPING_CATEGORIES --- SHOPPING_ITEMS
+        SHOPPING_STORES --- LOYALTY_CARDS
+        SHOPPING_STORES --- COUPONS
+        SHOPPING_LISTS --- SHOPPING_LIST_ITEMS
+        SHOPPING_ITEMS --- SHOPPING_LIST_ITEMS
+        SHOPPING_STORES --- SHOPPING_LIST_ITEMS
+        SHOPPING_ITEMS --- SHOPPING_ITEM_PRICE_HISTORY
+        SHOPPING_STORES --- SHOPPING_ITEM_PRICE_HISTORY
+    end
+
+    subgraph recipes_schema [recipes Schema]
+        direction TB
+        RECIPES
+        RECIPE_PHOTOS
+        LABELS
+        RECIPE_INGREDIENTS
+        RECIPE_STEPS
+        RECIPE_COMMENTS
+        RECIPE_RATINGS
+        NUTRITION_ENTRIES
+
+        RECIPES --- RECIPE_PHOTOS
+        RECIPES --- RECIPE_INGREDIENTS
+        RECIPES --- RECIPE_STEPS
+        RECIPES --- RECIPE_COMMENTS
+        RECIPES --- RECIPE_RATINGS
+        SHOPPING_ITEMS --- NUTRITION_ENTRIES
+    end
+
+    subgraph meals_schema [meals Schema]
+        direction TB
+        MEAL_TIMES
+        MEAL_TIME_SCHEDULES
+        MEAL_PLANS
+        MEAL_PLAN_ENTRIES
+        MEAL_PLAN_ENTRY_RECIPES
+        MEAL_PLAN_ENTRY_MEMBERS
+
+        MEAL_TIMES --- MEAL_TIME_SCHEDULES
+        MEAL_PLANS --- MEAL_PLAN_ENTRIES
+        MEAL_PLAN_ENTRIES --- MEAL_PLAN_ENTRY_RECIPES
+        MEAL_PLAN_ENTRIES --- MEAL_PLAN_ENTRY_MEMBERS
+    end
+
+    subgraph notifications_schema [notifications Schema]
+        direction TB
+        NOTIFICATIONS
+        MESSAGES
+    end
+
+    %% Cross-schema relationships
+    USER -- "creates" --- SHOPPING_LISTS
+    USER -- "creates" --- RECIPES
+    USER -- "creates" --- MEAL_PLANS
+    USER -- "receives" --- NOTIFICATIONS
+    USER -- "sends" --- MESSAGES
+    SHOPPING_ITEMS -- "ingredient_of" --- RECIPE_INGREDIENTS
+    RECIPES -- "assigned_to" --- MEAL_PLAN_ENTRY_RECIPES
+
+    style profiles_schema fill:#f5f5f5,stroke:#333,stroke-width:2px
+    style shopping_schema fill:#fffde7,stroke:#333,stroke-width:2px
+    style recipes_schema fill:#e8f5e9,stroke:#333,stroke-width:2px
+    style meals_schema fill:#e3f2fd,stroke:#333,stroke-width:2px
+    style notifications_schema fill:#fce4ec,stroke:#333,stroke-width:2px</code></pre>
+<hr />
+<h2 id="profiles-schema">profiles Schema</h2>
+<p>This schema manages user accounts, extended profiles, family roles, and age-based classification.</p>
+<h3 id="detailed-entity-relationship-diagram">Detailed Entity Relationship Diagram</h3>
+<pre class="mermaid"><code>erDiagram
+    USER ||--|| USER_PROFILE : "has"
+    USER ||--|| USER_PREFERENCES : "has"
+    FAMILY_ROLES ||--o{ USER_PROFILE : "assigned_to"
+    AGE_GROUP_CONFIG ||--o{ USER_PROFILE : "classifies"
+
+    USER {
+        bigint id PK
+        varchar email UK
+        varchar first_name
+        varchar last_name
+        boolean enabled
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    USER_PROFILE {
+        bigint id PK
+        bigint user_id FK
+        text photo
+        varchar facebook
+        varchar mobile_phone
+        varchar instagram
+        varchar linkedin
+        date birthdate
+        bigint family_role_id FK
+        varchar age_group_name
+        integer version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    USER_PREFERENCES {
+        bigint id PK
+        bigint user_id FK
+        boolean show_shopping_widget
+        boolean show_coupons_widget
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    FAMILY_ROLES {
+        bigint id PK
+        varchar name UK
+        boolean immutable
+        timestamp created_at
+        timestamp updated_at
+        integer version
+    }
+
+    AGE_GROUP_CONFIG {
+        bigint id PK
+        varchar name UK
+        integer min_age
+        integer max_age
+        timestamp created_at
+        timestamp updated_at
+        integer version
+    }</code></pre>
+<h3 id="table-definitions">Table Definitions</h3>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>user</code></td>
+<td>Core authentication records linked to Google identities.</td>
+</tr>
+<tr>
+<td><code>user_profile</code></td>
+<td>Extended user data including social links and birthdate.</td>
+</tr>
+<tr>
+<td><code>user_preferences</code></td>
+<td>UI-specific settings like dashboard widget visibility.</td>
+</tr>
+<tr>
+<td><code>family_roles</code></td>
+<td>Predefined (Mother, Father, etc.) and custom family roles.</td>
+</tr>
+<tr>
+<td><code>age_group_config</code></td>
+<td>Definable age ranges used for automated classification.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="shopping-schema">shopping Schema</h2>
+<p>This schema contains all data related to the shopping experience, including shared lists and store management.</p>
+<h3 id="detailed-entity-relationship-diagram_1">Detailed Entity Relationship Diagram</h3>
+<pre class="mermaid"><code>erDiagram
+    USER ||--o{ SHOPPING_LISTS : "creates"
+    SHOPPING_CATEGORIES ||--o{ SHOPPING_ITEMS : "categorizes"
+    SHOPPING_STORES ||--o{ LOYALTY_CARDS : "has"
+    SHOPPING_STORES ||--o{ COUPONS : "has"
+    SHOPPING_LISTS ||--o{ SHOPPING_LIST_ITEMS : "contains"
+    SHOPPING_ITEMS ||--o{ SHOPPING_LIST_ITEMS : "is_part_of"
+    SHOPPING_STORES ||--o{ SHOPPING_LIST_ITEMS : "is_bought_at"
+    SHOPPING_ITEMS ||--o{ SHOPPING_ITEM_PRICE_HISTORY : "tracks"
+    SHOPPING_STORES ||--o{ SHOPPING_ITEM_PRICE_HISTORY : "recorded_at"
+
+    SHOPPING_LISTS {
+        bigint id PK
+        varchar name
+        text description
+        varchar status
+        bigint created_by FK
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+        timestamp completed_at
+    }
+
+    SHOPPING_LIST_ITEMS {
+        bigint id PK
+        bigint list_id FK
+        bigint item_id FK
+        bigint store_id FK
+        decimal quantity
+        varchar unit
+        decimal price
+        boolean bought
+        boolean unavailable
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SHOPPING_ITEMS {
+        bigint id PK
+        varchar name
+        text photo
+        bigint category_id FK
+        varchar unit
+        decimal pc_quantity
+        varchar pc_unit
+        decimal nutrition_sample_size
+        varchar nutrition_sample_unit
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SHOPPING_CATEGORIES {
+        bigint id PK
+        varchar name UK
+        text description
+        varchar icon
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SHOPPING_STORES {
+        bigint id PK
+        varchar name UK
+        text description
+        varchar icon
+        text photo
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    LOYALTY_CARDS {
+        bigint id PK
+        bigint store_id FK
+        varchar name
+        varchar number
+        varchar barcode_type
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    COUPONS {
+        bigint id PK
+        bigint store_id FK
+        varchar name
+        text description
+        varchar value
+        text photo
+        timestamp due_date
+        varchar code
+        varchar barcode_type
+        boolean used
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    SHOPPING_ITEM_PRICE_HISTORY {
+        bigint id PK
+        bigint item_id FK
+        bigint store_id FK
+        decimal price
+        timestamp recorded_at
+    }</code></pre>
+<h3 id="table-definitions_1">Table Definitions</h3>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>shopping_lists</code></td>
+<td>Shared lists with status tracking (PENDING, COMPLETED).</td>
+</tr>
+<tr>
+<td><code>shopping_list_items</code></td>
+<td>Individual entries in a list, including prices, bought status, and unavailable status.</td>
+</tr>
+<tr>
+<td><code>shopping_items</code></td>
+<td>Master catalog of items with <code>unit</code>, optional piece conversion (<code>pc_quantity</code>/<code>pc_unit</code>), and nutrition sample config (<code>nutrition_sample_size</code>/<code>nutrition_sample_unit</code>). Unique constraint on <code>(name, category_id)</code>.</td>
+</tr>
+<tr>
+<td><code>shopping_categories</code></td>
+<td>Taxonomies for organizing shopping items.</td>
+</tr>
+<tr>
+<td><code>shopping_stores</code></td>
+<td>Favorite shopping locations.</td>
+</tr>
+<tr>
+<td><code>loyalty_cards</code></td>
+<td>Digital storage for store cards with Barcode/QR support.</td>
+</tr>
+<tr>
+<td><code>coupons</code></td>
+<td>Store-specific discounts with expiration tracking and optional barcode (<code>code</code>/<code>barcode_type</code>).</td>
+</tr>
+<tr>
+<td><code>shopping_item_price_history</code></td>
+<td>Historical price data used for intelligent suggestions.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="recipes-schema">recipes Schema</h2>
+<p>This schema manages the family cookbook: recipes, photos, labels, ingredients, preparation steps, comments, ratings, and nutrition data.</p>
+<h3 id="detailed-entity-relationship-diagram_2">Detailed Entity Relationship Diagram</h3>
+<pre class="mermaid"><code>erDiagram
+    RECIPES ||--o{ RECIPE_PHOTOS : "has"
+    RECIPES ||--o{ RECIPE_LABELS : "tagged_with"
+    LABELS ||--o{ RECIPE_LABELS : "applied_to"
+    RECIPES ||--o{ RECIPE_INGREDIENTS : "contains"
+    RECIPES ||--o{ RECIPE_STEPS : "has"
+    RECIPES ||--o{ RECIPE_COMMENTS : "has"
+    RECIPES ||--o{ RECIPE_RATINGS : "rated_by"
+    SHOPPING_ITEMS ||--o{ RECIPE_INGREDIENTS : "used_in"
+    SHOPPING_ITEMS ||--o{ NUTRITION_ENTRIES : "has"
+    NUTRIENTS ||--o{ NUTRITION_ENTRIES : "defines"
+    USER ||--o{ RECIPES : "creates"
+    USER ||--o{ RECIPE_COMMENTS : "writes"
+    USER ||--o{ RECIPE_RATINGS : "rates"
+
+    RECIPES {
+        bigint id PK
+        varchar name
+        text description
+        integer servings
+        text source_link
+        text video_link
+        integer prep_time_minutes
+        bigint created_by FK
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECIPE_PHOTOS {
+        bigint id PK
+        bigint recipe_id FK
+        varchar photo_name
+        boolean is_default
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    LABELS {
+        bigint id PK
+        varchar name UK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECIPE_LABELS {
+        bigint recipe_id PK_FK
+        bigint label_id PK_FK
+    }
+
+    NUTRIENTS {
+        bigint id PK
+        varchar name UK
+        text description
+        varchar unit
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECIPE_INGREDIENTS {
+        bigint id PK
+        bigint recipe_id FK
+        bigint item_id FK
+        decimal quantity
+        varchar unit
+        varchar group_name
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECIPE_STEPS {
+        bigint id PK
+        bigint recipe_id FK
+        text instruction
+        integer time_minutes
+        integer sort_order
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECIPE_COMMENTS {
+        bigint id PK
+        bigint recipe_id FK
+        bigint user_id FK
+        text comment
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    RECIPE_RATINGS {
+        bigint id PK
+        bigint recipe_id FK
+        bigint user_id FK
+        integer rating
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    NUTRITION_ENTRIES {
+        bigint id PK
+        bigint item_id FK
+        bigint nutrient_id FK
+        decimal value
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }</code></pre>
+<h3 id="table-definitions_2">Table Definitions</h3>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>recipes</code></td>
+<td>Core recipe records with metadata, markdown description, and creator reference. Unique constraint on <code>(name, created_by)</code>.</td>
+</tr>
+<tr>
+<td><code>recipe_photos</code></td>
+<td>Photos referencing the centralized media service by <code>photo_name</code>. One can be designated as default via <code>is_default</code> boolean.</td>
+</tr>
+<tr>
+<td><code>labels</code></td>
+<td>Dynamic label catalog. Created on demand, auto-deleted when no recipe references them.</td>
+</tr>
+<tr>
+<td><code>recipe_labels</code></td>
+<td>Junction table linking recipes to labels (many-to-many).</td>
+</tr>
+<tr>
+<td><code>nutrients</code></td>
+<td>Master catalog of predefined nutrients (Energy, Fat, Protein, etc.) with name, description, and unit.</td>
+</tr>
+<tr>
+<td><code>recipe_ingredients</code></td>
+<td>Links shopping items as recipe ingredients with quantity, unit (same enum as shopping: KG, G, L, ML, PACK, UNIT), and optional <code>group_name</code> for visual grouping.</td>
+</tr>
+<tr>
+<td><code>recipe_steps</code></td>
+<td>Ordered preparation steps with markdown instructions and optional time. <code>sort_order</code> determines display order.</td>
+</tr>
+<tr>
+<td><code>recipe_comments</code></td>
+<td>User comments on recipes with author and timestamp. Column: <code>comment</code>.</td>
+</tr>
+<tr>
+<td><code>recipe_ratings</code></td>
+<td>Individual 1-5 star ratings per user per recipe (unique constraint on recipe_id + user_id). Column: <code>rating</code>. Average computed on-the-fly.</td>
+</tr>
+<tr>
+<td><code>nutrition_entries</code></td>
+<td>Nutrition data per shopping item, referencing the <code>nutrients</code> master table via <code>nutrient_id</code> FK. Unique constraint on <code>(item_id, nutrient_id)</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cross-schema-references">Cross-Schema References</h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>References</th>
+<th>On Delete</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>recipes.created_by</code></td>
+<td><code>profiles.user(id)</code></td>
+<td>RESTRICT</td>
+</tr>
+<tr>
+<td><code>recipe_comments.user_id</code></td>
+<td><code>profiles.user(id)</code></td>
+<td>CASCADE</td>
+</tr>
+<tr>
+<td><code>recipe_ratings.user_id</code></td>
+<td><code>profiles.user(id)</code></td>
+<td>CASCADE</td>
+</tr>
+<tr>
+<td><code>recipe_ingredients.item_id</code></td>
+<td><code>shopping.shopping_items(id)</code></td>
+<td>CASCADE</td>
+</tr>
+<tr>
+<td><code>nutrition_entries.item_id</code></td>
+<td><code>shopping.shopping_items(id)</code></td>
+<td>CASCADE</td>
+</tr>
+<tr>
+<td><code>nutrition_entries.nutrient_id</code></td>
+<td><code>recipes.nutrients(id)</code></td>
+<td>RESTRICT</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="meals-schema">meals Schema</h2>
+<p>This schema manages meal time configuration, weekly meal plans, and the approval/feedback workflow.</p>
+<h3 id="detailed-entity-relationship-diagram_3">Detailed Entity Relationship Diagram</h3>
+<pre class="mermaid"><code>erDiagram
+    MEAL_TIMES ||--o{ MEAL_TIME_SCHEDULES : "scheduled_at"
+    MEAL_PLANS ||--o{ MEAL_PLAN_ENTRIES : "contains"
+    MEAL_PLAN_ENTRIES }o--|| MEAL_TIMES : "for"
+    MEAL_PLAN_ENTRIES ||--o{ MEAL_PLAN_ENTRY_RECIPES : "includes"
+    MEAL_PLAN_ENTRIES ||--o{ MEAL_PLAN_ENTRY_ITEMS : "includes"
+    MEAL_PLAN_ENTRIES ||--o{ MEAL_PLAN_VOTES : "rated_by"
+    RECIPES ||--o{ MEAL_PLAN_ENTRY_RECIPES : "used_in"
+    USER ||--o{ MEAL_PLAN_ENTRY_RECIPES : "assigned_to"
+    USER ||--o{ MEAL_PLAN_VOTES : "votes"
+
+    MEAL_TIMES {
+        bigint id PK
+        varchar name
+        integer sort_order
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MEAL_TIME_SCHEDULES {
+        bigint id PK
+        bigint meal_time_id FK
+        integer day_of_week
+        time start_time
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MEAL_PLANS {
+        bigint id PK
+        date week_start_date UK
+        varchar status
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MEAL_PLAN_ENTRIES {
+        bigint id PK
+        bigint meal_plan_id FK
+        bigint meal_time_id FK
+        integer day_of_week
+        boolean is_done
+        bigint version
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MEAL_PLAN_ENTRY_RECIPES {
+        bigint id PK
+        bigint entry_id FK
+        bigint recipe_id FK
+        bigint user_id FK
+        decimal multiplier
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MEAL_PLAN_ENTRY_ITEMS {
+        bigint id PK
+        bigint entry_id FK
+        bigint item_id FK
+        bigint user_id FK
+        decimal quantity
+        varchar unit
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    MEAL_PLAN_VOTES {
+        bigint id PK
+        bigint entry_id FK
+        bigint user_id FK
+        boolean vote
+        timestamp created_at
+        timestamp updated_at
+    }</code></pre>
+<h3 id="table-definitions_3">Table Definitions</h3>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>meal_times</code></td>
+<td>Named meal occasions (e.g., Breakfast, Lunch, Dinner) with <code>sort_order</code> for display ordering.</td>
+</tr>
+<tr>
+<td><code>meal_time_schedules</code></td>
+<td>Per-day-of-week time configuration for each meal time. <code>day_of_week</code> uses 0-6 (0=Monday, 6=Sunday). Column: <code>start_time</code>.</td>
+</tr>
+<tr>
+<td><code>meal_plans</code></td>
+<td>Weekly plans with a unique <code>week_start_date</code> (Monday). Status: <code>PENDING</code>, <code>PUBLISHED</code>, <code>ACCEPTED</code>, <code>CHANGED</code>.</td>
+</tr>
+<tr>
+<td><code>meal_plan_entries</code></td>
+<td>Individual meal slots: a specific meal time on a specific day. Supports <code>is_done</code> flag.</td>
+</tr>
+<tr>
+<td><code>meal_plan_entry_recipes</code></td>
+<td>Recipes assigned to an entry with <code>multiplier</code> (default 1.0). <code>user_id</code> is nullable — null means "for everyone". Supports multi-recipe meals.</td>
+</tr>
+<tr>
+<td><code>meal_plan_entry_items</code></td>
+<td>Standalone shopping items assigned to an entry with <code>quantity</code> and <code>unit</code>. <code>user_id</code> is nullable — null means "for everyone".</td>
+</tr>
+<tr>
+<td><code>meal_plan_votes</code></td>
+<td>Thumbs up/down feedback per entry per user. Unique constraint on <code>(entry_id, user_id)</code>. <code>vote</code> boolean: true = thumbs-up, false = thumbs-down.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cross-schema-references_1">Cross-Schema References</h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>References</th>
+<th>On Delete</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>meal_plan_entry_recipes.recipe_id</code></td>
+<td><code>recipes.recipes(id)</code></td>
+<td>CASCADE</td>
+</tr>
+<tr>
+<td><code>meal_plan_entry_recipes.user_id</code></td>
+<td><code>profiles.user(id)</code></td>
+<td>SET NULL</td>
+</tr>
+<tr>
+<td><code>meal_plan_entry_items.item_id</code></td>
+<td><code>shopping.shopping_items(id)</code></td>
+<td>CASCADE</td>
+</tr>
+<tr>
+<td><code>meal_plan_entry_items.user_id</code></td>
+<td><code>profiles.user(id)</code></td>
+<td>SET NULL</td>
+</tr>
+<tr>
+<td><code>meal_plan_votes.user_id</code></td>
+<td><code>profiles.user(id)</code></td>
+<td>CASCADE</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="notifications-schema">notifications Schema</h2>
+<p>This schema manages in-app notifications and direct messaging between household members.</p>
+<h3 id="detailed-entity-relationship-diagram_4">Detailed Entity Relationship Diagram</h3>
+<pre class="mermaid"><code>erDiagram
+    USER ||--o{ NOTIFICATIONS : "receives"
+    USER ||--o{ MESSAGES : "sends"
+    USER ||--o{ MESSAGES : "receives"
+
+    NOTIFICATIONS {
+        bigint id PK
+        bigint recipient_id FK
+        bigint sender_id FK
+        varchar type
+        varchar title
+        text message
+        varchar link
+        boolean is_read
+        timestamp created_at
+    }
+
+    MESSAGES {
+        bigint id PK
+        bigint sender_id FK
+        bigint recipient_id FK
+        text content
+        boolean is_read
+        timestamp created_at
+    }</code></pre>
+<h3 id="table-definitions_4">Table Definitions</h3>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>notifications</code></td>
+<td>Typed notifications with <code>link</code> (URL path) for navigation and <code>sender_id</code>/<code>sender_name</code> for attribution. Types: <code>MEAL_PLAN_PUBLISHED</code>, <code>MEAL_REMINDER</code>, <code>NEW_RECIPE_COMMENT</code>, <code>NEW_MESSAGE</code>.</td>
+</tr>
+<tr>
+<td><code>messages</code></td>
+<td>Direct messages between household members with read status tracking.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="cross-schema-references_2">Cross-Schema References</h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>References</th>
+<th>On Delete</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>notifications.recipient_id</code></td>
+<td><code>profiles.user(id)</code></td>
+<td>CASCADE</td>
+</tr>
+<tr>
+<td><code>notifications.sender_id</code></td>
+<td><code>profiles.user(id)</code></td>
+<td>SET NULL</td>
+</tr>
+<tr>
+<td><code>messages.sender_id</code></td>
+<td><code>profiles.user(id)</code></td>
+<td>CASCADE</td>
+</tr>
+<tr>
+<td><code>messages.recipient_id</code></td>
+<td><code>profiles.user(id)</code></td>
+<td>CASCADE</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="media-schema">media Schema</h2>
+<p>This schema provides centralized binary photo storage for all modules.</p>
+<h3 id="table-definition">Table Definition</h3>
+<table>
+<thead>
+<tr>
+<th>Table</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>photos</code></td>
+<td>Binary image storage with unique <code>name</code>, <code>type</code> (profile, recipe, item, store), <code>extension</code>, <code>content_type</code>, and <code>data</code> (BYTEA). Served via <code>/api/images/{name}</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="columns">Columns</h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>BIGINT PK</td>
+<td>Auto-generated identifier.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>VARCHAR(255) UK</td>
+<td>Unique filename used as the URL path segment.</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>VARCHAR(50)</td>
+<td>Category: profile, recipe, item, store.</td>
+</tr>
+<tr>
+<td><code>extension</code></td>
+<td>VARCHAR(10)</td>
+<td>File extension: png, jpg, svg, etc.</td>
+</tr>
+<tr>
+<td><code>content_type</code></td>
+<td>VARCHAR(100)</td>
+<td>MIME type for HTTP response headers.</td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td>BYTEA</td>
+<td>Binary image content.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="technical-standards">Technical Standards</h2>
+<h3 id="common-columns">Common Columns</h3>
+<p>Every table (excluding junction or history tables) MUST include the following audit columns:
+- <code>created_at</code> TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+- <code>updated_at</code> TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+- <code>version</code> BIGINT NOT NULL DEFAULT 0 (Used for Optimistic Locking)</p>
+<h3 id="optimistic-locking">Optimistic Locking</h3>
+<p>The application uses the <code>version</code> column to implement optimistic locking. Any update that detects a version mismatch SHALL throw a <code>ValidationException</code>.</p>
+<h3 id="data-retention">Data Retention</h3>
+<div class="admonition note">
+<p class="admonition-title"><a href="../../../requirements/shopping-list/#fr-11"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12.5 7.25a.75.75 0 0 0-1.5 0v5.5c0 .27.144.518.378.651l3.5 2a.75.75 0 0 0 .744-1.302L12.5 12.315z"/><path d="M12 1c6.075 0 11 4.925 11 11s-4.925 11-11 11S1 18.075 1 12 5.925 1 12 1M2.5 12a9.5 9.5 0 0 0 9.5 9.5 9.5 9.5 0 0 0 9.5-9.5A9.5 9.5 0 0 0 12 2.5 9.5 9.5 0 0 0 2.5 12"/></svg></span> FR-11: Automatic Data Retention</a></p>
+<p>Completed shopping lists and their items older than 3 months are physically deleted by a daily scheduled task to maintain performance.</p>
+</div>
+<hr />
+<h2 id="related-documentation">Related Documentation</h2>
+<ul>
+<li><a href="../../backend/overview/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 1h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1m0 8h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1m0 8h16a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1M9 5h1V3H9zm0 8h1v-2H9zm0 8h1v-2H9zM5 3v2h2V3zm0 8v2h2v-2zm0 8v2h2v-2z"/></svg></span> Backend Architecture</a></li>
+<li><a href="../../backend/overview/#scheduled-tasks"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11.5 18.5c0-1.1.3-2.1.7-3H12c-1.9 0-3.5-1.6-3.5-3.5s1.6-3.5 3.5-3.5 3.5 1.6 3.5 3.5c0 .2 0 .4-.1.5.8-.3 1.6-.5 2.6-.5.5 0 1 .1 1.5.2V12c0-.3 0-.7-.1-1l2.1-1.6c.2-.2.2-.4.1-.6l-2-3.5c-.1-.3-.3-.3-.6-.3l-2.5 1c-.5-.4-1.1-.7-1.7-1l-.4-2.7c.1-.1-.2-.3-.4-.3h-4c-.2 0-.5.2-.5.4l-.4 2.7c-.6.2-1.1.6-1.7.9L5 5c-.3 0-.5 0-.7.3l-2 3.5c-.1.2 0 .4.2.6L4.6 11c0 .3-.1.7-.1 1s0 .7.1 1l-2.1 1.7c-.2.2-.2.4-.1.6l2 3.5c.1.2.3.2.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.7c0 .2.2.4.5.4h2.5c-.7-1.1-1.1-2.3-1.1-3.6m6.5-4V13l-2.2 2.2 2.2 2.2V16c1.4 0 2.5 1.1 2.5 2.5 0 .4-.1.8-.3 1.1l1.1 1.1c1.2-1.8.7-4.3-1.1-5.5-.6-.5-1.4-.7-2.2-.7m0 6.5c-1.4 0-2.5-1.1-2.5-2.5 0-.4.1-.8.3-1.1l-1.1-1.1c-1.2 1.8-.7 4.3 1.1 5.5.7.4 1.4.7 2.2.7V24l2.2-2.2-2.2-2.3z"/></svg></span> Automated Tasks</a></li>
+<li><a href="../../test-strategy/test-scenarios/"><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7 2v2h1v14a4 4 0 0 0 4 4 4 4 0 0 0 4-4V4h1V2zm4 14c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1m2-4c-.6 0-1-.4-1-1s.4-1 1-1 1 .4 1 1-.4 1-1 1m1-5h-4V4h4z"/></svg></span> Test Scenarios</a></li>
+</ul>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 Home Application
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/jlmonteiro/home-application" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://home-application.dev" target="_blank" rel="noopener" title="home-application.dev" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.36 14c.08-.66.14-1.32.14-2s-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2m-5.15 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 0 1-4.33 3.56M14.34 14H9.66c-.1-.66-.16-1.32-.16-2s.06-1.35.16-2h4.68c.09.65.16 1.32.16 2s-.07 1.34-.16 2M12 19.96c-.83-1.2-1.5-2.53-1.91-3.96h3.82c-.41 1.43-1.08 2.76-1.91 3.96M8 8H5.08A7.92 7.92 0 0 1 9.4 4.44C8.8 5.55 8.35 6.75 8 8m-2.92 8H8c.35 1.25.8 2.45 1.4 3.56A8 8 0 0 1 5.08 16m-.82-2C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2M12 4.03c.83 1.2 1.5 2.54 1.91 3.97h-3.82c.41-1.43 1.08-2.77 1.91-3.97M18.92 8h-2.95a15.7 15.7 0 0 0-1.38-3.56c1.84.63 3.37 1.9 4.33 3.56M12 2C6.47 2 2 6.5 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.instant", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy", "content.tooltips", "announce.dismiss", "toc.integrate"], "search": "../../../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>

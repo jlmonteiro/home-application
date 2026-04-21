@@ -1,0 +1,2562 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Household management platform for families">
+      
+      
+        <meta name="author" content="Home App Team">
+      
+      
+        <link rel="canonical" href="https://jlmonteiro.github.io/home-application/development/spock-tests-guidelines/">
+      
+      
+        <link rel="prev" href="../java-guidelines/">
+      
+      
+        <link rel="next" href="../frontend-guidelines/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.7">
+    
+    
+      
+        <title>Spock Tests - Home Application</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.8608ea7d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+      
+        <meta  property="og:type"  content="website" >
+      
+        <meta  property="og:title"  content="Spock Tests - Home Application" >
+      
+        <meta  property="og:description"  content="Household management platform for families" >
+      
+        <meta  property="og:image"  content="https://jlmonteiro.github.io/home-application/assets/images/social/development/spock-tests-guidelines.png" >
+      
+        <meta  property="og:image:type"  content="image/png" >
+      
+        <meta  property="og:image:width"  content="1200" >
+      
+        <meta  property="og:image:height"  content="630" >
+      
+        <meta  property="og:url"  content="https://jlmonteiro.github.io/home-application/development/spock-tests-guidelines/" >
+      
+        <meta  name="twitter:card"  content="summary_large_image" >
+      
+        <meta  name="twitter:title"  content="Spock Tests - Home Application" >
+      
+        <meta  name="twitter:description"  content="Household management platform for families" >
+      
+        <meta  name="twitter:image"  content="https://jlmonteiro.github.io/home-application/assets/images/social/development/spock-tests-guidelines.png" >
+      
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="black" data-md-color-accent="red">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#spock-tests-guidelines" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Home Application" class="md-header__button md-logo" aria-label="Home Application" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Home Application
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Spock Tests
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/jlmonteiro/home-application" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jlmonteiro/home-application
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../help/getting-started/" class="md-tabs__link">
+          
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  Development and Design Guidelines
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../specification/" class="md-tabs__link">
+          
+  
+  Specifications
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+  
+
+<nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Home Application" class="md-nav__button md-logo" aria-label="Home Application" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Home Application
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/jlmonteiro/home-application" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    jlmonteiro/home-application
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../help/getting-started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../help/shopping/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shopping Assistant
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../help/recipes-meals/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recipes &amp; Meals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../help/profile/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    User Profile
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Development and Design Guidelines
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Development and Design Guidelines
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Guidelines
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guidelines
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../java-guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Java Guidelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Spock Tests
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Spock Tests
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-test-structure-annotations" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Test Structure &amp; Annotations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Test Structure &amp; Annotations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#title-and-narrative" class="md-nav__link">
+    <span class="md-ellipsis">
+      Title and Narrative
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subject-annotation" class="md-nav__link">
+    <span class="md-ellipsis">
+      @Subject Annotation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#block-descriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Block Descriptions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#method-naming" class="md-nav__link">
+    <span class="md-ellipsis">
+      Method Naming
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-test-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Test Infrastructure
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Test Infrastructure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#base-integration-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      Base Integration Test
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#standard-annotation-stacks" class="md-nav__link">
+    <span class="md-ellipsis">
+      Standard Annotation Stacks
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-transaction-data-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Transaction &amp; Data Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Transaction &amp; Data Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#sql-test-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      SQL Test Data
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-mocking-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Mocking Strategy
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Mocking Strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wiremock-for-external-apis" class="md-nav__link">
+    <span class="md-ellipsis">
+      WireMock for External APIs
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mockitobean-for-side-effects" class="md-nav__link">
+    <span class="md-ellipsis">
+      @MockitoBean for Side Effects
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-data-driven-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. Data-Driven Testing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Data-Driven Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#validation-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Validation Testing
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-security-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. Security Testing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Security Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#oauth2-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      OAuth2 Authentication
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#role-based-access-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Role-Based Access Control
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-assertion-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. Assertion Patterns
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Assertion Patterns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#with-block-fail-fast" class="md-nav__link">
+    <span class="md-ellipsis">
+      with Block (Fail-Fast)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verifyall-block-soft-assertions" class="md-nav__link">
+    <span class="md-ellipsis">
+      verifyAll Block (Soft Assertions)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#expect-block" class="md-nav__link">
+    <span class="md-ellipsis">
+      expect Block
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exception-assertions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Exception Assertions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mockmvc-jsonpath" class="md-nav__link">
+    <span class="md-ellipsis">
+      MockMvc + JsonPath
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-helper-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. Helper Methods
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      AI Alignment
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend-guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Frontend Guidelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../frontend-e2e-tests-guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Frontend Tests
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database-guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Database Guidelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/documentation-guidelines/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Documentation Guidelines
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation/sdd/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    SDD Methodology
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Specifications
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Specifications
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2" id="__nav_4_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Design
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2">
+            <span class="md-nav__icon md-icon"></span>
+            Design
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/design/design/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_2" id="__nav_4_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Backend
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Backend
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/design/backend/overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_2_2" id="__nav_4_2_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    API
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_4_2_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/design/backend/api/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/design/backend/api/reference/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_3" id="__nav_4_2_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Frontend
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            Frontend
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/design/frontend/overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/design/frontend/ui-architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_4" id="__nav_4_2_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Database
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            Database
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/design/database/overview/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/design/database/schema/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Schema
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_2_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_2_5" id="__nav_4_2_5_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Test Strategy
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_4_2_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_2_5">
+            <span class="md-nav__icon md-icon"></span>
+            Test Strategy
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/design/test-strategy/architecture/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Test Architecture
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/design/test-strategy/test-scenarios/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Test Scenarios
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_3" id="__nav_4_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Requirements
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_3">
+            <span class="md-nav__icon md-icon"></span>
+            Requirements
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/requirements/requirements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Index
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/requirements/auth-profile/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Authentication / Profile
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/requirements/settings/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Settings
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/requirements/shopping-list/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shopping List
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/requirements/recipes-meals/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recipes & Meals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/requirements/notifications/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Notifications
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/requirements/documentation/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Documentation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/requirements/shared/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Common
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Roadmap
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            Roadmap
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/roadmap/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Index
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/roadmap/01-update-user-profile.tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    User Profile
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/roadmap/02-shopping-list.tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shopping List
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/roadmap/03-family-hierarchy.tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Family Hierarchy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../specification/roadmap/04-recipes-meals.tasks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Recipes & Meals
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="spock-tests-guidelines">Spock Tests Guidelines</h1>
+<h2 id="overview">Overview</h2>
+<p>This document defines the standards and patterns for writing <strong>Spock Framework</strong> tests in the Home Application backend. All tests are written in <strong>Groovy</strong> and follow BDD (Behavior-Driven Development) conventions to produce expressive, readable specifications.</p>
+<hr />
+<h2 id="1-test-structure-annotations">1. Test Structure &amp; Annotations</h2>
+<h3 id="title-and-narrative">Title and Narrative</h3>
+<p>Every spec class MUST include <code>@Title</code> and <code>@Narrative</code> annotations.</p>
+<div class="admonition success">
+<p class="admonition-title">Best Practices</p>
+<ul>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M.41 13.41 6 19l1.41-1.42L1.83 12m20.41-6.42L11.66 16.17 7.5 12l-1.43 1.41L11.66 19l12-12M18 7l-1.41-1.42-6.35 6.35 1.42 1.41z"/></svg></span> <code>@Title</code> — short, descriptive name of the component or feature.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M.41 13.41 6 19l1.41-1.42L1.83 12m20.41-6.42L11.66 16.17 7.5 12l-1.43 1.41L11.66 19l12-12M18 7l-1.41-1.42-6.35 6.35 1.42 1.41z"/></svg></span> <code>@Narrative</code> — user story format: <em>As a... I want... So that...</em></li>
+</ul>
+</div>
+<div class="highlight"><pre><span></span><code><span class="nd">@Title</span><span class="o">(</span><span class="s2">&quot;User Profile Service&quot;</span><span class="o">)</span>
+<span class="nd">@Narrative</span><span class="o">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">As a user</span>
+<span class="s2">I want to retrieve and update my profile information</span>
+<span class="s2">So that my account details are always accurate and up to date</span>
+<span class="s2">&quot;&quot;&quot;</span><span class="o">)</span>
+<span class="kd">class</span><span class="w"> </span><span class="nc">UserProfileServiceSpec</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">BaseIntegrationTest</span><span class="w"> </span><span class="o">{</span>
+</code></pre></div>
+<h3 id="subject-annotation">@Subject Annotation</h3>
+<p>Mark the primary bean under test with <code>@Subject</code> to distinguish it from supporting dependencies.</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@Autowired</span>
+<span class="nd">@Subject</span>
+<span class="n">ShoppingCatalogService</span><span class="w"> </span><span class="n">shoppingCatalogService</span>
+
+<span class="nd">@Autowired</span>
+<span class="n">ShoppingCategoryRepository</span><span class="w"> </span><span class="n">categoryRepository</span><span class="w">  </span><span class="c1">// supporting dependency</span>
+</code></pre></div>
+<h3 id="block-descriptions">Block Descriptions</h3>
+<p><code>given</code>, <code>when</code>, <code>then</code>, and <code>and</code> blocks MUST always contain a descriptive label. Code inside blocks must be indented.</p>
+<div class="admonition tip">
+<p class="admonition-title">Readable Specs</p>
+<p>Avoid long monolithic blocks. Split <code>then</code> into logical <code>and</code> blocks with clear descriptions.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span class="kt">def</span><span class="w"> </span><span class="nf">&quot;GET /api/user should return paginated list of profiles&quot;</span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nl">when:</span><span class="w"> </span><span class="s2">&quot;requesting all user profiles&quot;</span>
+<span class="w">        </span><span class="kt">def</span><span class="w"> </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mockMvc</span><span class="o">.</span><span class="na">perform</span><span class="o">(</span><span class="n">get</span><span class="o">(</span><span class="s2">&quot;/api/user&quot;</span><span class="o">))</span>
+
+<span class="w">    </span><span class="nl">then:</span><span class="w"> </span><span class="s2">&quot;response status and content type are correct&quot;</span>
+<span class="w">        </span><span class="n">response</span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">status</span><span class="o">().</span><span class="na">isOk</span><span class="o">())</span>
+<span class="w">                </span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">content</span><span class="o">().</span><span class="na">contentType</span><span class="o">(</span><span class="n">HAL_JSON_VALUE</span><span class="o">))</span>
+
+<span class="w">    </span><span class="nl">and:</span><span class="w"> </span><span class="s2">&quot;the list contains the expected users&quot;</span>
+<span class="w">        </span><span class="n">response</span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">jsonPath</span><span class="o">(</span><span class="s1">&#39;$._embedded.userProfiles&#39;</span><span class="o">).</span><span class="na">isArray</span><span class="o">())</span>
+<span class="w">                </span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">jsonPath</span><span class="o">(</span><span class="s1">&#39;$._embedded.userProfiles.length()&#39;</span><span class="o">).</span><span class="na">value</span><span class="o">(</span><span class="mi">2</span><span class="o">))</span>
+
+<span class="w">    </span><span class="nl">and:</span><span class="w"> </span><span class="s2">&quot;pagination metadata is correct&quot;</span>
+<span class="w">        </span><span class="n">response</span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">jsonPath</span><span class="o">(</span><span class="s1">&#39;$.page.totalElements&#39;</span><span class="o">).</span><span class="na">value</span><span class="o">(</span><span class="mi">2</span><span class="o">))</span>
+<span class="o">}</span>
+</code></pre></div>
+<h3 id="method-naming">Method Naming</h3>
+<p>Test method names should read as natural language specifications.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Pattern</th>
+<th style="text-align: left;">Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">Positive case</td>
+<td style="text-align: left;"><code>"should return user profile when user exists"</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Negative case</td>
+<td style="text-align: left;"><code>"should throw ObjectNotFoundException when user does not exist"</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">API endpoint</td>
+<td style="text-align: left;"><code>"GET /api/user should return paginated list of profiles"</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Conditional</td>
+<td style="text-align: left;"><code>"should default to Adult if birthdate is null"</code></td>
+</tr>
+<tr>
+<td style="text-align: left;">Security</td>
+<td style="text-align: left;"><code>"should deny access to Child for retrieving age groups"</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2-test-infrastructure">2. Test Infrastructure</h2>
+<h3 id="base-integration-test">Base Integration Test</h3>
+<p>All integration tests extend <code>BaseIntegrationTest</code>, which provides a shared <strong>Testcontainers</strong> PostgreSQL 17 instance.</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@Testcontainers</span>
+<span class="kd">abstract</span><span class="w"> </span><span class="kd">class</span><span class="w"> </span><span class="nc">BaseIntegrationTest</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">Specification</span><span class="w"> </span><span class="o">{</span>
+
+<span class="w">    </span><span class="nd">@Container</span>
+<span class="w">    </span><span class="nd">@ServiceConnection</span>
+<span class="w">    </span><span class="nd">@Shared</span>
+<span class="w">    </span><span class="kd">static</span><span class="w"> </span><span class="n">PostgreSQLContainer</span><span class="o">&lt;?&gt;</span><span class="w"> </span><span class="n">postgres</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">PostgreSQLContainer</span><span class="o">&lt;&gt;(</span><span class="s2">&quot;postgres:17&quot;</span><span class="o">)</span>
+<span class="w">            </span><span class="o">.</span><span class="na">withDatabaseName</span><span class="o">(</span><span class="s2">&quot;mydatabase&quot;</span><span class="o">)</span>
+<span class="w">            </span><span class="o">.</span><span class="na">withUsername</span><span class="o">(</span><span class="s2">&quot;myuser&quot;</span><span class="o">)</span>
+<span class="w">            </span><span class="o">.</span><span class="na">withPassword</span><span class="o">(</span><span class="s2">&quot;secret&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Never Override the Container</p>
+<p>The <code>@Shared</code> static container is reused across all specs in the test suite. Do not create additional PostgreSQL containers in individual specs.</p>
+</div>
+<h3 id="standard-annotation-stacks">Standard Annotation Stacks</h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:3"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><input id="__tabbed_1_3" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">API Tests</label><label for="__tabbed_1_2">Service Tests</label><label for="__tabbed_1_3">WireMock Tests</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nd">@SpringBootTest</span>
+<span class="nd">@ActiveProfiles</span><span class="o">(</span><span class="s2">&quot;test&quot;</span><span class="o">)</span>
+<span class="nd">@Transactional</span>
+<span class="nd">@AutoConfigureMockMvc</span>
+<span class="kd">class</span><span class="w"> </span><span class="nc">UserProfileControllerSpec</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">BaseIntegrationTest</span><span class="w"> </span><span class="o">{</span>
+
+<span class="w">    </span><span class="nd">@Autowired</span>
+<span class="w">    </span><span class="n">MockMvc</span><span class="w"> </span><span class="n">mockMvc</span>
+<span class="o">}</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nd">@SpringBootTest</span>
+<span class="nd">@ActiveProfiles</span><span class="o">(</span><span class="s2">&quot;test&quot;</span><span class="o">)</span>
+<span class="nd">@Transactional</span>
+<span class="kd">class</span><span class="w"> </span><span class="nc">UserProfileServiceSpec</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">BaseIntegrationTest</span><span class="w"> </span><span class="o">{</span>
+
+<span class="w">    </span><span class="nd">@Autowired</span>
+<span class="w">    </span><span class="nd">@Subject</span>
+<span class="w">    </span><span class="n">UserProfileService</span><span class="w"> </span><span class="n">userProfileService</span>
+<span class="o">}</span>
+</code></pre></div>
+</div>
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span class="nd">@SpringBootTest</span><span class="o">(</span><span class="n">properties</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">[</span>
+<span class="w">    </span><span class="s2">&quot;spring.cloud.openfeign.client.config.google-people-api.url=http://localhost:8089&quot;</span>
+<span class="o">])</span>
+<span class="nd">@ActiveProfiles</span><span class="o">(</span><span class="s2">&quot;test&quot;</span><span class="o">)</span>
+<span class="kd">class</span><span class="w"> </span><span class="nc">GooglePeopleServiceSpec</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">BaseIntegrationTest</span><span class="w"> </span><span class="o">{</span>
+
+<span class="w">    </span><span class="nd">@Shared</span>
+<span class="w">    </span><span class="n">WireMockServer</span><span class="w"> </span><span class="n">wireMockServer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">WireMockServer</span><span class="o">(</span><span class="n">wireMockConfig</span><span class="o">().</span><span class="na">port</span><span class="o">(</span><span class="mi">8089</span><span class="o">))</span>
+
+<span class="w">    </span><span class="kt">def</span><span class="w"> </span><span class="nf">setupSpec</span><span class="o">()</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="n">wireMockServer</span><span class="o">.</span><span class="na">start</span><span class="o">()</span><span class="w"> </span><span class="o">}</span>
+<span class="w">    </span><span class="kt">def</span><span class="w"> </span><span class="n">cleanupSpec</span><span class="o">()</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="n">wireMockServer</span><span class="o">.</span><span class="na">stop</span><span class="o">()</span><span class="w"> </span><span class="o">}</span>
+<span class="w">    </span><span class="kt">def</span><span class="w"> </span><span class="n">setup</span><span class="o">()</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="n">wireMockServer</span><span class="o">.</span><span class="na">resetAll</span><span class="o">()</span><span class="w"> </span><span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div>
+</div>
+</div>
+</div>
+<div class="admonition info">
+<p class="admonition-title">Test Security Configuration</p>
+<p>A dedicated <code>TestSecurityConfig</code> (<code>@Profile("test")</code>) disables CSRF and permits most requests, allowing API tests to run without full OAuth2 setup. Do not recreate this — it already exists at <code>config/TestSecurityConfig.groovy</code>.</p>
+</div>
+<hr />
+<h2 id="3-transaction-data-management">3. Transaction &amp; Data Management</h2>
+<div class="admonition success">
+<p class="admonition-title">Best Practices</p>
+<ul>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M.41 13.41 6 19l1.41-1.42L1.83 12m20.41-6.42L11.66 16.17 7.5 12l-1.43 1.41L11.66 19l12-12M18 7l-1.41-1.42-6.35 6.35 1.42 1.41z"/></svg></span> Use <code>@Transactional</code> on the spec class — each test runs in a transaction that is rolled back automatically.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M.41 13.41 6 19l1.41-1.42L1.83 12m20.41-6.42L11.66 16.17 7.5 12l-1.43 1.41L11.66 19l12-12M18 7l-1.41-1.42-6.35 6.35 1.42 1.41z"/></svg></span> Use <code>@Sql</code> to load test data from SQL scripts.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> AVOID <code>cleanup</code> blocks for data teardown — <code>@Transactional</code> rollback handles this.</li>
+</ul>
+</div>
+<h3 id="sql-test-data">SQL Test Data</h3>
+<p>Use <code>@Sql</code> on individual test methods to seed data. Scripts live in <code>src/test/resources/scripts/sql/</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="nd">@Sql</span><span class="o">(</span><span class="s2">&quot;/scripts/sql/user-profile-test-data.sql&quot;</span><span class="o">)</span>
+<span class="kt">def</span><span class="w"> </span><span class="nf">&quot;GET /api/user should return paginated list of profiles&quot;</span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+</code></pre></div>
+<div class="admonition info">
+<p class="admonition-title">Script Naming Convention</p>
+<p>Name scripts after the feature they support: <code>&lt;feature&gt;-test-data.sql</code> (e.g., <code>user-profile-test-data.sql</code>, <code>pagination-test-data.sql</code>).</p>
+</div>
+<hr />
+<h2 id="4-mocking-strategy">4. Mocking Strategy</h2>
+<p>Avoid mocking as much as possible. Use <code>@Autowired</code> to inject real Spring-managed beans backed by Testcontainers.</p>
+<div class="admonition tip">
+<p class="admonition-title">When to Mock</p>
+<p>Only mock when the real component is <strong>impractical</strong> to use in tests:</p>
+<ul>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M.41 13.41 6 19l1.41-1.42L1.83 12m20.41-6.42L11.66 16.17 7.5 12l-1.43 1.41L11.66 19l12-12M18 7l-1.41-1.42-6.35 6.35 1.42 1.41z"/></svg></span> <strong>External HTTP APIs</strong> — use WireMock to simulate third-party services.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M.41 13.41 6 19l1.41-1.42L1.83 12m20.41-6.42L11.66 16.17 7.5 12l-1.43 1.41L11.66 19l12-12M18 7l-1.41-1.42-6.35 6.35 1.42 1.41z"/></svg></span> <strong>Side effects</strong> — use <code>@MockitoBean</code> for services with irreversible side effects.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 13h-2V7h2m0 10h-2v-2h2M12 2A10 10 0 0 0 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg></span> AVOID mocking repositories, services, or adapters that can run against Testcontainers.</li>
+</ul>
+</div>
+<h3 id="wiremock-for-external-apis">WireMock for External APIs</h3>
+<div class="highlight"><pre><span></span><code><span class="n">wireMockServer</span><span class="o">.</span><span class="na">stubFor</span><span class="o">(</span><span class="n">get</span><span class="o">(</span><span class="n">urlPathEqualTo</span><span class="o">(</span><span class="s2">&quot;/people/me&quot;</span><span class="o">))</span>
+<span class="w">        </span><span class="o">.</span><span class="na">withHeader</span><span class="o">(</span><span class="s2">&quot;Authorization&quot;</span><span class="o">,</span><span class="w"> </span><span class="n">equalTo</span><span class="o">(</span><span class="s2">&quot;Bearer &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">token</span><span class="o">))</span>
+<span class="w">        </span><span class="o">.</span><span class="na">willReturn</span><span class="o">(</span><span class="n">aResponse</span><span class="o">()</span>
+<span class="w">                </span><span class="o">.</span><span class="na">withHeader</span><span class="o">(</span><span class="s2">&quot;Content-Type&quot;</span><span class="o">,</span><span class="w"> </span><span class="s2">&quot;application/json&quot;</span><span class="o">)</span>
+<span class="w">                </span><span class="o">.</span><span class="na">withBody</span><span class="o">(</span><span class="s2">&quot;&quot;&quot;{ &quot;birthdays&quot;: [{ &quot;date&quot;: { &quot;year&quot;: 1990, &quot;month&quot;: 5, &quot;day&quot;: 15 } }] }&quot;&quot;&quot;</span><span class="o">)))</span>
+</code></pre></div>
+<h3 id="mockitobean-for-side-effects">@MockitoBean for Side Effects</h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@MockitoBean</span>
+<span class="n">PhotoService</span><span class="w"> </span><span class="n">photoService</span>
+
+<span class="c1">// In test:</span>
+<span class="n">when</span><span class="o">(</span><span class="n">photoService</span><span class="o">.</span><span class="na">downloadAndConvertToBase64</span><span class="o">(</span><span class="n">pictureUrl</span><span class="o">)).</span><span class="na">thenReturn</span><span class="o">(</span><span class="s2">&quot;base64-mock-data&quot;</span><span class="o">)</span>
+</code></pre></div>
+<hr />
+<h2 id="5-data-driven-testing">5. Data-Driven Testing</h2>
+<p>Use <code>where</code> blocks with table notation for parameterized tests. Combine with <code>@Unroll</code> to generate individual test reports per data row.</p>
+<div class="admonition success">
+<p class="admonition-title">Best Practices</p>
+<ul>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M.41 13.41 6 19l1.41-1.42L1.83 12m20.41-6.42L11.66 16.17 7.5 12l-1.43 1.41L11.66 19l12-12M18 7l-1.41-1.42-6.35 6.35 1.42 1.41z"/></svg></span> Use <code>@Unroll</code> with <code>#variable</code> placeholders in the method name.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M.41 13.41 6 19l1.41-1.42L1.83 12m20.41-6.42L11.66 16.17 7.5 12l-1.43 1.41L11.66 19l12-12M18 7l-1.41-1.42-6.35 6.35 1.42 1.41z"/></svg></span> Use table notation in <code>where</code> blocks for readability.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M.41 13.41 6 19l1.41-1.42L1.83 12m20.41-6.42L11.66 16.17 7.5 12l-1.43 1.41L11.66 19l12-12M18 7l-1.41-1.42-6.35 6.35 1.42 1.41z"/></svg></span> Add a descriptive label to the <code>where:</code> block.</li>
+</ul>
+</div>
+<div class="highlight"><pre><span></span><code><span class="nd">@Unroll</span>
+<span class="kt">def</span><span class="w"> </span><span class="nf">&quot;should classify user correctly based on age: #ageYears years old&quot;</span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nl">given:</span><span class="w"> </span><span class="s2">&quot;a birthdate calculated from age&quot;</span>
+<span class="w">        </span><span class="kt">def</span><span class="w"> </span><span class="n">birthdate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">LocalDate</span><span class="o">.</span><span class="na">now</span><span class="o">().</span><span class="na">minusYears</span><span class="o">(</span><span class="n">ageYears</span><span class="o">)</span>
+
+<span class="w">    </span><span class="nl">when:</span><span class="w"> </span><span class="s2">&quot;classifying the birthdate&quot;</span>
+<span class="w">        </span><span class="kt">def</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ageClassificationService</span><span class="o">.</span><span class="na">classify</span><span class="o">(</span><span class="n">birthdate</span><span class="o">)</span>
+
+<span class="w">    </span><span class="nl">then:</span><span class="w"> </span><span class="s2">&quot;the correct age group is returned&quot;</span>
+<span class="w">        </span><span class="n">result</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">expectedGroup</span>
+
+<span class="w">    </span><span class="nl">where:</span><span class="w"> </span><span class="s2">&quot;various ages and their expected groups&quot;</span>
+<span class="w">        </span><span class="n">ageYears</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">expectedGroup</span>
+<span class="w">        </span><span class="mi">5</span><span class="w">        </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;Child&quot;</span>
+<span class="w">        </span><span class="mi">13</span><span class="w">       </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;Teenager&quot;</span>
+<span class="w">        </span><span class="mi">18</span><span class="w">       </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;Adult&quot;</span>
+<span class="o">}</span>
+</code></pre></div>
+<h3 id="validation-testing">Validation Testing</h3>
+<div class="highlight"><pre><span></span><code><span class="kt">def</span><span class="w"> </span><span class="nf">&quot;PUT /api/user/{id} should return 400 when #field is #scenario&quot;</span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nl">given:</span><span class="w"> </span><span class="s2">&quot;an update request with #scenario&quot;</span>
+<span class="w">        </span><span class="kt">def</span><span class="w"> </span><span class="n">requestBody</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">validUpdateRequestBody</span><span class="o">()</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="o">[(</span><span class="n">field</span><span class="o">):</span><span class="w"> </span><span class="n">value</span><span class="o">]</span>
+
+<span class="w">    </span><span class="nl">when:</span><span class="w"> </span><span class="s2">&quot;updating user profile with invalid data&quot;</span>
+<span class="w">        </span><span class="kt">def</span><span class="w"> </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mockMvc</span><span class="o">.</span><span class="na">perform</span><span class="o">(</span><span class="n">put</span><span class="o">(</span><span class="s2">&quot;/api/user/1&quot;</span><span class="o">)</span>
+<span class="w">                </span><span class="o">.</span><span class="na">contentType</span><span class="o">(</span><span class="n">MediaType</span><span class="o">.</span><span class="na">APPLICATION_JSON</span><span class="o">)</span>
+<span class="w">                </span><span class="o">.</span><span class="na">content</span><span class="o">(</span><span class="n">JsonOutput</span><span class="o">.</span><span class="na">toJson</span><span class="o">(</span><span class="n">requestBody</span><span class="o">)))</span>
+
+<span class="w">    </span><span class="nl">then:</span><span class="w"> </span><span class="s2">&quot;400 ProblemDetail is returned with specific field error&quot;</span>
+<span class="w">        </span><span class="n">response</span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">status</span><span class="o">().</span><span class="na">isBadRequest</span><span class="o">())</span>
+<span class="w">                </span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">jsonPath</span><span class="o">(</span><span class="s2">&quot;\$.errors.${field}&quot;</span><span class="o">).</span><span class="na">value</span><span class="o">(</span><span class="n">message</span><span class="o">))</span>
+
+<span class="w">    </span><span class="nl">where:</span>
+<span class="w">        </span><span class="n">field</span><span class="w">       </span><span class="o">|</span><span class="w"> </span><span class="n">scenario</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="n">value</span><span class="w">          </span><span class="o">|</span><span class="w"> </span><span class="n">message</span>
+<span class="w">        </span><span class="s2">&quot;email&quot;</span><span class="w">     </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;missing&quot;</span><span class="w">         </span><span class="o">|</span><span class="w"> </span><span class="kc">null</span><span class="w">           </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;Email is required&quot;</span>
+<span class="w">        </span><span class="s2">&quot;email&quot;</span><span class="w">     </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;invalid format&quot;</span><span class="w">  </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;not-an-email&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;Email must be valid&quot;</span>
+<span class="w">        </span><span class="s2">&quot;firstName&quot;</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;too long&quot;</span><span class="w">        </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;a&quot;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="mi">51</span><span class="w">       </span><span class="o">|</span><span class="w"> </span><span class="s2">&quot;First name must not exceed 50 characters&quot;</span>
+<span class="o">}</span>
+</code></pre></div>
+<hr />
+<h2 id="6-security-testing">6. Security Testing</h2>
+<h3 id="oauth2-authentication">OAuth2 Authentication</h3>
+<p>Use <code>oauth2Login()</code> to simulate authenticated users with specific attributes.</p>
+<div class="highlight"><pre><span></span><code><span class="nl">given:</span><span class="w"> </span><span class="s2">&quot;an authenticated user session&quot;</span>
+<span class="w">    </span><span class="kt">def</span><span class="w"> </span><span class="n">auth</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">oauth2Login</span><span class="o">().</span><span class="na">attributes</span><span class="w"> </span><span class="o">{</span><span class="w"> </span><span class="n">it</span><span class="o">.</span><span class="na">put</span><span class="o">(</span><span class="s2">&quot;email&quot;</span><span class="o">,</span><span class="w"> </span><span class="s2">&quot;user@example.com&quot;</span><span class="o">)</span><span class="w"> </span><span class="o">}</span>
+
+<span class="nl">when:</span><span class="w"> </span><span class="s2">&quot;requesting the &#39;me&#39; endpoint&quot;</span>
+<span class="w">    </span><span class="kt">def</span><span class="w"> </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mockMvc</span><span class="o">.</span><span class="na">perform</span><span class="o">(</span><span class="n">get</span><span class="o">(</span><span class="s2">&quot;/api/user/me&quot;</span><span class="o">).</span><span class="na">with</span><span class="o">(</span><span class="n">auth</span><span class="o">))</span>
+</code></pre></div>
+<h3 id="role-based-access-control">Role-Based Access Control</h3>
+<p>Use <code>user().roles()</code> to test <code>@PreAuthorize</code> restrictions. Always test both positive and negative cases.</p>
+<div class="highlight"><pre><span></span><code><span class="kt">def</span><span class="w"> </span><span class="nf">&quot;should allow Adult to retrieve age groups&quot;</span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nl">when:</span><span class="w"> </span><span class="s2">&quot;an Adult user requests age groups&quot;</span>
+<span class="w">        </span><span class="kt">def</span><span class="w"> </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mockMvc</span><span class="o">.</span><span class="na">perform</span><span class="o">(</span><span class="n">get</span><span class="o">(</span><span class="s2">&quot;/api/settings/age-groups&quot;</span><span class="o">)</span>
+<span class="w">                </span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">user</span><span class="o">(</span><span class="s2">&quot;adult&quot;</span><span class="o">).</span><span class="na">roles</span><span class="o">(</span><span class="s2">&quot;ADULT&quot;</span><span class="o">)))</span>
+
+<span class="w">    </span><span class="nl">then:</span><span class="w"> </span><span class="s2">&quot;access is granted&quot;</span>
+<span class="w">        </span><span class="n">response</span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">status</span><span class="o">().</span><span class="na">isOk</span><span class="o">())</span>
+<span class="o">}</span>
+
+<span class="kt">def</span><span class="w"> </span><span class="nf">&quot;should deny access to Child for retrieving age groups&quot;</span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nl">when:</span><span class="w"> </span><span class="s2">&quot;a Child user requests age groups&quot;</span>
+<span class="w">        </span><span class="kt">def</span><span class="w"> </span><span class="n">response</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mockMvc</span><span class="o">.</span><span class="na">perform</span><span class="o">(</span><span class="n">get</span><span class="o">(</span><span class="s2">&quot;/api/settings/age-groups&quot;</span><span class="o">)</span>
+<span class="w">                </span><span class="o">.</span><span class="na">with</span><span class="o">(</span><span class="n">user</span><span class="o">(</span><span class="s2">&quot;child&quot;</span><span class="o">).</span><span class="na">roles</span><span class="o">(</span><span class="s2">&quot;CHILD&quot;</span><span class="o">)))</span>
+
+<span class="w">    </span><span class="nl">then:</span><span class="w"> </span><span class="s2">&quot;access is forbidden&quot;</span>
+<span class="w">        </span><span class="n">response</span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">status</span><span class="o">().</span><span class="na">isForbidden</span><span class="o">())</span>
+<span class="o">}</span>
+</code></pre></div>
+<hr />
+<h2 id="7-assertion-patterns">7. Assertion Patterns</h2>
+<h3 id="with-block-fail-fast"><code>with</code> Block (Fail-Fast)</h3>
+<p>Use <code>with</code> for asserting multiple properties on a single object. Stops at the first failure.</p>
+<div class="highlight"><pre><span></span><code><span class="nl">then:</span><span class="w"> </span><span class="s2">&quot;user profile is returned with correct data&quot;</span>
+<span class="w">    </span><span class="n">result</span><span class="o">.</span><span class="na">isPresent</span><span class="o">()</span>
+<span class="w">    </span><span class="n">with</span><span class="o">(</span><span class="n">result</span><span class="o">.</span><span class="na">get</span><span class="o">())</span><span class="w"> </span><span class="o">{</span>
+<span class="w">        </span><span class="n">email</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;user@example.com&quot;</span>
+<span class="w">        </span><span class="n">firstName</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;John&quot;</span>
+<span class="w">        </span><span class="n">photo</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;photo.jpg&quot;</span>
+<span class="w">    </span><span class="o">}</span>
+</code></pre></div>
+<h3 id="verifyall-block-soft-assertions"><code>verifyAll</code> Block (Soft Assertions)</h3>
+<p>Use <code>verifyAll</code> when you want to see <strong>all</strong> failures at once rather than stopping at the first one. Ideal for adapter tests and data mapping verification.</p>
+<div class="highlight"><pre><span></span><code><span class="nl">then:</span><span class="w"> </span><span class="s2">&quot;DTO is correctly populated&quot;</span>
+<span class="w">    </span><span class="n">verifyAll</span><span class="o">(</span><span class="n">result</span><span class="o">)</span><span class="w"> </span><span class="o">{</span>
+<span class="w">        </span><span class="n">email</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;user@example.com&quot;</span>
+<span class="w">        </span><span class="n">firstName</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;John&quot;</span>
+<span class="w">        </span><span class="n">photo</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&quot;photo.jpg&quot;</span>
+<span class="w">    </span><span class="o">}</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">When to Use Each</p>
+<ul>
+<li><strong><code>with</code></strong> — default choice for most assertions. Fail-fast is useful during debugging.</li>
+<li><strong><code>verifyAll</code></strong> — prefer when checking many independent fields (e.g., adapter/mapper tests) where seeing all mismatches at once saves time.</li>
+</ul>
+</div>
+<h3 id="expect-block"><code>expect</code> Block</h3>
+<p>Use <code>expect</code> for simple, single-expression tests that have no setup or stimulus.</p>
+<div class="highlight"><pre><span></span><code><span class="kt">def</span><span class="w"> </span><span class="nf">&quot;toDTO should return null when user is null&quot;</span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="nl">expect:</span><span class="w"> </span><span class="s2">&quot;null input returns null&quot;</span>
+<span class="w">        </span><span class="n">UserProfileAdapter</span><span class="o">.</span><span class="na">toDTO</span><span class="o">(</span><span class="kc">null</span><span class="o">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span>
+<span class="o">}</span>
+</code></pre></div>
+<h3 id="exception-assertions">Exception Assertions</h3>
+<p>Use <code>thrown()</code> to verify expected exceptions.</p>
+<div class="highlight"><pre><span></span><code><span class="nl">when:</span><span class="w"> </span><span class="s2">&quot;updating non-existent user&quot;</span>
+<span class="w">    </span><span class="n">userProfileService</span><span class="o">.</span><span class="na">updateUserProfile</span><span class="o">(</span><span class="n">dto</span><span class="o">)</span>
+
+<span class="nl">then:</span><span class="w"> </span><span class="s2">&quot;ObjectNotFoundException is thrown&quot;</span>
+<span class="w">    </span><span class="n">thrown</span><span class="o">(</span><span class="n">ObjectNotFoundException</span><span class="o">)</span>
+</code></pre></div>
+<h3 id="mockmvc-jsonpath">MockMvc + JsonPath</h3>
+<p>Use <code>jsonPath</code> for API response assertions. Always verify status, content type, and body.</p>
+<div class="highlight"><pre><span></span><code><span class="nl">then:</span><span class="w"> </span><span class="s2">&quot;200 OK with HAL JSON is returned&quot;</span>
+<span class="w">    </span><span class="n">response</span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">status</span><span class="o">().</span><span class="na">isOk</span><span class="o">())</span>
+<span class="w">            </span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">content</span><span class="o">().</span><span class="na">contentType</span><span class="o">(</span><span class="n">HAL_JSON_VALUE</span><span class="o">))</span>
+
+<span class="nl">and:</span><span class="w"> </span><span class="s2">&quot;HATEOAS links are present&quot;</span>
+<span class="w">    </span><span class="n">response</span><span class="o">.</span><span class="na">andExpect</span><span class="o">(</span><span class="n">jsonPath</span><span class="o">(</span><span class="s1">&#39;$._links.self.href&#39;</span><span class="o">).</span><span class="na">value</span><span class="o">(</span><span class="n">containsString</span><span class="o">(</span><span class="s2">&quot;/api/user/${id}&quot;</span><span class="o">)))</span>
+</code></pre></div>
+<hr />
+<h2 id="8-helper-methods">8. Helper Methods</h2>
+<p>Extract reusable test data builders as <code>private</code> methods at the bottom of the spec class.</p>
+<div class="highlight"><pre><span></span><code><span class="kd">private</span><span class="w"> </span><span class="n">Map</span><span class="w"> </span><span class="nf">validUpdateRequestBody</span><span class="o">()</span><span class="w"> </span><span class="o">{</span>
+<span class="w">    </span><span class="o">[</span>
+<span class="w">        </span><span class="nl">email:</span><span class="w"> </span><span class="s2">&quot;valid@example.com&quot;</span><span class="o">,</span>
+<span class="w">        </span><span class="nl">firstName:</span><span class="w"> </span><span class="s2">&quot;John&quot;</span><span class="o">,</span>
+<span class="w">        </span><span class="nl">lastName:</span><span class="w"> </span><span class="s2">&quot;Doe&quot;</span><span class="o">,</span>
+<span class="w">        </span><span class="nl">enabled:</span><span class="w"> </span><span class="kc">true</span>
+<span class="w">    </span><span class="o">]</span>
+<span class="o">}</span>
+</code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Groovy Map Syntax</p>
+<p>Use Groovy's map literal syntax for building request bodies — it's concise and converts cleanly to JSON via <code>JsonOutput.toJson()</code>.</p>
+</div>
+<hr />
+<h2 id="ai-alignment">AI Alignment</h2>
+<div class="admonition info">
+<p class="admonition-title">Directives for AI Agents</p>
+<ul>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> ALWAYS include <code>@Title</code> and <code>@Narrative</code> annotations on every spec class.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> ALWAYS add descriptive labels to <code>given</code>, <code>when</code>, <code>then</code>, and <code>and</code> blocks.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> ALWAYS extend <code>BaseIntegrationTest</code> for integration tests.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> ALWAYS use <code>@Subject</code> on the primary bean under test.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> ALWAYS use <code>@Transactional</code> for automatic rollback — never use <code>cleanup</code> blocks for data teardown.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> ALWAYS use <code>@Sql</code> scripts for test data seeding, placed in <code>src/test/resources/scripts/sql/</code>.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> PREFER real injected components over mocks. Only mock external APIs (WireMock) or side-effect services (<code>@MockitoBean</code>).</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> USE <code>@Unroll</code> with <code>where</code> blocks for data-driven tests.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> USE <code>with</code> for fail-fast assertions, <code>verifyAll</code> for soft assertions on many fields.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> USE <code>expect</code> for simple single-expression tests with no setup.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> USE <code>oauth2Login()</code> for authenticated API tests and <code>user().roles()</code> for RBAC tests.</li>
+<li><span class="twemoji"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="m2.3 20.28 9.6-9.6-1.4-1.42-.72.71a.996.996 0 0 1-1.41 0l-.71-.71a.996.996 0 0 1 0-1.41l5.66-5.66a.996.996 0 0 1 1.41 0l.71.71c.39.39.39 1.02 0 1.41l-.71.69 1.42 1.43a.996.996 0 0 1 1.41 0c.39.39.39 1.03 0 1.42l1.41 1.41.71-.71c.39-.39 1.03-.39 1.42 0l.7.71c.39.39.39 1.03 0 1.42l-5.65 5.65c-.39.39-1.03.39-1.42 0l-.7-.7a.99.99 0 0 1 0-1.42l.7-.71-1.41-1.41-9.61 9.61a.996.996 0 0 1-1.41 0c-.39-.39-.39-1.03 0-1.42M20 19a2 2 0 0 1 2 2v1H12v-1a2 2 0 0 1 2-2z"/></svg></span> SPLIT long <code>then</code> blocks into logical <code>and</code> blocks with clear descriptions.</li>
+</ul>
+</div>
+
+
+
+
+
+
+
+  
+  
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2024 Home Application
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        <div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/jlmonteiro/home-application" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8M97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://home-application.dev" target="_blank" rel="noopener" title="home-application.dev" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.36 14c.08-.66.14-1.32.14-2s-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2m-5.15 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95a8.03 8.03 0 0 1-4.33 3.56M14.34 14H9.66c-.1-.66-.16-1.32-.16-2s.06-1.35.16-2h4.68c.09.65.16 1.32.16 2s-.07 1.34-.16 2M12 19.96c-.83-1.2-1.5-2.53-1.91-3.96h3.82c-.41 1.43-1.08 2.76-1.91 3.96M8 8H5.08A7.92 7.92 0 0 1 9.4 4.44C8.8 5.55 8.35 6.75 8 8m-2.92 8H8c.35 1.25.8 2.45 1.4 3.56A8 8 0 0 1 5.08 16m-.82-2C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2M12 4.03c.83 1.2 1.5 2.54 1.91 3.97h-3.82c.41-1.43 1.08-2.77 1.91-3.97M18.92 8h-2.95a15.7 15.7 0 0 0-1.38-3.56c1.84.63 3.37 1.9 4.33 3.56M12 2C6.47 2 2 6.5 2 12a10 10 0 0 0 10 10 10 10 0 0 0 10-10A10 10 0 0 0 12 2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.instant", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy", "content.tooltips", "announce.dismiss", "toc.integrate"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
